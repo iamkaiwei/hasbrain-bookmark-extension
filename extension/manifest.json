@@ -1,0 +1,36 @@
+{
+  "short_name": "hasBrain bookmark",
+  "name": "hasBrain bookmark",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_icon": "public/img/icon.png"
+  },
+  "background": {
+    "scripts": [
+      "injected/background.js"
+    ]
+  },
+  "permissions": [
+    "tabs",
+    "background",
+    "storage",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "run_at": "document_end",
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "public/js/axios.js",
+        "public/js/jquery.js",
+        "injected/highlight.js"
+      ],
+      "css": [
+        "public/css/mycss.css"
+      ]
+    }
+  ],
+  "version": "1.0"
+}

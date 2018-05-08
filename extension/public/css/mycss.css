@@ -1,0 +1,17 @@
+#tracker____button{
+    position: absolute;
+    background: #4BC3DB;
+    color: #fff;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    display: none;
+    box-shadow: rgba(0, 0, 0, 0.3) 0 0 2px;
+    opacity: 0.9;
+}
+
+#tracker____button:hover{
+    opacity: 1;
+}

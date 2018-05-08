@@ -17,6 +17,10 @@
     //    "history",
     "<all_urls>"
   ],
+  "web_accessible_resources": [
+    "pages/*",
+    "public/*"
+  ],
   "content_scripts": [
     { "run_at" :"document_end",
       "matches": ["<all_urls>"],
