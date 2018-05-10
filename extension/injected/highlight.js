@@ -1,8 +1,6 @@
 var profile = null
 
 $(document).ready(function (e) {
-  var isSending = false;
-
   var trackerButton = $('<a id="tracker____button" href="javascript:;">Add to highlight</a>')
   $('body').append(trackerButton)
 
@@ -90,6 +88,31 @@ $(document).ready(function (e) {
 
 
   })
+
+  chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+    if (msg.from === 'popup' && msg.method === 'ping') {
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+         chrome.tabs.sendMessage(tabs[0].id, {
+          from: 'event',
+          method:'ping'}, function(response) {
+            sendResponse(response.data);
+        });
+      });
+      return true; // <-- Indicate that sendResponse will be async
+    }
+  });
+
+
+
+
+
+
+
+function receiveMessage(event){
+  console.log(event)
+}
+window.addEventListener("message", receiveMessage, false);
+
 })
 
 function isDict(str) {return str.length > 0 && str.length < 50000;}

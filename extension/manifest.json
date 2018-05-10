@@ -32,5 +32,13 @@
       ]
     }
   ],
-  "version": "1.0"
+  "version": "1.0",
+  "web_accessible_resources": [
+    "/pages/popup.html",
+    "public/*",
+    "/pages/js/jquery.min.js"
+  ],
+  "externally_connectable": {
+    "matches": ["*://*.hasbrain.surge.sh/*"]
+  }
 }
