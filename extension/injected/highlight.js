@@ -103,15 +103,10 @@ $(document).ready(function (e) {
   });
 
 
-
-
-
-
-
-function receiveMessage(event){
-  console.log(event)
-}
-window.addEventListener("message", receiveMessage, false);
+  // function receiveMessage(event){
+  //   console.log(event)
+  // }
+  // window.addEventListener("message", receiveMessage, false);
 
 })
 
