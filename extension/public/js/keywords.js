@@ -917,3 +917,30 @@ const keywordsList = new Set([
   "Ibm Mq",
   "React"
 ]);
+
+function extract_tags(data) {
+  const start_parse_time = new Date();
+  const raw_words = data.match(/\w+/g) || [];
+
+  const tags_obj = raw_words.reduce((rs, val) => {
+    if (!keywordsList.has(val)) return rs;
+
+    if (!rs[val]) rs[val] = 0;
+    rs[val] += 1;
+    return rs;
+  }, {});
+
+  let full_tags = Object.keys(tags_obj).map(k => ({
+    name: k,
+    count: tags_obj[k]
+  }));
+
+  full_tags.sort((a, b) => {
+    return b.count - a.count;
+  });
+
+  const tags = full_tags.slice(0, 3).map(t => t.name);
+  const parse_time = new Date() - start_parse_time;
+
+  return { tags, parse_time };
+}

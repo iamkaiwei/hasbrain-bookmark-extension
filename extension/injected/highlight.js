@@ -44,45 +44,109 @@ $(document).ready(function (e) {
       for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
       if (des !== null) description = des.getAttribute("content")
       if (og !== null) photo = og.getAttribute("content")
-      if (keywork !== null) keywords = keywork.getAttribute("content")
-      else {
-        var src = [];
-        var imgs = document.images;
-        var size = 0
-        for (var i = 0, iLen = imgs.length; i < iLen; i++) {
-          var image = imgs[i]
-          var size2 = image.width * image.height
-          if (size2 > size) {
-            photo = image.src;
-            size = size2;
-          }
-        }
-      }
+      // if (keywork !== null) keywords = keywork.getAttribute("content")
+      // else {
+      //   var src = [];
+      //   var imgs = document.images;
+      //   var size = 0
+      //   for (var i = 0, iLen = imgs.length; i < iLen; i++) {
+      //     var image = imgs[i]
+      //     var size2 = image.width * image.height
+      //     if (size2 > size) {
+      //       photo = image.src;
+      //       size = size2;
+      //     }
+      //   }
+      // }
+      keywords = extract_tags(document.body.innerText)
+
+      // const content = {h1, h2, h3}
 
       const data = {
-        profile_id: profile._id,
         title,
         url,
-        photo,
-        description,
-        keywords,
-        readingTime,
-        highlight,
-        content: {h1, h2, h3}
+        sourceImage: photo,
+        shortDescription: description,
+        tags: keywords.tags,
+        readingTime
       }
       $(this).text('Adding...')
-      axios.post("https://hasbrain-api.mstage.io/highlight", data, {
-        headers: {
-          'x-hasbrain-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhYjMzNzI1ZTZlOTFlMGNlMDk4OWRlNCIsImlhdCI6MTUxNjIzOTAyMn0.anJXLAhnRxz37NxmiKtzk76KBZCH1RQXV1DuQCy1wMc'
-        }
-      }).then(function (res) {
-        console.log('resssssssssssss', res)
-        $(trackerButton).text('Success!')
-        isSending = false
-        setTimeout(function () {
-          $(trackerButton).css('display', 'none');
-        }, 500)
+      // axios.post("https://hasbrain-api.mstage.io/highlight", data, {
+      //   headers: {
+      //     'x-hasbrain-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhYjMzNzI1ZTZlOTFlMGNlMDk4OWRlNCIsImlhdCI6MTUxNjIzOTAyMn0.anJXLAhnRxz37NxmiKtzk76KBZCH1RQXV1DuQCy1wMc'
+      //   }
+      // }).then(function (res) {
+      //   console.log('resssssssssssss', res)
+      //   $(trackerButton).text('Success!')
+      //   isSending = false
+      //   setTimeout(function () {
+      //     $(trackerButton).css('display', 'none');
+      //   }, 500)
 
+      // })
+      var bookmarkToken = ''
+      var bookmarkData = data      
+      chrome.storage.sync.get('bookmark_token', result => {
+        bookmarkToken = result.bookmark_token
+        axios.post(
+          "https://contentkit-api.mstage.io/graphql",
+          JSON.stringify({
+            query: `
+              mutation ($record: CreateOnearticletypeInput!) {
+                user{
+                  articleCreateIfNotExist(record: $record) {
+                    recordId
+                  }
+                }
+              }
+            `,
+            variables: {
+              record: bookmarkData
+            }
+          }), {
+          headers: {
+            'Content-type': 'application/json',
+            'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+            'usertoken': bookmarkToken
+          }
+        }).then(function (res) {
+          if (res.status !== 200) return
+          const result = res.data
+          if (result && !result.errors) {
+            const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+            console.log('record', recordId)
+            axios.post(
+              "https://contentkit-api.mstage.io/graphql",
+              JSON.stringify({
+                query: `
+                  mutation{
+                    user{
+                      userhighlightCreate(record:{
+                        articleId: "${recordId}",
+                        highlight: "${highlight}"
+                      }) {
+                        recordId
+                      }
+                    }
+                  }
+                `
+              }), {
+              headers: {
+                'Content-type': 'application/json',
+                'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+                'usertoken': bookmarkToken
+              }
+            }).then(function (res) {
+              console.log('resssssssssssss', res)
+              $(trackerButton).text('Success!')
+              isSending = false
+              setTimeout(function () {
+                $(trackerButton).css('display', 'none');
+              }, 500)
+
+            })
+          }
+        })
       })
     }
 
@@ -101,13 +165,6 @@ $(document).ready(function (e) {
       return true; // <-- Indicate that sendResponse will be async
     }
   });
-
-
-  // function receiveMessage(event){
-  //   console.log(event)
-  // }
-  // window.addEventListener("message", receiveMessage, false);
-
 })
 
 function isDict(str) {return str.length > 0 && str.length < 50000;}

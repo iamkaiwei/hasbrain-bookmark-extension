@@ -95,7 +95,7 @@ $(document).ready(function() {
           $('#tags').importTags(tags.join(','))
           // let tagsHTML = ''
           // tags.map(tag => tagsHTML += `
-          //   <div class="ui tiny label">${tag}</div>
+        //   <div class="ui tiny label">${tag}</div>
           // `)
           // $('#tags__block').append(tagsHTML)
         })

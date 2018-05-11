@@ -1,33 +1,6 @@
 var profile = null
 var iframe = null
 
-function extract_tags(data) {
-  const start_parse_time = new Date();
-  const raw_words = data.match(/\w+/g) || [];
-
-  const tags_obj = raw_words.reduce((rs, val) => {
-    if (!keywordsList.has(val)) return rs;
-
-    if (!rs[val]) rs[val] = 0;
-    rs[val] += 1;
-    return rs;
-  }, {});
-
-  let full_tags = Object.keys(tags_obj).map(k => ({
-    name: k,
-    count: tags_obj[k]
-  }));
-
-  full_tags.sort((a, b) => {
-    return b.count - a.count;
-  });
-
-  const tags = full_tags.slice(0, 10).map(t => t.name);
-  const parse_time = new Date() - start_parse_time;
-
-  return { tags, parse_time };
-}
-
 chrome.storage.sync.get('bookmark_profile', result => {
   if (document.getElementById("iframe_popup")) {
     console.log('has iframe')
@@ -39,7 +12,7 @@ chrome.storage.sync.get('bookmark_profile', result => {
       tit = document.querySelector("meta[name='title"),
       og = document.querySelector("meta[property='og:image']"),
       des = document.querySelector("meta[name='description']"),
-      keywork = document.querySelector("meta[name='keywords']"),
+      // keywork = document.querySelector("meta[name='keywords']"),
       h1s = document.getElementsByTagName("h1"),
       h2s = document.getElementsByTagName("h2"),
       h3s = document.getElementsByTagName("h3"),
