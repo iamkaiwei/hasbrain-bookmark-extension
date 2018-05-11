@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css"></link>
+  <link rel="stylesheet" href="./styles/jquery.tagsinput.css">
   <link rel="stylesheet" href="./styles/style.css">
   <script type="text/javascript" src="../public/js/jquery.js"></script>
   <script type="text/javascript" src="../public/js/axios.js"></script>
+  <script type="text/javascript" src="../public/js/jquery.tagsinput.js"></script>
   <script type="text/javascript" src="../public/js/popup.js"></script>
 
   <title>popup</title>
@@ -14,15 +16,18 @@
   <div id='tracker-root'>
     <div class="ui segment">
       <div class="save__section" id="save__section">
-        <div id="saving">
+        <!-- <div id="saving__block">
           <div class="ui active inline loader tiny"></div> &nbsp; Saving
-        </div>
-        <div id="saved" style="display: none">
+        </div> -->
+        <div id="saved__block">
           Page Saved
+          <div class="tags__block" id="tags__block">
+            <input type="tags" id="tags" />
+          </div>
         </div>
       </div>
     </div>
-    <div class="ui segment">
+    <div class="ui segment" id="relative__news">
       <div class="relative__news">
         news
       </div>

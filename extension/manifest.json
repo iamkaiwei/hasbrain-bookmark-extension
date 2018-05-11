@@ -25,6 +25,7 @@
       "js": [
         "public/js/axios.js",
         "public/js/jquery.js",
+        "public/js/keywords.js",
         "injected/highlight.js"
       ],
       "css": [

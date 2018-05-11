@@ -1,5 +1,5 @@
 var profile = null
-
+var isSending = false
 $(document).ready(function (e) {
   var trackerButton = $('<a id="tracker____button" href="javascript:;">Add to highlight</a>')
   $('body').append(trackerButton)

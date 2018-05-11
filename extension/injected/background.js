@@ -24,8 +24,9 @@ chrome.runtime.onMessage.addListener(
     console.log(sender.tab ?
       "from a content script:" + sender.tab.url :
       "from the extension");
-    if (request.greeting == "hello")
-      // chrome.tabs.executeScript(null, {file: "injected/remove_iframe.js"});
+    if (request.action == "remove-iframe") {
+      chrome.tabs.executeScript(null, {file: "injected/remove_iframe.js"});
       sendResponse({farewell: "da nhan dc message cua ban. goodbye"});
+    }
   });
 
