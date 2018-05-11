@@ -20,10 +20,10 @@ function post({query, variables}) {
 
 $(document).ready(function() {
   setTimeout(() => {
-    // $('#saving').hide()
-    // $('#saved').show()
-    chrome.runtime.sendMessage('ldmmlifmnkjmikleigigbkffoamjakji', {action: 'hello'})
-  }, 500);
+    chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+      console.log(response.farewell);
+    });
+  }, 5500);
   // This callback function is never called, so no response is returned. 
   // But I can see message's sent successfully to event page from logs.
   // chrome.runtime.sendMessage('', {from: 'popup', method:'ping'},
