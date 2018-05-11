@@ -85,19 +85,86 @@ $(document).ready(function() {
           if (res.status !== 200) return
           $('#saving__block').hide()
           $('#saved__block').show()
+          $('#relative__news').show()
+
+          axios.post(
+            "https://contentkit-api.mstage.io/graphql",
+            JSON.stringify({
+              query: `
+                query{
+                  viewer{
+                    articlePagination(page: 1, perPage: 3) {
+                      count
+                      items {
+                        url
+                        title
+                        longDescription
+                        shortDescription
+                        readingTime
+                        state
+                        custom
+                        author
+                        sourceId
+                        sourceName
+                        sourceImage
+                        sourceCreateAt
+                        createdAt
+                        updatedAt
+                        projectId
+                      }
+                    }
+                  }
+                }
+              `
+            }),
+            {
+              headers: {
+                'Content-type': 'application/json',
+                'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+                'usertoken': bookmarkToken
+              }
+            }).then(res => {
+              if (res.status !== 200) return
+              $('#loading__news').hide()
+              $('#loaded__news').show()
+              const list = res.data.data.viewer.articlePagination.items
+              let newsHTMl = ''
+              list.map(item => newsHTMl += `
+                <div class="news__item">
+                  <div class="news__left">
+                    <img src='${item.sourceImage}' alt='' />
+                  </div>
+                  <div class="news__right">
+                    <div class="news__title">
+                      <a href='${item.url}' target="_blank">${item.title}</a>
+                    </div> 
+                  </div>
+                </div>
+              `)
+              $('#loaded__news').append(newsHTMl)
+
+              setTimeout(() => {
+                chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+                  console.log(response.farewell);
+                });
+              }, 10000)
+            })
+
           // setTimeout(() => {
-          //   console.log('setTimeout')
-          //   chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
-          //     console.log(response.farewell);
-          //   });
-          // }, 4000);
+          //   // console.log('setTimeout')
+          //   // chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+          //   //   console.log(response.farewell);
+          //   // });
+          //   $('#loading__news').hide()
+          //   $('#loaded__news').show()
+          //   setTimeout(() => {
+          //     chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+          //       console.log(response.farewell);
+          //     });
+          //   }, 4000)
+          // }, 1000);
           const tags = bookmarkData.tags || []
           $('#tags').importTags(tags.join(','))
-          // let tagsHTML = ''
-          // tags.map(tag => tagsHTML += `
-        //   <div class="ui tiny label">${tag}</div>
-          // `)
-          // $('#tags__block').append(tagsHTML)
         })
       }
     })

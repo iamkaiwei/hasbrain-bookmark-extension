@@ -1,4 +1,4 @@
-const keywordsList = new Set([
+const keywords = new Set([
   "Python",
   "Visualization",
   "Bokeh",
@@ -890,7 +890,9 @@ const keywordsList = new Set([
   "Conservational UI",
   "Alexa",
   "Siri",
+  "TensorFlow",
   "Tensorflow",
+  "tensorflow",
   "Product Development",
   "Recyclerview",
   "Gradle",
@@ -918,12 +920,12 @@ const keywordsList = new Set([
   "React"
 ]);
 
-function extract_tags(data) {
+const extract_tags = data => {
   const start_parse_time = new Date();
   const raw_words = data.match(/\w+/g) || [];
 
   const tags_obj = raw_words.reduce((rs, val) => {
-    if (!keywordsList.has(val)) return rs;
+    if (!keywords.has(val)) return rs;
 
     if (!rs[val]) rs[val] = 0;
     rs[val] += 1;
@@ -939,7 +941,7 @@ function extract_tags(data) {
     return b.count - a.count;
   });
 
-  const tags = full_tags.slice(0, 3).map(t => t.name);
+  const tags = full_tags.slice(0, 10).map(t => t.name);
   const parse_time = new Date() - start_parse_time;
 
   return { tags, parse_time };
