@@ -1,4 +1,4 @@
-const keywords = new Set([
+const hbTracker____keywordsList = new Set([
   "Python",
   "Visualization",
   "Bokeh",
@@ -925,7 +925,7 @@ const extract_tags = data => {
   const raw_words = data.match(/\w+/g) || [];
 
   const tags_obj = raw_words.reduce((rs, val) => {
-    if (!keywords.has(val)) return rs;
+    if (!hbTracker____keywordsList.has(val)) return rs;
 
     if (!rs[val]) rs[val] = 0;
     rs[val] += 1;
@@ -941,7 +941,7 @@ const extract_tags = data => {
     return b.count - a.count;
   });
 
-  const tags = full_tags.slice(0, 10).map(t => t.name);
+  const tags = full_tags.slice(0, 3).map(t => t.name);
   const parse_time = new Date() - start_parse_time;
 
   return { tags, parse_time };

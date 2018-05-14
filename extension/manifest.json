@@ -1,6 +1,6 @@
 {
-  "short_name": "hasBrain bookmark",
-  "name": "hasBrain bookmark",
+  "short_name": "hasBrain tracker",
+  "name": "hasBrain tracker",
   "manifest_version": 2,
   "browser_action": {
     "default_icon": "public/img/icon.png"

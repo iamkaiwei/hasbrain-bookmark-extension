@@ -131,10 +131,10 @@ $(document).ready(function() {
               let newsHTMl = ''
               list.map(item => newsHTMl += `
                 <div class="news__item">
-                  <div class="news__left">
-                    <img src='${item.sourceImage}' alt='' />
-                  </div>
                   <div class="news__right">
+                    <div class='bhTacker___news_thumb' style='background-image: url("${item.sourceImage}")'></div>
+                  </div>
+                  <div class="news__left">
                     <div class="news__title">
                       <a href='${item.url}' target="_blank">${item.title}</a>
                     </div> 
