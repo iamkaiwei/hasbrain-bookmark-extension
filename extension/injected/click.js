@@ -47,10 +47,10 @@ chrome.storage.sync.get('bookmark_profile', result => {
     iframe.id = 'iframe_popup'
     iframe.style.border = 'none'
     iframe.style.position = 'fixed'
-    iframe.style.top = '10px'
+    iframe.style.top = '0'
     iframe.style.right = '10px'
     iframe.style.zIndex = '1000'
-    iframe.style.height = '100%'
+    iframe.style.height = '500px'
     iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
     
     document.body.appendChild(iframe)

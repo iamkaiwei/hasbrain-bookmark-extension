@@ -59,7 +59,7 @@ div.tagsinput span.tag a {
   font-size: 11px;
 
 }
-
+#tracker-root { position: relative; overflow: hidden; }
 #tracker-root .ui.segment {background: #f5f5f5}
 
 input#tags_tag {
@@ -80,7 +80,7 @@ input#tags_tag {
 .news__item.news--bookmarking .initial { display: none !important }
 .news__item.news--bookmarked .loading { display: none !important }
 .news__item.news--bookmarked .done { display: inline-block !important }
-
+.news__item.news--bookmarked .initial { display: none !important }
 .news__item:last-child{margin: 0; padding:0; border: none}
 .news__left {width: 70%; float: left; height: 80px; padding-right: 5px;}
 .news__right {float: right}
@@ -91,3 +91,20 @@ input#tags_tag {
 .news__bookmark {cursor: pointer; color: #999; padding-top: 7px; font-size: 13px; display: inline-block; vertical-align: top;}
 .news__bookmark > .loader {display: none !important; margin-top: -3px !important}
 .news__bookmark:hover {color: #5599FF;}
+
+.tracker__progress { position: absolute; top: 10px; left: 0; width: 100% }
+.tracker__progress .line { height: 6px; background-color: orange; position: absolute; width: inherit; opacity: 0; }
+@keyframes progressLine {
+  from {
+    right: 0;
+  }
+  to {
+    right: -100%;
+  }
+}
+.progress--running .line { animation: progressLine 4s linear; opacity: 1; }
+.progress--pause .line { opacity: 1; }
+
+
+.remove__iframe { position: absolute; top: 10px; right: 12px; cursor: pointer; }
+.remove__iframe .icon { margin: 0 }

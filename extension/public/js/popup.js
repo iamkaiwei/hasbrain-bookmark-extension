@@ -4,8 +4,7 @@ var toRemoveIframe = null
 var articleQuery = `
   query{
     viewer{
-      articlePagination(page: 1, perPage: 3) {
-        count
+      articleRecommend(page: 1, perPage: 3) {
         items {
           id: _id
           url
@@ -57,7 +56,6 @@ function graphql({query, variables}) {
 }
 
 function bookmarkArticle (articleId) {
-  console.log('bookmark', articleId)
   $(`#${articleId}`).toggleClass('news--bookmarking')
   graphql({
     query: `
@@ -72,7 +70,6 @@ function bookmarkArticle (articleId) {
       }
     `
   }).then(res => {
-    console.log('bookmark res', res)
     $(`#${articleId}`).toggleClass('news--bookmarking')
     if (res.status !== 200) {
       return
@@ -94,9 +91,7 @@ $(document).ready(function() {
   // var bookmarkToken = ''
   // chrome.storage.sync.get('bookmark_token', result => bookmarkToken = result.bookmark_token)
   chrome.storage.sync.get('bookmark_data', result => {
-    // console.log('result', result)
     bookmarkData = JSON.parse(result.bookmark_data)
-    // console.log(bookmarkToken)
     graphql({
       query: `
         mutation ($record: CreateOnearticletypeInput!) {
@@ -115,7 +110,6 @@ $(document).ready(function() {
       const result = res.data
       if (result && !result.errors) {
         const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
-        console.log('record', recordId)
         graphql({
           query: `
             mutation{
@@ -129,7 +123,6 @@ $(document).ready(function() {
             }
           `
         }).then(res => {
-          console.log('user bookmark create', res)
           $('#saving__block').hide()
           if (res.status !== 200) {
             $('#save__error').show()
@@ -147,7 +140,7 @@ $(document).ready(function() {
               return
             }
             $('#loaded__news').show()
-            const list = res.data.data.viewer.articlePagination.items
+            const list = res.data.data.viewer.articleRecommend.items
 
             let newsHTMl = ''
             list.map(item => {
@@ -164,13 +157,13 @@ $(document).ready(function() {
               const newsActions = $(`<div class="news__actions">`)
               const bookmarkLink = $(`<div class="news__bookmark">
                 <div class="initial">
-                  <i class="bookmark outline icon"></i> Bookmark
+                  <i class="bookmark outline icon"></i> Save
                   </div>
                 <div class="loading">
-                  <div class="ui active inline loader mini"></div> &nbsp; Bookmarking
+                  <div class="ui active inline loader mini"></div> &nbsp; Saving
                   </div>
                 <div class="done">
-                  <i class="bookmark icon"></i> Bookmarked
+                  <i class="bookmark icon"></i> Saved
                 </div>
               </div>`)
               $(bookmarkLink).click(e => {
@@ -183,7 +176,8 @@ $(document).ready(function() {
               $(newsLeft).appendTo(newsItem)
               $(newsItem).appendTo($('#loaded__news'))
             })
-          }).catch(() => {
+            return true
+          }).catch((err) => {
             $('#loading__news').hide()
             $('#load__news__error').show()
           })
@@ -209,6 +203,8 @@ $(document).ready(function() {
   $( document ).hover(
     function(){
       console.log( "mouseEnter" );
+      $('#tracker-progress').addClass('progress--pause')
+      $('#tracker-progress').removeClass('progress--running')
       if (toRemoveIframe) {
         clearTimeout(toRemoveIframe)
         toRemoveIframe = null
@@ -216,6 +212,8 @@ $(document).ready(function() {
     },
     function(){
       console.log( "mouseLeave" );
+      $('#tracker-progress').addClass('progress--running')
+      $('#tracker-progress').removeClass('progress--pause')
       if (toRemoveIframe) {
         clearTimeout(toRemoveIframe)
         toRemoveIframe = null
@@ -228,6 +226,13 @@ $(document).ready(function() {
       }, 4000)
     }
   );
+
+  $('#remove__iframe').click(() => {
+    chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+      // console.log(response.farewell);
+      // callback message
+    });
+  })
 })
 
 
