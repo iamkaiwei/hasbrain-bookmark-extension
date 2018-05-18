@@ -1603,8 +1603,8 @@ const hbTracker____keywordsList = new Set([
 
 const extract_tags = data => {
   const start_parse_time = new Date();
-  const raw_words = data.match(/\w+/g) || [];
-
+  const sentences = extract_sentences(data);
+  const raw_words = extract_words(sentences);
   const tags_obj = raw_words.reduce((rs, val) => {
     if (!hbTracker____keywordsList.has(val)) return rs;
 
@@ -1613,7 +1613,7 @@ const extract_tags = data => {
     return rs;
   }, {});
 
-  let full_tags = Object.keys(tags_obj).map(k => ({
+  const full_tags = Object.keys(tags_obj).map(k => ({
     name: k,
     count: tags_obj[k]
   }));
@@ -1624,6 +1624,29 @@ const extract_tags = data => {
 
   const tags = full_tags.slice(0, 3).map(t => t.name);
   const parse_time = new Date() - start_parse_time;
-
   return { tags, parse_time };
 }
+
+const extract_sentences = data => {
+  return data.match(/[^\.!\?]+[\.!\?]+/g) || [];
+};
+
+const extract_words = (sentences, bound = 5) => {
+  let rs = [];
+
+  sentences.forEach(sentence => {
+    const words = sentence.match(/\w+/g) || [];
+
+    for (let i = 0; i < words.length; i++) {
+      rs.push(words[i])
+      let tmp = words[i]
+      
+      for (let j = i + 1; (j <= i + bound && j < words.length); j++) {
+        tmp += " " + words[j]
+        rs.push(tmp)
+      }
+    }
+  })
+
+  return rs;
+};

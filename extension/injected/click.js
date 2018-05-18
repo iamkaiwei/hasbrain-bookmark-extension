@@ -32,7 +32,6 @@ chrome.storage.sync.get('bookmark_profile', result => {
 
     if (des !== null) description = des.getAttribute("content")
     if (og !== null) photo = og.getAttribute("content")
-
     keywords = extract_tags(document.body.innerText)
     var bookmarkData = {url, title, sourceImage: photo, shortDescription: description, tags: keywords.tags, readingTime}
     
@@ -49,7 +48,7 @@ chrome.storage.sync.get('bookmark_profile', result => {
     iframe.style.position = 'fixed'
     iframe.style.top = '0'
     iframe.style.right = '10px'
-    iframe.style.zIndex = '1000'
+    iframe.style.zIndex = '10000'
     iframe.style.height = '500px'
     iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
     

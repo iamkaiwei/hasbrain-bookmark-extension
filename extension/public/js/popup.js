@@ -176,6 +176,11 @@ $(document).ready(function() {
               $(newsLeft).appendTo(newsItem)
               $(newsItem).appendTo($('#loaded__news'))
             })
+            if (list.length === 0) {
+              $('#loaded__news').append(`
+                <div>Not found any recommend news</div>
+              `)
+            }
             return true
           }).catch((err) => {
             $('#loading__news').hide()
