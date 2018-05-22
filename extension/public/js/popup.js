@@ -1,6 +1,6 @@
 var bookmarkData = {}
 var toRemoveIframe = null
-
+var articleId = ''
 var articleQuery = `
   query{
     viewer{
@@ -81,6 +81,158 @@ function bookmarkArticle (articleId) {
   }).catch(() => $(`#${articleId}`).toggleClass('news--bookmarking'))
 }
 
+function listSearch ({text, limit = 10, skip = 0, operator = 'or'}) {
+  return graphql({
+    query: `
+      query {
+        viewer {
+          listSearch(
+            query: {
+              bool: {
+                must: {
+                  query_string: {
+                    query: "${text}",
+                    default_operator: ${operator}
+                  }
+                }
+              }
+            },
+            limit: ${limit},
+            skip: ${skip}
+          ) {
+            count
+            items: hits {
+              data: fromMongo {
+                _id
+                title
+              }
+            }
+          }
+        }
+      }
+    `
+  }).then(res => {
+    if (res.status !== 200) {
+      return
+    }
+    const result = res.data
+    // console.log(result)
+    if (result && !result.errors) return {data: result.data.viewer.listSearch}
+    return result
+  })
+}
+
+function _handleUpdateTags () {
+  // console.log('articleId', articleId)
+  graphql({
+    query: `
+      mutation ($id: String, $tags: [String]) {
+        user {
+          articleUpdateTags (
+            id: $id,
+            tags: $tags
+          )
+        }
+      }
+    `,
+    variables: {
+      id: articleId,
+      tags: $('#tags').val()
+    }
+  }).then(res => {
+    console.log('update tags', res)
+  })
+}
+
+function listUpdate (listId) {
+  return graphql({
+    query: `
+      mutation ($record: addContentRecordInput, $filter: addContentFilterInput) {
+        user {
+          listAddContent (
+            record: $record,
+            filter: $filter
+          ) {
+            _id
+          }
+        }
+      }
+    `,
+    variables: {
+      record: {
+        contentId: articleId
+      },
+      filter: {
+        _id: listId
+      }
+    }
+  }).then(res => {
+    console.log('res', res)
+  }).catch(() => tagRemove(listId))
+}
+
+function listCreate (title) {
+  const searchSeries = $('#search_list')
+  
+  return graphql({
+    query: `
+      mutation {
+        user {
+          listCreate (record: {
+            title: "${title}"
+            contentIds: ["${articleId}"]
+          }) {
+            recordId
+          }
+        }
+      }
+    `
+  }).then(res => {
+    console.log('res', res)
+    if (res.status !== 200) return
+    const result = res.data
+    if (!result && result.errors) return
+    console.log(result.data.user.listCreate.recordId)
+    if (searchSeries.find('> a.ui.label').attr('data-value') === title) {
+      searchSeries.find('> a.ui.label').attr('data-value', result.data.user.listCreate.recordId)
+    }
+  }).catch(() => tagRemove(title))
+}
+
+function tagRemove (value) {
+  // remove tag list when update or create failed
+  const searchSeries = $('#search_list')
+  console.log(searchSeries.find(`> a.ui.label[data-value="${value}"]`))
+  searchSeries.find(`> a.ui.label[data-value="${value}"]`).remove()
+}
+
+function listRemove (id) {
+  return graphql({
+    query: `
+      mutation ($record: removeContentRecordInput, $filter: removeContentFilterInput) {
+        user {
+          listRemoveContent (
+            record: $record,
+            filter: $filter
+          ) {
+            _id
+          }
+        }
+      }
+    `,
+    variables: {
+      record: {
+        contentIds: [articleId]
+      },
+      filter: {
+        _id: id
+      }
+    }
+  }).then(res => {
+    console.log('res', res)
+  })
+}
+
 $(document).ready(function() {
   // This callback function is never called, so no response is returned. 
   // But I can see message's sent successfully to event page from logs.
@@ -90,8 +242,11 @@ $(document).ready(function() {
   //   });
   // var bookmarkToken = ''
   // chrome.storage.sync.get('bookmark_token', result => bookmarkToken = result.bookmark_token)
+
   chrome.storage.sync.get('bookmark_data', result => {
     bookmarkData = JSON.parse(result.bookmark_data)
+    const record = {...bookmarkData}
+    delete record.tags
     graphql({
       query: `
         mutation ($record: CreateOnearticletypeInput!) {
@@ -103,13 +258,14 @@ $(document).ready(function() {
         }
       `,
       variables: {
-        record: bookmarkData
+        record
       }
     }).then(function (res) {
       if (res.status !== 200) return
       const result = res.data
       if (result && !result.errors) {
         const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+        articleId = recordId
         graphql({
           query: `
             mutation{
@@ -197,47 +353,97 @@ $(document).ready(function() {
   })
 
   $('#tags').tagsInput({
-    'onAddTag': (e) => {
-      console.log('val', $('#tags').val())
-    },
-    'onRemoveTag': (e) => {
-      console.log('val', $('#tags').val())
-    }
+    'onAddTag': _handleUpdateTags,
+    'onRemoveTag': _handleUpdateTags
   });
 
-  $( document ).hover(
-    function(){
-      console.log( "mouseEnter" );
-      $('#tracker-progress').addClass('progress--pause')
-      $('#tracker-progress').removeClass('progress--running')
-      if (toRemoveIframe) {
-        clearTimeout(toRemoveIframe)
-        toRemoveIframe = null
-      }
-    },
-    function(){
-      console.log( "mouseLeave" );
-      $('#tracker-progress').addClass('progress--running')
-      $('#tracker-progress').removeClass('progress--pause')
-      if (toRemoveIframe) {
-        clearTimeout(toRemoveIframe)
-        toRemoveIframe = null
-      }
-      toRemoveIframe = setTimeout(() => {
-        chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
-          // console.log(response.farewell);
-          // callback message
-        });
-      }, 4000)
-    }
-  );
+  // $( document ).hover(
+  //   function(){
+  //     console.log( "mouseEnter" );
+  //     $('#tracker-progress').addClass('progress--pause')
+  //     $('#tracker-progress').removeClass('progress--running')
+  //     if (toRemoveIframe) {
+  //       clearTimeout(toRemoveIframe)
+  //       toRemoveIframe = null
+  //     }
+  //   },
+  //   function(){
+  //     console.log( "mouseLeave" );
+  //     $('#tracker-progress').addClass('progress--running')
+  //     $('#tracker-progress').removeClass('progress--pause')
+  //     if (toRemoveIframe) {
+  //       clearTimeout(toRemoveIframe)
+  //       toRemoveIframe = null
+  //     }
+  //     toRemoveIframe = setTimeout(() => {
+  //       chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+  //         // console.log(response.farewell);
+  //         // callback message
+  //       });
+  //     }, 4000)
+  //   }
+  // );
 
+  // remove iframe
   $('#remove__iframe').click(() => {
     chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
       // console.log(response.farewell);
       // callback message
     });
   })
+
+
+  // init dropdown search list
+  $('.ui.dropdown').dropdown({
+    forceSelection: false,
+    allowAdditions: true,
+    hideAdditions: false,
+    // onChange: (value, text) => console.log('on change', value, text),
+    onAdd: (addedValue, addedText, $addedChoice) => {
+      // console.log('on add new', addedValue, addedText, $addedChoice.attr('data-value'))
+      if (addedValue === addedText) {
+        console.log('create new')
+        listCreate(addedText)
+      } else {
+        console.log('updates')
+        listUpdate(addedValue)
+      }
+    },
+    onRemove: (removedValue, removedText) => {
+      // console.log('remove', removedValue, removedText)
+      listRemove(removedValue)
+    }
+  });
+
+  // search list event
+  const searchSeries = $('#search_list')
+  let toSearchSeries = null
+  $('.ui.dropdown .search').keyup(function () {
+    if (!searchSeries.hasClass('loading')) searchSeries.addClass('loading')
+    const text = $(this).val()
+    if (toSearchSeries) {
+      clearTimeout(toSearchSeries)
+      toSearchSeries = null
+    }
+    toSearchSeries = setTimeout(() => {
+      listSearch({text}).then(result => {
+        searchSeries.removeClass('loading')
+        if (!result && result.errors) return
+        const {items} = result.data
+        console.log('items, ', items)
+        searchSeries.find('.menu > .item:not(.addition)').remove()
+        items.map(item => searchSeries.find('.menu').append(`
+          <div class="item" data-value="${item.data._id}">${item.data.title}</div>
+        `))
+      }).catch(() => {
+        searchSeries.removeClass('loading')
+      })
+    }, 500)
+  })
+
+  // $('.ui.dropdown > a.ui.label i.icon.delete').on('click', function () {
+  //   console.log($(this).attr('data-value'))
+  // })
 })
 
 

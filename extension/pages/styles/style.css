@@ -3,12 +3,13 @@ body {
   background-color: transparent;
 }
 
-label {
+/* label {
   display: inline-block;
   width: 3.5em;
   text-align: right;
   padding: 0 5px;
-}
+} */
+
 input {
   display: inline-block;
   padding: 2px;

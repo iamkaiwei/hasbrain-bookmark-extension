@@ -26,14 +26,15 @@
         "public/js/axios.js",
         "public/js/jquery.js",
         "public/js/keywords.js",
-        "injected/highlight.js"
+        "injected/highlight.js",
+        "public/js/semantic.min.js"
       ],
       "css": [
         "public/css/mycss.css"
       ]
     }
   ],
-  "version": "3.4",
+  "version": "3.5",
   "web_accessible_resources": [
     "/pages/popup.html",
     "public/*",

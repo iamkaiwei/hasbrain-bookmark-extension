@@ -8,6 +8,7 @@
   <script type="text/javascript" src="../public/js/jquery.js"></script>
   <script type="text/javascript" src="../public/js/axios.js"></script>
   <script type="text/javascript" src="../public/js/jquery.tagsinput.js"></script>
+  <script type="text/javascript" src="../public/js/semantic.min.js"></script>  
   <script type="text/javascript" src="../public/js/popup.js"></script>
 
   <title>popup</title>
@@ -33,6 +34,20 @@
           <div class="tags__block" id="tags__block">
             <input type="tags" id="tags" />
           </div>
+          <div class="series__block">
+            <div class="ui form">
+              <div class="field">
+                <label>Add to series:</label>
+                <div class="ui fluid search selection multiple dropdown" id="search_list">
+                  <i class="dropdown icon"></i>
+                  <input class="search">
+                  <div class="default text">Search...</div>
+                  <div class="menu">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -50,5 +65,4 @@
     
   </div>
 </body>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.js"></script> -->
 </html>

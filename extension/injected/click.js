@@ -4,7 +4,7 @@ var iframe = null
 
 chrome.storage.sync.get('bookmark_profile', result => {
   if (document.getElementById("iframe_popup")) {
-    console.log('has iframe')
+    // console.log('has iframe')
     document.getElementById("iframe_popup").remove();
   }
   if (result.bookmark_profile) {
@@ -49,7 +49,7 @@ chrome.storage.sync.get('bookmark_profile', result => {
     iframe.style.top = '0'
     iframe.style.right = '10px'
     iframe.style.zIndex = '10000'
-    iframe.style.height = '500px'
+    iframe.style.height = '100%'
     iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
     
     document.body.appendChild(iframe)
