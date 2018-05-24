@@ -60,7 +60,7 @@ div.tagsinput span.tag a {
   font-size: 11px;
 
 }
-#tracker-root { position: relative; overflow: hidden; }
+#tracker-root { position: relative; }
 #tracker-root .ui.segment {background: #f5f5f5}
 
 input#tags_tag {
@@ -74,6 +74,7 @@ input#tags_tag {
   color: #999;
 }
 
+#saved__block { position: relative; }
 
 .news__item {overflow: hidden; clear: both; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #dddddd}
 .news__item .loading, .news__item .done {display: none !important}
@@ -93,7 +94,7 @@ input#tags_tag {
 .news__bookmark > .loader {display: none !important; margin-top: -3px !important}
 .news__bookmark:hover {color: #5599FF;}
 
-.tracker__progress { position: absolute; top: 10px; left: 0; width: 100% }
+.tracker__progress { position: absolute; top: -3px; left: 0; width: 100% }
 .tracker__progress .line { height: 6px; background-color: orange; position: absolute; width: inherit; opacity: 0; }
 @keyframes progressLine {
   from {
@@ -107,5 +108,17 @@ input#tags_tag {
 .progress--pause .line { opacity: 1; }
 
 
-.remove__iframe { position: absolute; top: 10px; right: 12px; cursor: pointer; }
-.remove__iframe .icon { margin: 0 }
+.remove__iframe { position: absolute; top: 14px; right: 15px; cursor: pointer; width: 20px; height: 20px; z-index: 10; }
+.remove__iframe > .icon { margin: 0; color: #999; width: inherit; height: inherit; border-radius: 5px; cursor: pointer; line-height: 20px; }
+
+/* setting block */
+.setting__block { position: absolute; top: 14px; right: 35px; width: 20px; height: 20px; z-index: 10; }
+.setting__block.show .setting__dropdown { display: block; }
+.setting__block > .icon { margin-right: 0; line-height: 20px; width: inherit; height: inherit; color: #999; border-radius: 5px; cursor: pointer; }
+.setting__block > .icon:hover, .remove__iframe > .icon:hover, .setting__item:hover { background-color: #50bcb6; color: #FFF; }
+
+.setting__dropdown { display: none; padding: 5px 0; background-color: #FFF; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #FFF; border-radius: 5px; position: absolute; right: 0; width: max-content; z-index: 10;}
+.setting__dropdown .ui.divider { margin: 0.3rem 0 ; }
+.setting__item { padding: 5px 10px; cursor: pointer; color: #999; }
+.setting__item a { color: inherit; }
+/* setting block *

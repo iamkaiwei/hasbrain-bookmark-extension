@@ -22,7 +22,41 @@
       <div id="remove__iframe" class="remove__iframe">
         <i class="close icon"></i>
       </div>
-      <div class="save__section" id="save__section">
+      <div class="setting__block" id="setting__block">
+        <i class="ellipsis vertical icon"></i>
+        <div class="setting__dropdown">
+          <div class="setting__item" id="archive__bookmark">
+            <i class="icon check"></i>
+            Archived Bookmark
+          </div>
+          <div class="setting__item" id="remove__bookmark">
+            <i class="icon trash alternate"></i>
+              Remove Bookmark
+          </div>
+          <div class="ui divider"></div>
+          <div class="setting__item">
+            <a href="http://hasbrain.surge.sh/" target="_blank">
+              <i class="icon external alternate"></i>
+              Go to hasBrain
+            </a>
+          </div>
+          <div class="setting__item" id="setting__btn">
+            <i class="icon setting"></i>
+            Settings
+          </div>
+        </div>
+      </div>
+      <div id="archive__block" class="archive__block" hidden>
+        <div id="archived" hidden>Archived</div>
+        <div id="archiving" hidden><div class="ui active inline loader tiny"></div> &nbsp; Archiving...</div>
+        <div id="archived__error" hidden><i class="exclamation triangle icon"></i> &nbsp; Archived error</div>
+      </div>
+      <div id="remove__block" class="remove__block" hidden>
+        <div id="removed" hidden>Removed</div>
+        <div id="removing" hidden><div class="ui active inline loader tiny"></div> &nbsp; Removing...</div>
+        <div id="removed__error" hidden><i class="exclamation triangle icon"></i> &nbsp; Removed error</div>
+      </div>
+      <div id="save__section" class="save__section">
         <div id="saving__block">
           <div class="ui active inline loader tiny"></div> &nbsp; Saving
         </div>
@@ -34,7 +68,7 @@
           <div class="tags__block" id="tags__block">
             <input type="tags" id="tags" />
           </div>
-          <div class="series__block">
+          <div class="series__block" style="margin-top: 10px">
             <div class="ui form">
               <div class="field">
                 <label>Add to series:</label>

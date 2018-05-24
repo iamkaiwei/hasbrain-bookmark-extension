@@ -168,6 +168,15 @@ function listUpdate (listId) {
     }
   }).then(res => {
     console.log('res', res)
+    if (res.status !== 200)  {
+      tagRemove(title)
+      return
+    }
+    const result = res.data
+    if (!result || result.errors )  {
+      tagRemove(title)
+      return
+    }
   }).catch(() => tagRemove(listId))
 }
 
@@ -188,11 +197,15 @@ function listCreate (title) {
       }
     `
   }).then(res => {
-    console.log('res', res)
-    if (res.status !== 200) return
+    if (res.status !== 200) {
+      tagRemove(title)
+      return
+    }
     const result = res.data
-    if (!result && result.errors) return
-    console.log(result.data.user.listCreate.recordId)
+    if (!result || result.errors)  {
+      tagRemove(title)
+      return
+    }
     if (searchSeries.find('> a.ui.label').attr('data-value') === title) {
       searchSeries.find('> a.ui.label').attr('data-value', result.data.user.listCreate.recordId)
     }
@@ -202,7 +215,6 @@ function listCreate (title) {
 function tagRemove (value) {
   // remove tag list when update or create failed
   const searchSeries = $('#search_list')
-  console.log(searchSeries.find(`> a.ui.label[data-value="${value}"]`))
   searchSeries.find(`> a.ui.label[data-value="${value}"]`).remove()
 }
 
@@ -230,6 +242,81 @@ function listRemove (id) {
     }
   }).then(res => {
     console.log('res', res)
+  })
+}
+
+function bookmarkArchive () {
+  return graphql({
+    query: `
+      mutation {
+        user {
+          bookmarkUpdateOne (
+            record: {
+              state: ${'archived'}
+            },
+            filter: {
+              articleId: "${articleId}"
+            }
+          ) {
+            recordId
+          }
+        }
+      }
+    `
+  }).then(res => {
+    $('#archiving').hide()
+    if (res.status !== 200) {
+      $('#archived__error').show()
+      return
+    }
+    const result = res.data
+    if (!result || result.errors) {
+      $('#archived__error').show()
+      return
+    }
+    $('#archived').show()
+  }).catch(() => {
+    $('#archiving').hide()
+    $('#archived__error').show()
+  })
+}
+
+function bookmarkRemove () {
+  // setTimeout(() => {
+  //   $('#removing').hide()
+  //   $('#removed').show()
+  //   $('#setting__block').remove()
+  // }, 1000)
+  return graphql({
+    query: `
+      mutation {
+        user {
+          bookmarkRemoveOne (
+            filter: {
+              articleId: "${articleId}"
+            }
+          ) {
+            recordId
+          }
+        }
+      }
+    `
+  }).then(res => {
+    $('#removing').hide()
+    if (res.status !== 200) {
+      $('#removed__error').show()
+      return
+    }
+    const result = res.data
+    if (!result || result.errors) {
+      $('#removed__error').show()
+      return
+    }
+    $('#setting__block').remove()
+    $('#removed').show()
+  }).catch(() => {
+    $('#removing').hide()
+    $('#removed__error').show()
   })
 }
 
@@ -263,92 +350,96 @@ $(document).ready(function() {
     }).then(function (res) {
       if (res.status !== 200) return
       const result = res.data
-      if (result && !result.errors) {
-        const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
-        articleId = recordId
-        graphql({
-          query: `
-            mutation{
-              user{
-                userbookmarkCreate(record:{
-                  articleId: "${recordId}"
-                }) {
-                  recordId
-                }
+      if (!result || result.errors) {
+        return
+      }
+      const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+      articleId = recordId
+      graphql({
+        query: `
+          mutation{
+            user{
+              userbookmarkCreate(record:{
+                articleId: "${recordId}"
+              }) {
+                recordId
               }
             }
-          `
+          }
+        `
+      }).then(res => {
+        $('#saving__block').hide()
+        if (res.status !== 200) {
+          $('#save__error').show()
+          return
+        }
+        $('#saved__block').show()
+        $('#relative__news').show()
+
+        graphql({
+          query: articleQuery
         }).then(res => {
-          $('#saving__block').hide()
+          $('#loading__news').hide()
           if (res.status !== 200) {
-            $('#save__error').show()
+            $('#load__news__error').show()
             return
           }
-          $('#saved__block').show()
-          $('#relative__news').show()
+          $('#loaded__news').show()
+          const list = res.data.data.viewer.articleRecommend.items
 
-          graphql({
-            query: articleQuery
-          }).then(res => {
-            $('#loading__news').hide()
-            if (res.status !== 200) {
-              $('#load__news__error').show()
-              return
-            }
-            $('#loaded__news').show()
-            const list = res.data.data.viewer.articleRecommend.items
-
-            let newsHTMl = ''
-            list.map(item => {
-              const newsItem = $(`<div class="news__item" id="${item.id}">
-                <div class="news__right">
-                  <div class='bhTacker___news_thumb' style='background-image: url("${item.sourceImage}")'></div>
+          let newsHTMl = ''
+          list.map(item => {
+            const newsItem = $(`<div class="news__item" id="${item.id}">
+              <div class="news__right">
+                <div class='bhTacker___news_thumb' style='background-image: url("${item.sourceImage}")'></div>
+              </div>
+            </div>`)
+            const newsLeft = $(`<div class="news__left">
+              <div class="news__title">
+                <a href='${item.url}' target="_blank">${item.title}</a>
+              </div>
+            </div>`)
+            const newsActions = $(`<div class="news__actions">`)
+            const bookmarkLink = $(`<div class="news__bookmark">
+              <div class="initial">
+                <i class="bookmark outline icon"></i> Save
                 </div>
-              </div>`)
-              const newsLeft = $(`<div class="news__left">
-                <div class="news__title">
-                  <a href='${item.url}' target="_blank">${item.title}</a>
+              <div class="loading">
+                <div class="ui active inline loader mini"></div> &nbsp; Saving
                 </div>
-              </div>`)
-              const newsActions = $(`<div class="news__actions">`)
-              const bookmarkLink = $(`<div class="news__bookmark">
-                <div class="initial">
-                  <i class="bookmark outline icon"></i> Save
-                  </div>
-                <div class="loading">
-                  <div class="ui active inline loader mini"></div> &nbsp; Saving
-                  </div>
-                <div class="done">
-                  <i class="bookmark icon"></i> Saved
-                </div>
-              </div>`)
-              $(bookmarkLink).click(e => {
-                e.preventDefault()
-                bookmarkArticle(item.id)
-              })
-
-              $(bookmarkLink).appendTo(newsActions)
-              $(newsActions).appendTo(newsLeft)
-              $(newsLeft).appendTo(newsItem)
-              $(newsItem).appendTo($('#loaded__news'))
+              <div class="done">
+                <i class="bookmark icon"></i> Saved
+              </div>
+            </div>`)
+            $(bookmarkLink).click(e => {
+              e.preventDefault()
+              bookmarkArticle(item.id)
             })
-            if (list.length === 0) {
-              $('#loaded__news').append(`
-                <div>Not found any recommend news</div>
-              `)
-            }
-            return true
-          }).catch((err) => {
-            $('#loading__news').hide()
-            $('#load__news__error').show()
+
+            $(bookmarkLink).appendTo(newsActions)
+            $(newsActions).appendTo(newsLeft)
+            $(newsLeft).appendTo(newsItem)
+            $(newsItem).appendTo($('#loaded__news'))
           })
-          const tags = bookmarkData.tags || []
-          $('#tags').importTags(tags.join(','))
-        }).catch(() => {
-          $('#saving__block').hide()
-          $('#save__error').show()
+          if (list.length === 0) {
+            $('#loaded__news').append(`
+              <div>Not found any recommend news</div>
+            `)
+          }
+          return true
+        }).catch((err) => {
+          $('#loading__news').hide()
+          $('#load__news__error').show()
         })
-      }
+        const tags = bookmarkData.tags || []
+        $('#tags').importTags(tags.join(','))
+      }).catch(() => {
+        $('#saving__block').hide()
+        $('#save__error').show()
+      })
+    }).catch(() => {
+      $('#saving__block').hide()
+      $('#save__error').show()
     })
   })
 
@@ -357,32 +448,32 @@ $(document).ready(function() {
     'onRemoveTag': _handleUpdateTags
   });
 
-  // $( document ).hover(
-  //   function(){
-  //     console.log( "mouseEnter" );
-  //     $('#tracker-progress').addClass('progress--pause')
-  //     $('#tracker-progress').removeClass('progress--running')
-  //     if (toRemoveIframe) {
-  //       clearTimeout(toRemoveIframe)
-  //       toRemoveIframe = null
-  //     }
-  //   },
-  //   function(){
-  //     console.log( "mouseLeave" );
-  //     $('#tracker-progress').addClass('progress--running')
-  //     $('#tracker-progress').removeClass('progress--pause')
-  //     if (toRemoveIframe) {
-  //       clearTimeout(toRemoveIframe)
-  //       toRemoveIframe = null
-  //     }
-  //     toRemoveIframe = setTimeout(() => {
-  //       chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
-  //         // console.log(response.farewell);
-  //         // callback message
-  //       });
-  //     }, 4000)
-  //   }
-  // );
+  $( document ).hover(
+    function(){
+      // console.log( "mouseEnter" );
+      $('#tracker-progress').addClass('progress--pause')
+      $('#tracker-progress').removeClass('progress--running')
+      if (toRemoveIframe) {
+        clearTimeout(toRemoveIframe)
+        toRemoveIframe = null
+      }
+    },
+    function(){
+      // console.log( "mouseLeave" );
+      $('#tracker-progress').addClass('progress--running')
+      $('#tracker-progress').removeClass('progress--pause')
+      if (toRemoveIframe) {
+        clearTimeout(toRemoveIframe)
+        toRemoveIframe = null
+      }
+      toRemoveIframe = setTimeout(() => {
+        chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+          // console.log(response.farewell);
+          // callback message
+        });
+      }, 4000)
+    }
+  );
 
   // remove iframe
   $('#remove__iframe').click(() => {
@@ -402,10 +493,10 @@ $(document).ready(function() {
     onAdd: (addedValue, addedText, $addedChoice) => {
       // console.log('on add new', addedValue, addedText, $addedChoice.attr('data-value'))
       if (addedValue === addedText) {
-        console.log('create new')
+        // console.log('create new')
         listCreate(addedText)
       } else {
-        console.log('updates')
+        // console.log('updates')
         listUpdate(addedValue)
       }
     },
@@ -428,9 +519,9 @@ $(document).ready(function() {
     toSearchSeries = setTimeout(() => {
       listSearch({text}).then(result => {
         searchSeries.removeClass('loading')
-        if (!result && result.errors) return
+        if (!result || result.errors) return
         const {items} = result.data
-        console.log('items, ', items)
+        // console.log('items, ', items)
         searchSeries.find('.menu > .item:not(.addition)').remove()
         items.map(item => searchSeries.find('.menu').append(`
           <div class="item" data-value="${item.data._id}">${item.data.title}</div>
@@ -440,10 +531,48 @@ $(document).ready(function() {
       })
     }, 500)
   })
+  let toShowDropdown = null
+  $('#setting__block').hover(
+    function () {
+      if (toShowDropdown) {
+        clearTimeout(toShowDropdown)
+        toShowDropdown = null
+      }
+      $(this).addClass('show')
+    },
+    function () {
+      if (toShowDropdown) {
+        clearTimeout(toShowDropdown)
+        toShowDropdown = null
+      }
+      toShowDropdown = setTimeout(() => {
+        $(this).removeClass('show')
+      }, 350)
+    }
+  )
+  $('.setting__item').click(() => {
+    $('#setting__block').removeClass('show')
+  })
+  $('#archive__bookmark').click(() => {
+    $('#setting__block').removeClass('show')
+    $('#save__section, #relative__news').remove()
+    $('#remove__block').hide()
+    $('#archive__block').show()
+    $('#archiving').show()
+    bookmarkArchive()
+  })
+  $('#remove__bookmark').click(() => {
+    $('#setting__block').removeClass('show')
+    $('#save__section, #relative__news').remove()
+    $('#archive__block').hide()
+    $('#remove__block').show()
+    $('#removing').show()
+    bookmarkRemove()
+  })
 
-  // $('.ui.dropdown > a.ui.label i.icon.delete').on('click', function () {
-  //   console.log($(this).attr('data-value'))
-  // })
+  $('#setting__btn').click(() => {
+    window.open(`chrome-extension://${chrome.runtime.id}/pages/options.html`)
+  })
 })
 
 
