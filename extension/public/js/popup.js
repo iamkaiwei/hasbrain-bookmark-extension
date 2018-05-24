@@ -27,6 +27,7 @@ var articleQuery = `
     }
   }
 `
+var profile = {}
 
 function graphql({query, variables}) {
   return new Promise(function(resolve, reject) {
@@ -86,7 +87,7 @@ function listSearch ({text, limit = 10, skip = 0, operator = 'or'}) {
     query: `
       query {
         viewer {
-          listSearch(
+          listSearchUser(
             query: {
               bool: {
                 must: {
@@ -117,7 +118,7 @@ function listSearch ({text, limit = 10, skip = 0, operator = 'or'}) {
     }
     const result = res.data
     // console.log(result)
-    if (result && !result.errors) return {data: result.data.viewer.listSearch}
+    if (result && !result.errors) return {data: result.data.viewer.listSearchUser}
     return result
   })
 }
@@ -282,11 +283,6 @@ function bookmarkArchive () {
 }
 
 function bookmarkRemove () {
-  // setTimeout(() => {
-  //   $('#removing').hide()
-  //   $('#removed').show()
-  //   $('#setting__block').remove()
-  // }, 1000)
   return graphql({
     query: `
       mutation {
@@ -330,8 +326,9 @@ $(document).ready(function() {
   // var bookmarkToken = ''
   // chrome.storage.sync.get('bookmark_token', result => bookmarkToken = result.bookmark_token)
 
-  chrome.storage.sync.get('bookmark_data', result => {
+  chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
     bookmarkData = JSON.parse(result.bookmark_data)
+    profile = JSON.parse(result.bookmark_profile)
     const record = {...bookmarkData}
     delete record.tags
     graphql({
@@ -374,9 +371,9 @@ $(document).ready(function() {
           return
         }
         $('#saved__block').show()
-        $('#relative__news').show()
-
-        graphql({
+        
+        !profile.hideRecommend && $('#relative__news').show()
+        !profile.hideRecommend && graphql({
           query: articleQuery
         }).then(res => {
           $('#loading__news').hide()

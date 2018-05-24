@@ -16,7 +16,8 @@ chrome.runtime.onMessageExternal.addListener(
     if (action === 'sign-out') {
       chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
     }
-  });
+  }
+);
 
 
 chrome.runtime.onMessage.addListener(

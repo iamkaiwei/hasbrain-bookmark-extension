@@ -43,3 +43,8 @@
   font-size: inherit;
   color: inherit;
 }
+
+.o__info {
+  font-size: 0.8em;
+  margin-top: 10px;
+}

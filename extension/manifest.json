@@ -34,7 +34,7 @@
       ]
     }
   ],
-  "version": "3.7",
+  "version": "3.8",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/options.html",
@@ -43,5 +43,6 @@
   ],
   "externally_connectable": {
     "matches": ["*://*.hasbrain.surge.sh/*"]
-  }
+  },
+  "options_page": "pages/options.html"
 }
