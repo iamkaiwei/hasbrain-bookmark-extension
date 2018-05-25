@@ -1,5 +1,6 @@
 let profile = {}
-function hideRecommend (hide = false) {
+
+function updateProfile (data) {
   return new Promise(function(resolve, reject) {
     chrome.storage.sync.get(['bookmark_profile', 'bookmark_token'], function(items) {
       if (chrome.runtime.lastError) {
@@ -9,7 +10,6 @@ function hideRecommend (hide = false) {
       }
     })
   }).then(result => {
-    console.log(result)
     if (!result) {
       return
     }
@@ -19,9 +19,7 @@ function hideRecommend (hide = false) {
     if (!id) return
     return axios.put(
       `https://userkit-identity.mstage.io/v1/profiles/${id}`,
-      JSON.stringify({
-        hideRecommend: hide
-      }),
+      JSON.stringify(data),
       {
         headers: {
           'Content-Type': 'application/json',
@@ -33,15 +31,15 @@ function hideRecommend (hide = false) {
     if (!profile.id || respond.status !== 200) {
       return
     }
-    const {hideRecommend = false} = respond.data
+    const {hideRecommend = false, highlight_whitelist = []} = respond.data
     chrome.storage.sync.set({
-      'bookmark_profile': JSON.stringify({...profile, hideRecommend})
+      'bookmark_profile': JSON.stringify({...profile, hideRecommend, highlight_whitelist})
     })
   })
 }
 
 function renderUserInfo () {
-  const {name = '', account_email = '', hideRecommend = false} = profile
+  const {name = '', account_email = '', hideRecommend = false, highlight_whitelist = []} = profile
   accountName = name
   accountEmail = account_email
   const logout = $(`<button>Logout</button>`)
@@ -59,6 +57,13 @@ function renderUserInfo () {
   $(logout).appendTo($('#user__logged'))
   $('#user__logged').append(' )')
   $('#recommend_checkbox').checkbox(`set ${hideRecommend ? 'unchecked' : 'checked'}`);
+  $('#highlight').importTags(highlight_whitelist.join(','))
+}
+
+function _handleUpdateTags () {
+  updateProfile({
+    highlight_whitelist: $('#highlight').val().length ? $('#highlight').val().split(',') : []
+  })
 }
 
 $(document).ready(function() {
@@ -73,31 +78,19 @@ $(document).ready(function() {
     }
     profile = JSON.parse(result.bookmark_profile)
     renderUserInfo()
-    // const {name = '', account_email = '', hideRecommend = false} = profile
-    // accountName = name
-    // accountEmail = account_email
-    // const logout = $(`<button>Logout</button>`)
-    // $(logout).click(() => {
-    //   profile = {}
-    //   chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
-    //   $('#user__logged').html('')
-    //   $(login).appendTo($('#user__logged'))
-    // })
-    // $('#user__logged').append(`
-    //   ${accountEmail}
-    // `)
-    // $('#user__logged').append('( ')
-    // $(logout).appendTo($('#user__logged'))
-    // $('#user__logged').append(' )')
-    // $('#recommend_checkbox').checkbox(`set ${hideRecommend ? 'unchecked' : 'checked'}`);
   })
   $('#recommend_checkbox').checkbox({
     onChecked: function () {
-      hideRecommend()
+      updateProfile({hideRecommend: false})
     },
     onUnchecked: function () {
-      hideRecommend(true)
+      updateProfile({hideRecommend: true})
     }
+  })
+
+  $('#highlight').tagsInput({
+    'onAddTag': _handleUpdateTags,
+    'onRemoveTag': _handleUpdateTags
   })
 })
 

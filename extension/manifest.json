@@ -34,7 +34,7 @@
       ]
     }
   ],
-  "version": "3.8",
+  "version": "3.10",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/options.html",

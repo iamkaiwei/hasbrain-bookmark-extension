@@ -1,30 +1,85 @@
 var profile = null
 var isSending = false
-$(document).ready(function (e) {
-  var trackerButton = $('<a id="tracker____button" href="javascript:;">Add to highlight</a>')
-  $('body').append(trackerButton)
+var trackerButton = $('<a id="tracker__button" href="javascript:;"><img src="https://image.flaticon.com/icons/svg/751/751379.svg" alt="" /> <span>Add to highlight</span></a>')
 
-  $(this).mouseup(function (e) {
-    $(trackerButton).text('Add to highlight')
-    chrome.storage.sync.get('bookmark_profile', result => {
-      if (result.bookmark_profile) {
-        profile = JSON.parse(result.bookmark_profile)
-        var selection = $.trim(getSelected().toString());
-        $(trackerButton).css('display', 'none');
-        if (isDict(selection.toString())) {
-          $(trackerButton)
-            .css('display', 'none').css({
-            'left': e.pageX,
-            'top': e.pageY - 48,
-            'display': 'block'
-          }).attr('rel', selection);
-        }
+function checkHighlightWhitelist () {
+  return new Promise(function(resolve, reject) {
+    chrome.storage.sync.get(['bookmark_profile'], function(items) {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError.message);
+      } else {
+        resolve(items);
       }
     })
+  }).then(result => {
+    if (!result || !result.bookmark_profile) return false
+    const {bookmark_profile = '{}'} = result
+    profile = JSON.parse(bookmark_profile)
+    const domain = document.domain
+    const highlight_whitelist = profile.highlight_whitelist || []
+    if ( (!domain.includes('www') && highlight_whitelist.indexOf('www.' + domain) !== -1) ||
+      highlight_whitelist.indexOf(domain) !== -1
+    ) return true
+    return false
+  }).then(res => res)
+}
+
+async function renderBtnHighlight (e) {
+  var showBtn = await checkHighlightWhitelist()
+  if (!showBtn) return
+  $('body').append(trackerButton)
+  // $(trackerButton).find('span').text('Add to highlight')
+  var selection = $.trim(getSelected().toString());
+  $(trackerButton).css('display', 'none');
+  if (isDict(selection.toString())) {
+    $(trackerButton)
+      .css('display', 'none').css({
+      // 'left': e.pageX,
+      // 'top': e.pageY - 48,
+      'display': 'flex'
+    }).attr('rel', selection);
+  }
+}
+
+function _renderErrorHighlight () {
+  isSending = false
+  $(trackerButton).find('span').text('Error...!')
+  _renderInitialHighlight()
+}
+
+function _renderInitialHighlight () {
+  setTimeout(function () {
+    $(trackerButton).find('span').text('Add to highlight')
+    $(trackerButton).removeClass('show')
+    $(trackerButton).css('display', 'none');
+  }, 1000)
+}
+
+$(document).ready(function (e) {
+  $(this).mouseup(function (e) {
+    if (!profile) {
+      chrome.storage.sync.get('bookmark_profile', result => {
+        if (!result.bookmark_profile) return
+        profile = JSON.parse(result.bookmark_profile)
+        renderBtnHighlight(e)
+      })
+      return
+    }
+    renderBtnHighlight(e)
   });
+
+  $(trackerButton).hover(
+    function () {
+      $(this).addClass('show')
+    },
+    function () {
+      $(this).removeClass('show')
+    }
+  )
 
   $(trackerButton).click(function () {
     if (!isSending) {
+      $(trackerButton).find('span').text('Adding...')
       isSending = true
       var photo = null, description = null,
         og = document.querySelector("meta[property='og:image']"),
@@ -70,20 +125,6 @@ $(document).ready(function (e) {
         tags: keywords.tags,
         readingTime
       }
-      $(this).text('Adding...')
-      // axios.post("https://hasbrain-api.mstage.io/highlight", data, {
-      //   headers: {
-      //     'x-hasbrain-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhYjMzNzI1ZTZlOTFlMGNlMDk4OWRlNCIsImlhdCI6MTUxNjIzOTAyMn0.anJXLAhnRxz37NxmiKtzk76KBZCH1RQXV1DuQCy1wMc'
-      //   }
-      // }).then(function (res) {
-      //   console.log('resssssssssssss', res)
-      //   $(trackerButton).text('Success!')
-      //   isSending = false
-      //   setTimeout(function () {
-      //     $(trackerButton).css('display', 'none');
-      //   }, 500)
-
-      // })
       var bookmarkToken = ''
       var bookmarkData = data      
       chrome.storage.sync.get('bookmark_token', result => {
@@ -109,48 +150,61 @@ $(document).ready(function (e) {
             'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
             'usertoken': bookmarkToken
           }
-        }).then(function (res) {
-          if (res.status !== 200) return
+        }).then((res) => {
+          if (res.status !== 200) {
+            _renderErrorHighlight()
+            return
+          }
           const result = res.data
-          if (result && !result.errors) {
-            const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
-            console.log('record', recordId)
-            axios.post(
-              "https://contentkit-api.mstage.io/graphql",
-              JSON.stringify({
-                query: `
-                  mutation{
-                    user{
-                      userhighlightCreate(record:{
-                        articleId: "${recordId}",
-                        highlight: "${highlight}"
-                      }) {
-                        recordId
-                      }
+          if (!result || result.errors) {
+            _renderErrorHighlight()
+            return
+          }
+          const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+          // console.log('record', recordId)
+          axios.post(
+            "https://contentkit-api.mstage.io/graphql",
+            JSON.stringify({
+              query: `
+                mutation{
+                  user{
+                    userhighlightCreate(record:{
+                      articleId: "${recordId}",
+                      highlight: "${highlight}"
+                    }) {
+                      recordId
                     }
                   }
-                `
-              }), {
-              headers: {
-                'Content-type': 'application/json',
-                'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
-                'usertoken': bookmarkToken
-              }
-            }).then(function (res) {
-              console.log('resssssssssssss', res)
-              $(trackerButton).text('Success!')
-              isSending = false
-              setTimeout(function () {
-                $(trackerButton).css('display', 'none');
-              }, 500)
-
-            })
-          }
+                }
+              `
+            }), {
+            headers: {
+              'Content-type': 'application/json',
+              'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+              'usertoken': bookmarkToken
+            }
+          }).then((res) => {
+            // console.log('resssssssssssss', res)
+            if (res.status !== 200) {
+              _renderErrorHighlight()
+              return
+            }
+            const result = res.data
+            if (!result || result.errors) {
+              _renderErrorHighlight()
+              return
+            }
+            $(trackerButton).find('span').text('Success!')
+            isSending = false
+            _renderInitialHighlight()
+          }).catch(() => {
+            _renderErrorHighlight()
+          })
+        }).catch(() => {
+          _renderErrorHighlight()
         })
       })
     }
-
-
   })
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {

@@ -117,14 +117,12 @@ function listSearch ({text, limit = 10, skip = 0, operator = 'or'}) {
       return
     }
     const result = res.data
-    // console.log(result)
     if (result && !result.errors) return {data: result.data.viewer.listSearchUser}
     return result
   })
 }
 
 function _handleUpdateTags () {
-  // console.log('articleId', articleId)
   graphql({
     query: `
       mutation ($id: String, $tags: [String]) {
@@ -138,7 +136,7 @@ function _handleUpdateTags () {
     `,
     variables: {
       id: articleId,
-      tags: $('#tags').val()
+      tags: $('#tags').val().length ? $('#tags').val().split(',') : []
     }
   }).then(res => {
     console.log('update tags', res)
@@ -323,9 +321,6 @@ $(document).ready(function() {
   //   function(response) {
   //     console.log(response)
   //   });
-  // var bookmarkToken = ''
-  // chrome.storage.sync.get('bookmark_token', result => bookmarkToken = result.bookmark_token)
-
   chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
     bookmarkData = JSON.parse(result.bookmark_data)
     profile = JSON.parse(result.bookmark_profile)

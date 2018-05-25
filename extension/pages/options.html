@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css"></link>
+    <link rel="stylesheet" href="./styles/jquery.tagsinput.css">
     <link rel="stylesheet" href="./styles/options.css">
     <script type="text/javascript" src="../public/js/jquery.js"></script>
     <script type="text/javascript" src="../public/js/axios.js"></script>
+    <script type="text/javascript" src="../public/js/jquery.tagsinput.js"></script>
     <script type="text/javascript" src="../public/js/semantic.min.js"></script>
     <script type="text/javascript" src="../public/js/options.js"></script>
+    <title>Options - hasBrain Tracker</title>
   </head>
   <body>
     <div class="container">
@@ -33,6 +36,19 @@
             </div>
             <div class="o__info">
               When you bookmark a page, see recommended news from hasbrain based on similar topics.
+            </div>
+          </div>
+        </div>
+        <div class="options__item">
+          <div class="o__title">
+            WHITELIST HIGHLIGHT:
+          </div>
+          <div class="o__content">
+            <div class="tags__block" id="whitelist__block">
+              <input type="tags" id="highlight" />
+            </div>
+            <div class="o__info">
+              List of url that will show the highlight button when you select text
             </div>
           </div>
         </div>

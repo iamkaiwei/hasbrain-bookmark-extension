@@ -1,3 +1,44 @@
+/*  */
+div.tagsinput {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  background: #FFF;
+  padding: 5px;
+  width: auto !important;
+  overflow-y: auto;
+  border-radius: 3px;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+div.tagsinput input {
+  height: 21px;
+  margin-bottom: 0;
+}
+
+div.tagsinput span.tag {
+  border: 1px solid #ddd;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  float: left;
+  padding: 0 6px;
+  text-decoration: none;
+  background: #eee;
+  color: #666;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  font-size: 11px;
+  display: inline-block;
+}
+
+div.tagsinput span.tag a {
+  font-weight: bold;
+  color: #AAA;
+  text-decoration: none;
+  font-size: 11px;
+
+}
+/*  */
 .container { width: 700px; margin: 0 auto;}
 
 .options__item {
@@ -27,7 +68,8 @@
   color: #666666;
   display: block;
   font-size: 16px;
-  width: 370px;
+  /* width: 370px; */
+  flex: 1;
 }
 
 .o__content button {
