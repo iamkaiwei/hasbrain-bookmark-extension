@@ -27,16 +27,18 @@
         "public/js/jquery.js",
         "public/js/keywords.js",
         "injected/highlight.js",
-        "public/js/semantic.min.js"
+        "public/js/semantic.min.js",
+        "public/js/jwt-decode.js"
       ],
       "css": [
         "public/css/mycss.css"
       ]
     }
   ],
-  "version": "3.10",
+  "version": "3.12",
   "web_accessible_resources": [
     "/pages/popup.html",
+    "/pages/refresh_token.html",
     "/pages/options.html",
     "public/*",
     "/pages/js/jquery.min.js"

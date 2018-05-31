@@ -7,10 +7,11 @@ chrome.runtime.onMessageExternal.addListener(
     var action = request.action
     var source = request.source || {}
     if (action === "sign-in") {
+      console.log('source', source.data)
       chrome.storage.sync.set({
         'bookmark_profile': JSON.stringify(source.data.profiles[0]),
         'bookmark_token': source.data.token,
-        'bookmark_refresh_token': source.data.refresh_token,
+        'bookmark_refresh_token': source.data.refresh_token
       })
     }
     if (action === 'sign-out') {

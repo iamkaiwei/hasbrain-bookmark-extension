@@ -48,6 +48,8 @@ function renderUserInfo () {
     profile = {}
     chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
     $('#user__logged').html('')
+    const login = $(`<button>Click here to login</button>`)
+    $(login).click(() => window.open(`http://hasbrain.surge.sh/#/?extensionId=${chrome.runtime.id}`))
     $(login).appendTo($('#user__logged'))
   })
   $('#user__logged').append(`
