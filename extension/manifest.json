@@ -35,10 +35,11 @@
       ]
     }
   ],
-  "version": "3.12",
+  "version": "3.13",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",
+    "/pages/loading.html",
     "/pages/options.html",
     "public/*",
     "/pages/js/jquery.min.js"

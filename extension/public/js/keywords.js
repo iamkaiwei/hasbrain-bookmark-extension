@@ -1837,3 +1837,12 @@ const extract_words = (sentences, bound = 5) => {
   });
   return rs;
 }
+
+const extractWords = (data) => {
+  const match = data.match(/body[^]*>[\s\S]*\/body/gi);
+  if (!match) return data;
+
+  const body = match[0];
+  const content = body.replace(/script\b[^<]*(?:(?!<\/script)[^<]*)*<\/script/gi, '').replace(/style\b[^<]*(?:(?!<\/style)[^<]*)*<\/style/gi, '');
+  return content;
+}

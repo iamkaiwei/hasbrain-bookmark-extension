@@ -322,16 +322,22 @@ $(document).ready(function() {
   //     console.log(response)
   //   });
   chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
-    bookmarkData = JSON.parse(result.bookmark_data)
+    bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
     const record = {...bookmarkData}
     delete record.tags
+    delete record.innerText
+    
     graphql({
       query: `
         mutation ($record: CreateOnearticletypeInput!) {
           user{
             articleCreateIfNotExist(record: $record) {
               recordId
+              record {
+                tags
+              }
+              isBookmarked
             }
           }
         }
@@ -342,11 +348,46 @@ $(document).ready(function() {
     }).then(function (res) {
       if (res.status !== 200) return
       const result = res.data
+      console.log(result)
       if (!result || result.errors) {
         return
       }
-      const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+      const { data: { user: { articleCreateIfNotExist: { recordId } } } } = result
       articleId = recordId
+
+      // get article tags
+      graphql({
+        query: `
+          query {
+            viewer {
+              usertagOne (
+                filter: {
+                  articleId: "${articleId}"
+                }
+              ) {
+                tags
+              }
+            }
+          }
+        `
+      }).then(res => {
+        if (res.status !== 200) return
+        const result = res.data
+        if (!result || result.errors) return
+        console.log('rest', result)
+        const { data: { viewer: { usertagOne } } } = result
+        if (!usertagOne) {
+          console.log('bookmarktaggs', bookmarkData.tags)
+          $('#tags').importTags(bookmarkData.tags.join(','))
+          _handleUpdateTags()
+          return
+        }
+        const { tags = [] } = usertagOne
+        console.log('tags', tags)
+        $('#tags').importTags(tags.join(','))
+      })
+      // get article tags
+
       graphql({
         query: `
           mutation{
@@ -388,7 +429,7 @@ $(document).ready(function() {
             </div>`)
             const newsLeft = $(`<div class="news__left">
               <div class="news__title">
-                <a href='${item.url}' target="_blank">${item.title}</a>
+                <a href='${item.url}' target="_blank">${item.title || item.url}</a>
               </div>
             </div>`)
             const newsActions = $(`<div class="news__actions">`)
@@ -423,8 +464,8 @@ $(document).ready(function() {
           $('#loading__news').hide()
           $('#load__news__error').show()
         })
-        const tags = bookmarkData.tags || []
-        $('#tags').importTags(tags.join(','))
+        // const tags = bookmarkData.tags || []
+        // $('#tags').importTags(tags.join(','))
       }).catch(() => {
         $('#saving__block').hide()
         $('#save__error').show()
@@ -433,6 +474,7 @@ $(document).ready(function() {
       $('#saving__block').hide()
       $('#save__error').show()
     })
+    // chrome.storage.sync.remove('bookmark_data')    
   })
 
   $('#tags').tagsInput({
