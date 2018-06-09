@@ -73,11 +73,11 @@ function renderPopup (result) {
     iframe.id = 'iframe_loading'
     iframe.style.border = 'none'
     iframe.style.position = 'fixed'
-    iframe.style.top = '-2px'
+    iframe.style.top = '0'
     iframe.style.right = '10px'
     iframe.style.zIndex = '2147483646'
     iframe.style.height = '82px'
-    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/loading.html'
+    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/getting_tags.html'
     
     document.body.appendChild(iframe)
 
@@ -144,7 +144,7 @@ function renderPopup (result) {
         if (document.getElementById("iframe_loading")) {
           document.getElementById("iframe_loading").remove();
         }
-      }, 500)
+      }, 1500)
     }).catch(() => {
       if (document.getElementById("iframe_loading")) {
         document.getElementById("iframe_loading").remove();

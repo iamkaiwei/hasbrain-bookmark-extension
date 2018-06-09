@@ -36,6 +36,7 @@ div.tagsinput {
   border-radius: 3px;
   min-height: 0 !important;
   height: auto !important;
+  margin: 0;
 }
 
 div.tagsinput span.tag {
@@ -121,4 +122,16 @@ input#tags_tag {
 .setting__dropdown .ui.divider { margin: 0.3rem 0 ; }
 .setting__item { padding: 5px 10px; cursor: pointer; color: #999; }
 .setting__item a { color: inherit; }
-/* setting block *
+/* setting block */
+
+.tags__block {
+  margin-top: 20px;
+}
+.tags__block > label {
+  display: block;
+  margin: 0 0 .28571429rem 0;
+  color: rgba(0,0,0,.87);
+  font-size: .92857143em;
+  font-weight: 700;
+  text-transform: none;
+}

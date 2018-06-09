@@ -58,7 +58,15 @@ function renderUserInfo () {
   $('#user__logged').append('( ')
   $(logout).appendTo($('#user__logged'))
   $('#user__logged').append(' )')
+  
+  // set value checked or unchecked for checkbox recommend
   $('#recommend_checkbox').checkbox(`set ${hideRecommend ? 'unchecked' : 'checked'}`);
+
+  // set value checked or unchecked for checkbox homepage
+  chrome.storage.sync.get(['bookmark_enable_newtab'], result => {
+    $('#newtab_checkbox').checkbox(`set ${result.bookmark_enable_newtab ? 'checked' : 'unchecked'}`);  
+  })
+
   $('#highlight').importTags(highlight_whitelist.join(','))
 }
 
@@ -87,6 +95,19 @@ $(document).ready(function() {
     },
     onUnchecked: function () {
       updateProfile({hideRecommend: true})
+    }
+  })
+
+  $('#newtab_checkbox').checkbox({
+    onChecked: function () {
+      chrome.storage.sync.set({
+        'bookmark_enable_newtab': true
+      })
+    },
+    onUnchecked: function () {
+      chrome.storage.sync.set({
+        'bookmark_enable_newtab': false
+      })
     }
   })
 

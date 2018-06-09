@@ -63,7 +63,7 @@ function bookmarkArticle (articleId) {
       mutation{
         user{
           userbookmarkCreate(record:{
-            articleId: "${articleId}"
+            contentId: "${articleId}"
           }) {
             recordId
           }
@@ -254,7 +254,7 @@ function bookmarkArchive () {
               state: ${'archived'}
             },
             filter: {
-              articleId: "${articleId}"
+              contentId: "${articleId}"
             }
           ) {
             recordId
@@ -287,7 +287,7 @@ function bookmarkRemove () {
         user {
           bookmarkRemoveOne (
             filter: {
-              articleId: "${articleId}"
+              contentId: "${articleId}"
             }
           ) {
             recordId
@@ -377,7 +377,7 @@ $(document).ready(function() {
         console.log('rest', result)
         const { data: { viewer: { usertagOne } } } = result
         if (!usertagOne) {
-          console.log('bookmarktaggs', bookmarkData.tags)
+          // console.log('bookmarktaggs', bookmarkData.tags)
           $('#tags').importTags(bookmarkData.tags.join(','))
           _handleUpdateTags()
           return
@@ -393,7 +393,8 @@ $(document).ready(function() {
           mutation{
             user{
               userbookmarkCreate(record:{
-                articleId: "${recordId}"
+                contentId: "${recordId}",
+                kind: "articletype"
               }) {
                 recordId
               }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css"></link>
+  <link rel="stylesheet" href="./styles/style.css">
+<head>
+  <meta charset="UTF-8">
+  <!-- <style>
+    *, :after, :before {
+      -webkit-box-sizing: inherit;
+      box-sizing: inherit;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      width: 300px;
+      /* font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif; */
+      font-size: 14px;
+      line-height: 1.4285em;
+      color: rgba(0,0,0,.87);
+      font-smoothing: antialiased;
+    }
+    .ui.segment {
+      position: relative;
+      background: #fff;
+      -webkit-box-shadow: 0 1px 2px 0 rgba(34, 36, 38, .15);
+      box-shadow: 0 1px 2px 0 rgba(34, 36, 38, .15);
+      margin: 1rem 0;
+      padding: 1em 1em;
+      border-radius: .28571429rem;
+      border: 1px solid rgba(34, 36, 38, .15);
+    }
+
+    @keyframes loader {
+      from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+      }
+      to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+      }
+    }
+
+    .ui.loader {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: 0;
+      text-align: center;
+      z-index: 1000;
+      -webkit-transform: translateX(-50%) translateY(-50%);
+      transform: translateX(-50%) translateY(-50%);
+    }
+
+    .ui.inverted.dimmer .ui.tiny.loader,
+    .ui.tiny.loader {
+      width: 16px;
+      height: 16px;
+      font-size: 8px;
+    }
+
+    .ui.inline.loader {
+      position: relative;
+      vertical-align: middle;
+      margin: 0;
+      left: 0;
+      top: 0;
+      -webkit-transform: none;
+      transform: none;
+    }
+
+    .ui.inline.loader.active {
+      display: inline-block;
+    }
+
+    .ui.loader:before {
+      position: absolute;
+      content: '';
+      top: 0;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      border-radius: 500rem;
+      border: .2em solid rgba(0, 0, 0, .1);
+    }
+
+    .ui.loader:after {
+      position: absolute;
+      content: '';
+      top: 0;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      -webkit-animation: loader .6s linear;
+      animation: loader .6s linear;
+      -webkit-animation-iteration-count: infinite;
+      animation-iteration-count: infinite;
+      border-radius: 500rem;
+      border-color: #767676 transparent transparent;
+      border-style: solid;
+      border-width: .2em;
+      -webkit-box-shadow: 0 0 0 1px transparent;
+      box-shadow: 0 0 0 1px transparent;
+    }
+
+    .ui.loader:after,
+    .ui.loader:before {
+      width: 2.28571429rem;
+      height: 2.28571429rem;
+      margin: 0 0 0 -1.14285714rem;
+    }
+
+    .ui.tiny.loader:after,
+    .ui.tiny.loader:before {
+      width: 13px;
+      height: 13px;
+      margin: 0 0 0 -8px;
+    }
+    #tracker-root { position: relative; }
+    #tracker-root .ui.segment {background: #f5f5f5}
+  </style> -->
+</head>
+
+<body>
+  <div id='tracker-root'>
+    <div class="ui segment" style="margin-top: 1em">
+      <div style="margin-bottom: -1px;">
+        <div class="ui active inline loader tiny"></div> &nbsp; <span style="margin-left: -3px; font-size: 13px">Gettings Article Tags...</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
