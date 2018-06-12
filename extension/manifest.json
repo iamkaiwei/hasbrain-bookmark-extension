@@ -35,13 +35,15 @@
       ]
     }
   ],
-  "version": "3.15",
+  "version": "3.17",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",
     "/pages/loading.html",
     "/pages/getting_tags.html",
     "/pages/options.html",
+    "/pages/newtab/index.html",
+    "/pages/newtab",
     "public/*",
     "/pages/js/jquery.min.js",
     "/pages/newtab/*.js"

@@ -39,8 +39,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 chrome.tabs.onCreated.addListener(function(tab) {
-  chrome.storage.sync.get(["bookmark_enable_newtab"], result => {
-    if (!result.bookmark_enable_newtab && tab.url === "chrome://newtab/") {
+  chrome.storage.sync.get(["bookmark_hide_newtab"], result => {
+    if (result.bookmark_hide_newtab && tab.url === "chrome://newtab/") {
       chrome.tabs.update(tab.id, {
         url: "chrome-search://local-ntp/local-ntp.html"
       });

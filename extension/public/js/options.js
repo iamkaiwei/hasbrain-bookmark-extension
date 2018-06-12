@@ -63,9 +63,10 @@ function renderUserInfo () {
   $('#recommend_checkbox').checkbox(`set ${hideRecommend ? 'unchecked' : 'checked'}`);
 
   // set value checked or unchecked for checkbox homepage
-  chrome.storage.sync.get(['bookmark_enable_newtab'], result => {
-    $('#newtab_checkbox').checkbox(`set ${result.bookmark_enable_newtab ? 'checked' : 'unchecked'}`);  
+  chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
+    $('#newtab_checkbox').checkbox(`set ${result.bookmark_hide_newtab ? 'unchecked' : 'checked'}`);  
   })
+
 
   $('#highlight').importTags(highlight_whitelist.join(','))
 }
@@ -101,12 +102,12 @@ $(document).ready(function() {
   $('#newtab_checkbox').checkbox({
     onChecked: function () {
       chrome.storage.sync.set({
-        'bookmark_enable_newtab': true
+        'bookmark_hide_newtab': false
       })
     },
     onUnchecked: function () {
       chrome.storage.sync.set({
-        'bookmark_enable_newtab': false
+        'bookmark_hide_newtab': true
       })
     }
   })

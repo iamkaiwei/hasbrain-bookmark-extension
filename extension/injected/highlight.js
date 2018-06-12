@@ -1,10 +1,11 @@
 var profile = null
 var isSending = false
-var trackerButton = $('<a id="tracker__button" href="javascript:;"><img src="https://image.flaticon.com/icons/svg/751/751379.svg" alt="" /> <span>Add to highlight</span></a>')
+// var trackerButton = $('<a id="tracker__button" href="javascript:;"><img src="https://image.flaticon.com/icons/svg/751/751379.svg" alt="" /> <span>Add to highlight</span></a>')
+var trackerButton = $('<a id="tracker__button" href="javascript:;"><span>Add to highlight</span></a>')
 
 function checkHighlightWhitelist () {
   return new Promise(function(resolve, reject) {
-    chrome.storage.sync.get(['bookmark_profile'], function(items) {
+    chrome && chrome.storage.sync.get(['bookmark_profile'], function(items) {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
       } else {
@@ -34,8 +35,8 @@ async function renderBtnHighlight (e) {
   if (isDict(selection.toString())) {
     $(trackerButton)
       .css('display', 'none').css({
-      // 'left': e.pageX,
-      // 'top': e.pageY - 48,
+      'left': e.pageX,
+      'top': e.pageY - 48,
       'display': 'flex'
     }).attr('rel', selection);
   }
@@ -57,8 +58,9 @@ function _renderInitialHighlight () {
 
 $(document).ready(function (e) {
   $(this).mouseup(function (e) {
+    e.stopPropagation()
     if (!profile) {
-      chrome.storage.sync.get('bookmark_profile', result => {
+      chrome && chrome.storage.sync.get('bookmark_profile', result => {
         if (!result.bookmark_profile) return
         profile = JSON.parse(result.bookmark_profile)
         renderBtnHighlight(e)
@@ -77,7 +79,8 @@ $(document).ready(function (e) {
     }
   )
 
-  $(trackerButton).click(function () {
+  $(trackerButton).click(function (e) {
+    e.stopPropagation()
     if (!isSending) {
       $(trackerButton).find('span').text('Adding...')
       isSending = true
@@ -127,7 +130,7 @@ $(document).ready(function (e) {
       }
       var bookmarkToken = ''
       var bookmarkData = data      
-      chrome.storage.sync.get('bookmark_token', result => {
+      chrome && chrome.storage.sync.get('bookmark_token', result => {
         bookmarkToken = result.bookmark_token
         axios.post(
           "https://contentkit-api.mstage.io/graphql",
