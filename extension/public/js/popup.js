@@ -18,10 +18,6 @@ var articleQuery = `
           sourceId
           sourceName
           sourceImage
-          sourceCreateAt
-          createdAt
-          updatedAt
-          projectId
         }
       }
     }
@@ -564,7 +560,7 @@ $(document).ready(function() {
       }).catch(() => {
         searchSeries.removeClass('loading')
       })
-    }, 500)
+    }, 350)
   })
   let toShowDropdown = null
   $('#setting__block').hover(
@@ -582,7 +578,7 @@ $(document).ready(function() {
       }
       toShowDropdown = setTimeout(() => {
         $(this).removeClass('show')
-      }, 350)
+      }, 150)
     }
   )
   $('.setting__item').click(() => {
