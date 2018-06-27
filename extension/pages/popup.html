@@ -18,66 +18,68 @@
     <div id="tracker-progress" class="tracker__progress">
       <div class="line"></div>
     </div>
-    <div class="ui segment">
-      <div id="remove__iframe" class="remove__iframe">
-        <i class="close icon"></i>
-      </div>
-      <div class="setting__block" id="setting__block">
-        <i class="ellipsis vertical icon"></i>
-        <div class="setting__dropdown">
-          <div class="setting__item" id="archive__bookmark">
-            <i class="icon check"></i>
-            Archived Bookmark
-          </div>
-          <div class="setting__item" id="remove__bookmark">
-            <i class="icon trash alternate"></i>
-              Remove Bookmark
-          </div>
-          <div class="ui divider"></div>
-          <div class="setting__item">
-            <a href="http://hasbrain.surge.sh/" target="_blank">
-              <i class="icon external alternate"></i>
-              Go to hasBrain
-            </a>
-          </div>
-          <div class="setting__item" id="setting__btn">
-            <i class="icon setting"></i>
-            Settings
+    <div class="segments-wrapper">
+      <div class="ui segment">
+        <div id="remove__iframe" class="remove__iframe">
+          <i class="close icon"></i>
+        </div>
+        <div class="setting__block" id="setting__block">
+          <i class="ellipsis vertical icon"></i>
+          <div class="setting__dropdown">
+            <div class="setting__item" id="archive__bookmark">
+              <i class="icon check"></i>
+              Archived Bookmark
+            </div>
+            <div class="setting__item" id="remove__bookmark">
+              <i class="icon trash alternate"></i>
+                Remove Bookmark
+            </div>
+            <div class="ui divider"></div>
+            <div class="setting__item">
+              <a href="http://hasbrain.surge.sh/" target="_blank">
+                <i class="icon external alternate"></i>
+                Go to hasBrain
+              </a>
+            </div>
+            <div class="setting__item" id="setting__btn">
+              <i class="icon setting"></i>
+              Settings
+            </div>
           </div>
         </div>
-      </div>
-      <div id="archive__block" class="archive__block" hidden>
-        <div id="archived" hidden>Archived</div>
-        <div id="archiving" hidden><div class="ui active inline loader tiny"></div> &nbsp; Archiving...</div>
-        <div id="archived__error" hidden><i class="exclamation triangle icon"></i> &nbsp; Archived error</div>
-      </div>
-      <div id="remove__block" class="remove__block" hidden>
-        <div id="removed" hidden>Removed</div>
-        <div id="removing" hidden><div class="ui active inline loader tiny"></div> &nbsp; Removing...</div>
-        <div id="removed__error" hidden><i class="exclamation triangle icon"></i> &nbsp; Removed error</div>
-      </div>
-      <div id="save__section" class="save__section">
-        <div id="saving__block">
-          <div class="ui active inline loader tiny"></div> &nbsp; Saving
+        <div id="archive__block" class="archive__block" hidden>
+          <div id="archived" hidden>Archived</div>
+          <div id="archiving" hidden><div class="ui active inline loader tiny"></div> &nbsp; Archiving...</div>
+          <div id="archived__error" hidden><i class="exclamation triangle icon"></i> &nbsp; Archived error</div>
         </div>
-        <div id="save__error" hidden>
-          <i class="exclamation triangle icon"></i> &nbsp; Error Bookmark
+        <div id="remove__block" class="remove__block" hidden>
+          <div id="removed" hidden>Removed</div>
+          <div id="removing" hidden><div class="ui active inline loader tiny"></div> &nbsp; Removing...</div>
+          <div id="removed__error" hidden><i class="exclamation triangle icon"></i> &nbsp; Removed error</div>
         </div>
-        <div id="saved__block" hidden>
-          Page Saved
-          <div class="tags__block" id="tags__block">
-            <label>Tags saved:</label>
-            <input type="tags" id="tags" />
+        <div id="save__section" class="save__section">
+          <div id="saving__block">
+            <div class="ui active inline loader tiny"></div> &nbsp; Saving
           </div>
-          <div class="series__block" style="margin-top: 10px">
-            <div class="ui form">
-              <div class="field">
-                <label>Add to series:</label>
-                <div class="ui fluid search selection multiple dropdown" id="search_list">
-                  <i class="dropdown icon"></i>
-                  <input class="search">
-                  <div class="default text">Search...</div>
-                  <div class="menu">
+          <div id="save__error" hidden>
+            <i class="exclamation triangle icon"></i> &nbsp; Error Bookmark
+          </div>
+          <div id="saved__block" hidden>
+            Page Saved
+            <div class="tags__block" id="tags__block">
+              <label>Tags saved:</label>
+              <input type="tags" id="tags" />
+            </div>
+            <div class="series__block" style="margin-top: 10px">
+              <div class="ui form">
+                <div class="field">
+                  <label>Add to series:</label>
+                  <div class="ui fluid search selection multiple dropdown" id="search_list">
+                    <i class="dropdown icon"></i>
+                    <input class="search">
+                    <div class="default text">Search...</div>
+                    <div class="menu">
+                    </div>
                   </div>
                 </div>
               </div>
@@ -85,19 +87,18 @@
           </div>
         </div>
       </div>
+      <div class="ui segment" id="relative__news" hidden>
+        <div id="load__news__error" hidden>
+          <i class="exclamation triangle icon"></i> &nbsp; Error load news
+        </div>
+        <div id="loading__news">
+          <div class="ui active inline loader tiny"></div> &nbsp; Loading
+        </div>
+        <div class="relative__news" id="loaded__news" hidden>
+          <h4>Recommend News</h4>
+        </div>
+      </div>
     </div>
-    <div class="ui segment" id="relative__news" hidden>
-      <div id="load__news__error" hidden>
-        <i class="exclamation triangle icon"></i> &nbsp; Error load news
-      </div>
-      <div id="loading__news">
-        <div class="ui active inline loader tiny"></div> &nbsp; Loading
-      </div>
-      <div class="relative__news" id="loaded__news" hidden>
-        <h4>Recommend News</h4>
-      </div>
-    </div>
-    
   </div>
 </body>
 </html>

@@ -62,12 +62,6 @@ function renderUserInfo () {
   // set value checked or unchecked for checkbox recommend
   $('#recommend_checkbox').checkbox(`set ${hideRecommend ? 'unchecked' : 'checked'}`);
 
-  // set value checked or unchecked for checkbox homepage
-  chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
-    $('#newtab_checkbox').checkbox(`set ${result.bookmark_hide_newtab ? 'unchecked' : 'checked'}`);  
-  })
-
-
   $('#highlight').importTags(highlight_whitelist.join(','))
 }
 
@@ -80,14 +74,20 @@ function _handleUpdateTags () {
 $(document).ready(function() {
   let accountName = ''
   let accountEmail = ''
-  chrome.storage.sync.get('bookmark_profile', result => {
+  chrome.storage.sync.get(['bookmark_profile', 'bookmark_hide_newtab'], result => {
+    // set value checked or unchecked for checkbox homepage
+    chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
+      $('#newtab_checkbox').checkbox(`set ${result.bookmark_hide_newtab ? 'unchecked' : 'checked'}`);  
+    })
+
     const login = $(`<button>Click here to login</button>`)
     $(login).click(() => window.open(`http://hasbrain.surge.sh/#/?extensionId=${chrome.runtime.id}`))
     if (!result || !result.bookmark_profile) {
       $(login).appendTo($('#user__logged'))
       return
     }
-    profile = JSON.parse(result.bookmark_profile)
+    profile = JSON.parse(result.bookmark_profile ? result.bookmark_profile : '{}')
+    
     renderUserInfo()
   })
   $('#recommend_checkbox').checkbox({
@@ -104,11 +104,15 @@ $(document).ready(function() {
       chrome.storage.sync.set({
         'bookmark_hide_newtab': false
       })
+      window.localStorage.setItem('bookmark_hide_newtab', false)
+      chrome.runtime.sendMessage({action: 'hide-homepage', result: false});
     },
     onUnchecked: function () {
       chrome.storage.sync.set({
         'bookmark_hide_newtab': true
       })
+      window.localStorage.setItem('bookmark_hide_newtab', true)
+      chrome.runtime.sendMessage({action: 'hide-homepage', result: true});
     }
   })
 

@@ -62,6 +62,8 @@ div.tagsinput span.tag a {
 
 }
 #tracker-root { position: relative; }
+.segments-wrapper { padding-top: 1rem; }
+.segments-wrapper .ui.segments:first-child { margin: 0 }
 #tracker-root .ui.segment {background: #f5f5f5}
 
 input#tags_tag {
@@ -95,7 +97,7 @@ input#tags_tag {
 .news__bookmark > .loader {display: none !important; margin-top: -3px !important}
 .news__bookmark:hover {color: #5599FF;}
 
-.tracker__progress { position: absolute; top: -3px; left: 0; width: 100% }
+.tracker__progress { position: absolute; top: 11px; left: 0; width: 100%; z-index: -1; height: 6px; }
 .tracker__progress .line { height: 6px; background-color: orange; position: absolute; width: inherit; opacity: 0; }
 @keyframes progressLine {
   from {
