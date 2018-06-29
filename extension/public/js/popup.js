@@ -498,10 +498,10 @@ $(document).ready(function() {
         toRemoveIframe = null
       }
       toRemoveIframe = setTimeout(() => {
-        chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
-          // console.log(response.farewell);
-          // callback message
-        });
+        // chrome.runtime.sendMessage({action: 'remove-iframe'}, function(response) {
+        //   // console.log(response.farewell);
+        //   // callback message
+        // });
       }, 4000)
     }
   );

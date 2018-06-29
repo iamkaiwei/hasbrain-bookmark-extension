@@ -9,7 +9,10 @@
   <script type="text/javascript" src="../public/js/axios.js"></script>
   <script type="text/javascript" src="../public/js/jquery.tagsinput.js"></script>
   <script type="text/javascript" src="../public/js/semantic.min.js"></script>
-  <script type="text/javascript" src="../public/js/popup.js"></script>
+  <script src="./js/actions/graphql.js"></script>
+  <script src="./js/actions/article.js"></script>
+  <script src="./js/actions/topic.js"></script>
+  <script type="text/javascript" src="../public/js/popup.1.js"></script>
 
   <title>popup</title>
 </head>
@@ -65,19 +68,25 @@
             <i class="exclamation triangle icon"></i> &nbsp; Error Bookmark
           </div>
           <div id="saved__block" hidden>
-            Page Saved
-            <div class="tags__block" id="tags__block">
+            <span>PAGE SAVED</span>
+            <div class="ui divider"></div>
+            <!-- <div class="tags__block" id="tags__block">
               <label>Tags saved:</label>
               <input type="tags" id="tags" />
-            </div>
+            </div> -->
             <div class="series__block" style="margin-top: 10px">
               <div class="ui form">
                 <div class="field">
-                  <label>Add to series:</label>
+                  <div class="ui checkbox" id="save-to-topics">
+                    <input type="checkbox" name="example">
+                    <label>SAVE TO TOPICS</label>
+                    <span class="note">(#topics make comment shared)</span>
+                  </div>
+                  <!-- <label>Add to series:</label> -->
                   <div class="ui fluid search selection multiple dropdown" id="search_list">
                     <i class="dropdown icon"></i>
                     <input class="search">
-                    <div class="default text">Search...</div>
+                    <div class="default text">Search topics...</div>
                     <div class="menu">
                     </div>
                   </div>
@@ -87,7 +96,7 @@
           </div>
         </div>
       </div>
-      <div class="ui segment" id="relative__news" hidden>
+      <!-- <div class="ui segment" id="relative__news" hidden>
         <div id="load__news__error" hidden>
           <i class="exclamation triangle icon"></i> &nbsp; Error load news
         </div>
@@ -97,7 +106,7 @@
         <div class="relative__news" id="loaded__news" hidden>
           <h4>Recommend News</h4>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </body>
