@@ -50,13 +50,14 @@ function searchTopics ({text}) {
   })
 }
 
-function articleAddTopic({articleId, topicId}) {
+function articleAddTopic({articleId = '', topicId = '', levelId = ''}) {
   return graphql({
     query:`
       mutation{
         user{
           articleAddTopic(record: {
-            topicId: "${topicId}"
+            topicId: "${topicId}",
+            levelId: "${levelId}"
           }, filter: {
             _id: "${articleId}",
           }) {
@@ -65,5 +66,24 @@ function articleAddTopic({articleId, topicId}) {
         }
       }
     `
+  })
+}
+
+function articleAddTopicsLevel({articleId = '', topicIds = [], levelId = ''}) {
+  return graphql({
+    query:`
+      mutation ($topicIds: [ID]){
+        user{
+          articleAddTopicsLevel(record: {
+            topicIds: $topicIds,
+            levelId: "${levelId}"
+          }, filter: {
+            _id: "${articleId}",
+          }) {
+            title
+          }
+        }
+      }
+    `, variables: {topicIds}
   })
 }

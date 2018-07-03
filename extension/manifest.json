@@ -25,6 +25,7 @@
       "js": [
         "public/js/axios.js",
         "public/js/jquery.js",
+        "public/js/variables.js",
         "public/js/keywords.js",
         "injected/highlight.js",
         "public/js/semantic.min.js",
@@ -35,7 +36,7 @@
       ]
     }
   ],
-  "version": "4.0",
+  "version": "4.2",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",

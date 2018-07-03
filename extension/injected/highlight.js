@@ -1,27 +1,6 @@
-const highlightIcon = `<?xml version="1.0"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.25 55.25" style="enable-background:new 0 0 55.25 55.25;" xml:space="preserve" width="20px" height="20px" class=""><g transform="matrix(0.9997 0 0 0.9997 0.00828666 0.00828666)"><path d="M52.618,2.631c-3.51-3.508-9.219-3.508-12.729,0L3.827,38.693C3.81,38.71,3.8,38.731,3.785,38.749  c-0.021,0.024-0.039,0.05-0.058,0.076c-0.053,0.074-0.094,0.153-0.125,0.239c-0.009,0.026-0.022,0.049-0.029,0.075  c-0.003,0.01-0.009,0.02-0.012,0.03l-3.535,14.85c-0.016,0.067-0.02,0.135-0.022,0.202C0.004,54.234,0,54.246,0,54.259  c0.001,0.114,0.026,0.225,0.065,0.332c0.009,0.025,0.019,0.047,0.03,0.071c0.049,0.107,0.11,0.21,0.196,0.296  c0.095,0.095,0.207,0.168,0.328,0.218c0.121,0.05,0.25,0.075,0.379,0.075c0.077,0,0.155-0.009,0.231-0.027l14.85-3.535  c0.027-0.006,0.051-0.021,0.077-0.03c0.034-0.011,0.066-0.024,0.099-0.039c0.072-0.033,0.139-0.074,0.201-0.123  c0.024-0.019,0.049-0.033,0.072-0.054c0.008-0.008,0.018-0.012,0.026-0.02l36.063-36.063C56.127,11.85,56.127,6.14,52.618,2.631z   M51.204,4.045c2.488,2.489,2.7,6.397,0.65,9.137l-9.787-9.787C44.808,1.345,48.716,1.557,51.204,4.045z M46.254,18.895l-9.9-9.9  l1.414-1.414l9.9,9.9L46.254,18.895z M4.961,50.288c-0.391-0.391-1.023-0.391-1.414,0L2.79,51.045l2.554-10.728l4.422-0.491  l-0.569,5.122c-0.004,0.038,0.01,0.073,0.01,0.11c0,0.038-0.014,0.072-0.01,0.11c0.004,0.033,0.021,0.06,0.028,0.092  c0.012,0.058,0.029,0.111,0.05,0.165c0.026,0.065,0.057,0.124,0.095,0.181c0.031,0.046,0.062,0.087,0.1,0.127  c0.048,0.051,0.1,0.094,0.157,0.134c0.045,0.031,0.088,0.06,0.138,0.084C9.831,45.982,9.9,46,9.972,46.017  c0.038,0.009,0.069,0.03,0.108,0.035c0.036,0.004,0.072,0.006,0.109,0.006c0,0,0.001,0,0.001,0c0,0,0.001,0,0.001,0h0.001  c0,0,0.001,0,0.001,0c0.036,0,0.073-0.002,0.109-0.006l5.122-0.569l-0.491,4.422L4.204,52.459l0.757-0.757  C5.351,51.312,5.351,50.679,4.961,50.288z M17.511,44.809L39.889,22.43c0.391-0.391,0.391-1.023,0-1.414s-1.023-0.391-1.414,0  L16.097,43.395l-4.773,0.53l0.53-4.773l22.38-22.378c0.391-0.391,0.391-1.023,0-1.414s-1.023-0.391-1.414,0L10.44,37.738  l-3.183,0.354L34.94,10.409l9.9,9.9L17.157,47.992L17.511,44.809z M49.082,16.067l-9.9-9.9l1.415-1.415l9.9,9.9L49.082,16.067z" data-original="#000000" class="active-path" data-old_color="#EEE9E9" fill="#F2EFEF"/></g> </svg>
-`
-const commentIcon = `<?xml version="1.0"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve" width="20px" height="20px"><g><path d="M30,1.5c-16.542,0-30,12.112-30,27c0,5.205,1.647,10.246,4.768,14.604c-0.591,6.537-2.175,11.39-4.475,13.689  c-0.304,0.304-0.38,0.769-0.188,1.153C0.276,58.289,0.625,58.5,1,58.5c0.046,0,0.093-0.003,0.14-0.01  c0.405-0.057,9.813-1.412,16.617-5.338C21.622,54.711,25.738,55.5,30,55.5c16.542,0,30-12.112,30-27S46.542,1.5,30,1.5z M30,53.5  c-3.487,0-6.865-0.57-10.075-1.68c4.075-2.546,4.085-2.727,4.081-3.316c-0.002-0.349-0.192-0.682-0.492-0.861  c-0.456-0.274-1.042-0.142-1.337,0.29c-0.549,0.435-2.906,1.947-5.016,3.249l0,0c-4.464,2.696-10.475,4.201-13.809,4.88  c2.202-3.669,3.091-8.986,3.441-13.16c0.02-0.241-0.048-0.482-0.192-0.677C3.591,38.143,2,33.398,2,28.5c0-13.785,12.561-25,28-25  s28,11.215,28,25S45.44,53.5,30,53.5z" data-original="#000000" class="active-path" data-old_color="#FBF8F8" fill="#F2EFEF"/></g> </svg>
-`
-
-const loadingIcon = `
-  <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-     width="40px" height="40px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
-  <path fill="#F2EFEF" d="M43.935,25.145c0-10.318-8.364-18.683-18.683-18.683c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615c8.072,0,14.615,6.543,14.615,14.615H43.935z">
-    <animateTransform attributeType="xml"
-      attributeName="transform"
-      type="rotate"
-      from="0 25 25"
-      to="360 25 25"
-      dur="0.6s"
-      repeatCount="indefinite"/>
-    </path>
-  </svg>
-`
-
 var profile = null
 var isSending = false
+var position = 0
 // var trackerButton = $('<a id="tracker__button" href="javascript:;"><img src="https://image.flaticon.com/icons/svg/751/751379.svg" alt="" /> <span>Add to highlight</span></a>')
 const wrapper = $('<div id="tracker__wrapper"></div>')
 const tracker__buttons = $('<div class="tracker__buttons"></div>')
@@ -128,6 +107,7 @@ function checkHighlightWhitelist () {
 async function renderBtnHighlight (e) {
   var showBtn = await checkHighlightWhitelist()
   if (!showBtn) return
+  _renderInitialHighlight()
   $(commentBlock).hide()
   $(wrapper).removeClass('show-comment__block')
   $(commentText).find('textarea').val('')
@@ -170,13 +150,18 @@ async function renderBtnHighlight (e) {
       'top': e.pageY - 88,
       'display': 'block'
     }).attr('rel', selection);
+    if (selection.length) {
+      const highlightOffset = getSelectionCharOffsetsWithin(document.body)
+      position = parseFloat(highlightOffset.start*100/$(document).height()).toFixed(2)
+    }
   }
 }
 
 function _renderErrorHighlight () {
   isSending = false
   // $(highlightButton).find('span').text('Error...!')
-  _renderInitialHighlight()
+  // _renderInitialHighlight()
+  $(highlightButton).find('span').html('').append(errorIcon)
 }
 
 function _renderInitialHighlight () {
@@ -186,6 +171,10 @@ function _renderInitialHighlight () {
   //   $(highlightButton).css('display', 'none');
   // }, 1000)
   $(highlightButton).find('span').html('').append(highlightIcon)
+}
+
+function _renderSuccessHighlight () {
+  $(highlightButton).find('span').html('').append(successHighlightIcon)
 }
 
 
@@ -224,24 +213,25 @@ function getSelectionCharOffsetsWithin(element) {
   var start = 0, end = 0;
   var sel, range, priorRange;
   if (typeof window.getSelection != "undefined") {
-      range = window.getSelection().getRangeAt(0);
-      priorRange = range.cloneRange();
-      priorRange.selectNodeContents(element);
-      priorRange.setEnd(range.startContainer, range.startOffset);
-      start = priorRange.toString().length;
-      end = start + range.toString().length;
+    if (!window.getSelection().getRangeAt(0)) return
+    range = window.getSelection().getRangeAt(0);
+    priorRange = range.cloneRange();
+    priorRange.selectNodeContents(element);
+    priorRange.setEnd(range.startContainer, range.startOffset);
+    start = priorRange.toString().length;
+    end = start + range.toString().length;
   } else if (typeof document.selection != "undefined" &&
           (sel = document.selection).type != "Control") {
-      range = sel.createRange();
-      priorRange = document.body.createTextRange();
-      priorRange.moveToElementText(element);
-      priorRange.setEndPoint("EndToStart", range);
-      start = priorRange.text.length;
-      end = start + range.text.length;
+    range = sel.createRange();
+    priorRange = document.body.createTextRange();
+    priorRange.moveToElementText(element);
+    priorRange.setEndPoint("EndToStart", range);
+    start = priorRange.text.length;
+    end = start + range.text.length;
   }
   return {
-      start: start,
-      end: end
+    start: start,
+    end: end
   };
 }
 
@@ -314,13 +304,13 @@ function postHighlight ({ position = '' }) {
         "https://contentkit-api.mstage.io/graphql",
         JSON.stringify({
           query: `
-            mutation{
+            mutation ($highlight: String) {
               user{
                 userhighlightAddOrUpdateOne(
                   filter:{
                     articleId: "${recordId}"
                   }, record: {
-                    highlight: "${highlight}",
+                    highlight: $highlight,
                     position: "${position}"
                   }
                 ) {
@@ -328,7 +318,7 @@ function postHighlight ({ position = '' }) {
                 }
               }
             }
-          `
+          `, variables: { highlight }
         }), {
         headers: {
           'Content-type': 'application/json',
@@ -347,7 +337,7 @@ function postHighlight ({ position = '' }) {
         }
         // $(highlightButton).find('span').text('Success!')
         isSending = false
-        _renderInitialHighlight()
+        _renderSuccessHighlight()
       }).catch(() => {
         _renderErrorHighlight()
       })
@@ -517,12 +507,9 @@ function postComment ({ position = '' }) {
 
 
 $(document).ready(function (e) {
-  let position = ''
   $(this).mouseup(function (e) {
     if (stopMouseUp) return
     e.stopPropagation()
-    const highlightOffset = getSelectionCharOffsetsWithin(document.body)
-    position = parseFloat(highlightOffset.start*100/$(document).height()).toFixed(2)
     if (!profile) {
       chrome && chrome.storage.sync.get('bookmark_profile', result => {
         if (!result.bookmark_profile) return

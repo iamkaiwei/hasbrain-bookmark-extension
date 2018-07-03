@@ -83,6 +83,7 @@ input#tags_tag {
   color: #002257;
   font-style: italic;
 }
+
 .news__item {overflow: hidden; clear: both; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #dddddd}
 .news__item .loading, .news__item .done {display: none !important}
 .news__item.news--bookmarking .loading { display: inline-block !important }
@@ -158,11 +159,103 @@ input#tags_tag {
 #save-to-topics.ui.checkbox input:focus~.box:before, #save-to-topics.ui.checkbox input:focus~label:before {
   border-color: #97A3B4;
 }
-
 #save-to-topics.ui.checkbox input:checked~.box:before, #save-to-topics.ui.checkbox input:checked~label:before {
   border-color: #35AFFC;
 }
-
 #save-to-topics.ui.checkbox input:checked~.box:after, #save-to-topics.ui.checkbox input:checked~label:after {
   color: #35AFFC;
+}
+.series__block .ui.dropdown>.dropdown.icon:before {
+  content: '';
+}
+
+
+.relative__path {
+  display: none;
+}
+
+.comment__block {
+  margin-top: 20px;
+}
+.comment__block > span, .difficulty__block > span {
+  color: #97A3B4;
+  font-size: 14px;
+  line-height: 16px;
+  font-style: italic;
+  margin-bottom: 10px;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.comment__block textarea {
+  padding: 5px 10px;
+  width: 100%;
+  resize: none;
+  border: 0;
+  border-radius: 5px;
+  line-height: 20px;
+}
+
+.difficulty__block {
+  margin-top: 20px;
+  display: none;
+}
+
+.difficulty__selector {
+  background-color: #FFF;
+  border-radius: 5px;
+  padding: 10px;
+}
+.difficulty__title {
+  color: #0083A0;
+  padding-bottom: 7px;
+}
+
+.difficulty__levels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  direction: rtl;
+  height: 1px;
+  background-color: #0083A0;
+  margin: 12px 0;
+  position: relative;
+}
+
+.difficulty__level:before {
+  /* content: '';
+  position: absolute;
+  height: 1px;
+  width: 0; */
+}
+
+
+
+.difficulty__level {
+  direction: ltr;
+  flex: 1;
+  display: flex;
+  cursor: pointer;
+}
+.difficulty__level .point {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #0083A0;
+  border-radius: 50%;
+  background-color: #FFF;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.difficulty__level:first-child {
+  flex: initial;
+}
+.difficulty__level.active .point,
+.difficulty__level.active ~ .difficulty__level .point {
+  background-color: #0083A0;
+}
+
+.difficulty__level:hover .point,
+.difficulty__level:hover ~ .difficulty__level .point {
+  background-color: #0083A0 !important;
 }

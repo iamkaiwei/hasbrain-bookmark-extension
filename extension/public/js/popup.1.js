@@ -2,7 +2,12 @@ var bookmarkData = {}
 var toRemoveIframe = null
 var articleId = ''
 var profile = {}
-
+var levels = []
+var selectedLevel = {}
+var currentTopicId = ''
+var toComment = null
+var topicIds = []
+var isExecuting = false
 function listSearch ({text, limit = 10, skip = 0, operator = 'or'}) {
   return graphql({
     query: `
@@ -113,10 +118,12 @@ function listCreate (title) {
 
 function tagRemove (value) {
   // remove tag list when update or create failed
+  const targetIndex = topicIds.indexOf(value)
+  topicIds.splice(targetIndex, 1)
   const searchSeries = $('#search_list')
   searchSeries.find(`> a.ui.label[data-value="${value}"]`).remove()
-  searchSeries.find('.menu .item').remove('selected')
   searchSeries.find(`.menu > .item[data-value="${value}"]`).removeClass('filtered').removeClass('active')
+  searchSeries.find('.menu .item').remove('selected')
 }
 
 function listRemove (id) {
@@ -146,6 +153,20 @@ function listRemove (id) {
   })
 }
 
+function _renderPageSaving () {
+  isExecuting = true
+  $('.saved__block-title').html('').append('<div class="ui active inline loader tiny"></div> &nbsp; PAGE SAVING')
+}
+
+function _renderPageSavedError () {
+  isExecuting = false
+  $('.saved__block-title').html('').append('<i class="exclamation triangle icon"></i> &nbsp; PAGE SAVED ERROR')
+}
+
+function _renderPageSaved () {
+  isExecuting = false
+  $('.saved__block-title').html('').append('PAGE SAVED')
+}
 
 $(document).ready(function() {
   chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
@@ -181,27 +202,27 @@ $(document).ready(function() {
     })
   })
 
-  // $( document ).hover(
-  //   function(){
-  //     $('#tracker-progress').addClass('progress--pause')
-  //     $('#tracker-progress').removeClass('progress--running')
-  //     if (toRemoveIframe) {
-  //       clearTimeout(toRemoveIframe)
-  //       toRemoveIframe = null
-  //     }
-  //   },
-  //   function(){
-  //     $('#tracker-progress').addClass('progress--running')
-  //     $('#tracker-progress').removeClass('progress--pause')
-  //     if (toRemoveIframe) {
-  //       clearTimeout(toRemoveIframe)
-  //       toRemoveIframe = null
-  //     }
-  //     toRemoveIframe = setTimeout(() => {
-  //       chrome.runtime.sendMessage({action: 'remove-iframe'});
-  //     }, 4000)
-  //   }
-  // );
+  $( document ).hover(
+    function(){
+      // $('#tracker-progress').addClass('progress--pause')
+      // $('#tracker-progress').removeClass('progress--running')
+      if (toRemoveIframe) {
+        clearTimeout(toRemoveIframe)
+        toRemoveIframe = null
+      }
+    },
+    function(){
+      // $('#tracker-progress').addClass('progress--running')
+      // $('#tracker-progress').removeClass('progress--pause')
+      if (toRemoveIframe) {
+        clearTimeout(toRemoveIframe)
+        toRemoveIframe = null
+      }
+      toRemoveIframe = setTimeout(() => {
+        // chrome.runtime.sendMessage({action: 'remove-iframe'});
+      }, 4000)
+    }
+  );
 
   // remove iframe
   $('#remove__iframe').click(() => {
@@ -209,53 +230,25 @@ $(document).ready(function() {
   })
 
 
-
   $('#save-to-topics').checkbox({
     onChecked: function () {
       // updateProfile({hideRecommend: false})
       $('.series__block').addClass('show-saving')
+      $('.relative__path').show()
     },
     onUnchecked: function () {
       // updateProfile({hideRecommend: true})
       $('.series__block').removeClass('show-saving')
+      $('.relative__path').hide()
     }
   })
   // init dropdown search list
-  $('.ui.dropdown').dropdown({
+  $('#search_list.ui.dropdown').dropdown({
     forceSelection: false,
     allowAdditions: false,
-    // hideAdditions: false,
-    // onChange: (value, text) => console.log('on change', value, text),
-    onAdd: (addedValue, addedText, $addedChoice) => {
-      // console.log('on add new', addedValue, addedText, $addedChoice.attr('data-value'))
-      if (addedValue === addedText) {
-        // console.log('create new')
-        // listCreate(addedText)
-      } else {
-        console.log('updates', addedValue)
-        // listUpdate(addedValue)
-        articleAddTopic({
-          articleId,
-          topicId: addedValue
-        }).then(res => {
-          if (res.status !== 200) {
-            tagRemove(addedValue)
-            return
-          }
-          const result = res.data
-          if (!result || result.errors) {
-            tagRemove(addedValue)
-            return
-          }
-        }).catch(err => {
-          console.log(err)
-          tagRemove(addedValue)
-        })
-      }
-    },
     onRemove: (removedValue, removedText) => {
       // console.log('remove', removedValue, removedText)
-      // listRemove(removedValue)
+      tagRemove(removedValue)
     }
   });
   
@@ -282,9 +275,43 @@ $(document).ready(function() {
         if (items.length) {
           searchSeries.find('.menu').html('')
         }
-        items.map( ({_id, _source}) => searchSeries.find('.menu').append(`
+        items.map( ({_id, _source}) => {
+          const menuItem = $(`
           <div class="item" data-value="${_id}">${_source.title}</div>
-        `))
+        `)
+          $(menuItem).click(function(e) {
+            !isExecuting && _renderPageSaving()
+            if (topicIds.indexOf(_id) === -1) {
+              topicIds.push(_id)
+            }
+            articleAddTopicsLevel({
+              articleId,
+              topicIds,
+              levelId: selectedLevel._id
+            }).then(res => {
+              console.log('xxxx',res)
+              if (res.status !== 200) {
+                _renderPageSavedError()
+                tagRemove(_id)
+                return
+              }
+              const result = res.data
+              if (!result || result.errors) {
+                _renderPageSavedError()
+                tagRemove(_id)
+                return
+              }
+              currentTopicId = _id
+              _renderPageSaved()
+            }).catch(err => {
+              console.log(err)
+              _renderPageSavedError()
+              tagRemove(_id)
+            })
+          })
+          searchSeries.find('.menu').append(menuItem)
+          return true
+        })
       }).catch(() => {
         searchSeries.removeClass('loading')
       })
@@ -363,6 +390,86 @@ $(document).ready(function() {
   $('#setting__btn').click(() => {
     window.open(`chrome-extension://${chrome.runtime.id}/pages/options.html`)
   })
+
+  const difficulty__levels = $('#difficulty__levels')
+
+  getLevels().then(result => {
+    if (!result || result.errors) return
+    levels = result.data
+    
+    levels.map(level => {
+      const difficulty__level = $(`
+        <span class="difficulty__level">
+          <span class="point"></span>
+        </span>
+      `)
+      $(difficulty__level).attr('level-title', level.title).attr('level-id', level._id)
+      $(difficulty__level).click(function(e) {
+        const _this = this
+        selectedLevel = level
+        _renderPageSaving()
+        articleAddTopicsLevel({
+          articleId,
+          topicIds,
+          levelId: selectedLevel._id
+        }).then(res => {
+          if (res.status !== 200) {
+            _renderPageSavedError()
+            return
+          }
+          const result = res.data
+          if (!result || result.errors) {
+            _renderPageSavedError()
+            return
+          }
+          $('#difficulty__title').text(level.title)
+          $('.difficulty__level').removeClass('active')
+          $(_this).addClass('active')
+          _renderPageSaved()
+        }).catch(() => {
+          _renderPageSavedError()
+        })
+      })
+
+      $(difficulty__levels).prepend(difficulty__level)
+      return true
+    })
+    setTimeout(() => {
+      $('#difficulty__block').show()
+    }, 500)
+    $('#difficulty__title').text(levels[0].title)
+    selectedLevel = levels[0]
+    $('#difficulty__levels > *:last-child').addClass('active')
+  })
+
+  $('#comment__text').keyup(function(e) {
+    const comment = $(this).val()
+    !isExecuting && _renderPageSaving()
+    if (toComment) {
+      clearTimeout(toComment)
+      toComment = null
+    }
+    toComment = setTimeout(() => {
+      postComment({
+        articleId,
+        comment
+      }).then(res => {
+        if (res.status !== 200) {
+          _renderPageSavedError()
+          return
+        }
+        const result = res.data
+        if (!result || result.errors) {
+          _renderPageSavedError()
+          return
+        }
+        _renderPageSaved()
+      }).catch(() => {
+        _renderPageSavedError()
+      })
+    }, 300)
+  })
+
 })
 
 

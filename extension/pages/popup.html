@@ -12,15 +12,16 @@
   <script src="./js/actions/graphql.js"></script>
   <script src="./js/actions/article.js"></script>
   <script src="./js/actions/topic.js"></script>
+  <script src="./js/actions/common.js"></script>
   <script type="text/javascript" src="../public/js/popup.1.js"></script>
 
   <title>popup</title>
 </head>
 <body>
   <div id='tracker-root'>
-    <div id="tracker-progress" class="tracker__progress">
+    <!-- <div id="tracker-progress" class="tracker__progress">
       <div class="line"></div>
-    </div>
+    </div> -->
     <div class="segments-wrapper">
       <div class="ui segment">
         <div id="remove__iframe" class="remove__iframe">
@@ -68,7 +69,7 @@
             <i class="exclamation triangle icon"></i> &nbsp; Error Bookmark
           </div>
           <div id="saved__block" hidden>
-            <span>PAGE SAVED</span>
+            <span class="saved__block-title">PAGE SAVED</span>
             <div class="ui divider"></div>
             <!-- <div class="tags__block" id="tags__block">
               <label>Tags saved:</label>
@@ -94,6 +95,40 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="relative__path">
+          <div class="comment__block">
+            <span>COMMENT</span>
+            <textarea name="" id="comment__text" rows="5" placeholder="Comment for article"></textarea>
+          </div>
+          <div class="difficulty__block" id="difficulty__block">
+            <span>SUGGESTED DIFFICULTY</span>
+            <div class="difficulty__selector">
+              <div class="difficulty__title" id="difficulty__title"></div>
+              <div class="difficulty__select">
+                <span class="difficulty__line"></span>
+                <div class="difficulty__levels" id="difficulty__levels">
+                  <!-- <span class="difficulty__level">
+                    <span class="point"></span>
+                  </span>
+                  <span class="difficulty__level">
+                    <span class="point"></span>
+                  </span>
+                  <span class="difficulty__level">
+                    <span class="point"></span>
+                  </span>
+                  <span class="difficulty__level">
+                    <span class="point"></span>
+                  </span>
+                  <span class="difficulty__level">
+                    <span class="point"></span>
+                  </span> -->
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
       <!-- <div class="ui segment" id="relative__news" hidden>

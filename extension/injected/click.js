@@ -69,17 +69,17 @@ function renderPopup (result) {
     document.getElementById("iframe_loading").remove();
   }
   if (result.bookmark_profile) {
-    iframe = document.createElement('iframe')
-    iframe.id = 'iframe_loading'
-    iframe.style.border = 'none'
-    iframe.style.position = 'fixed'
-    iframe.style.top = '0'
-    iframe.style.right = '10px'
-    iframe.style.zIndex = '2147483646'
-    iframe.style.height = '82px'
-    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/getting_tags.html'
+    // iframe = document.createElement('iframe')
+    // iframe.id = 'iframe_loading'
+    // iframe.style.border = 'none'
+    // iframe.style.position = 'fixed'
+    // iframe.style.top = '0'
+    // iframe.style.right = '10px'
+    // iframe.style.zIndex = '2147483646'
+    // iframe.style.height = '82px'
+    // iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/getting_tags.html'
     
-    document.body.appendChild(iframe)
+    // document.body.appendChild(iframe)
 
     profile = JSON.parse(result.bookmark_profile)
     var photo = null, description = null, title = null,
@@ -109,27 +109,49 @@ function renderPopup (result) {
 
     const text = extractWords(document.body.innerText)
     
-    axios({
-      url: 'https://jhgjviockj.execute-api.ap-southeast-1.amazonaws.com/production/',
-      method: 'post',
-      headers: {
-        'Content-type': 'application/json'
-      },
-      data: {text}
-    }).then(res => {
-      const result = res.data || {}
-      const { keyphrases: tags = [] } = result
-      // console.log('key', keyphrases)
-      var bookmarkData = {url, title, sourceImage: photo, shortDescription: description, tags, readingTime, sourceName: 'extension'}
-      console.log('bookmark', bookmarkData)
-      chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
+    // axios({
+    //   url: 'https://jhgjviockj.execute-api.ap-southeast-1.amazonaws.com/production/',
+    //   method: 'post',
+    //   headers: {
+    //     'Content-type': 'application/json'
+    //   },
+    //   data: {text}
+    // }).then(res => {
+    //   const result = res.data || {}
+    //   const { keyphrases: tags = [] } = result
+    //   // console.log('key', keyphrases)
+    //   var bookmarkData = {url, title, sourceImage: photo, shortDescription: description, tags, readingTime, sourceName: 'extension'}
+    //   console.log('bookmark', bookmarkData)
+    //   chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
     
-      chrome.runtime.sendMessage({
-        action: "getSource",
-        source: bookmarkData
-      });
+    //   chrome.runtime.sendMessage({
+    //     action: "getSource",
+    //     source: bookmarkData
+    //   });
       
-      iframe = document.createElement('iframe')
+    //   iframe = document.createElement('iframe')
+    //   iframe.id = 'iframe_popup'
+    //   iframe.style.border = 'none'
+    //   iframe.style.position = 'fixed'
+    //   iframe.style.top = '0'
+    //   iframe.style.right = '10px'
+    //   iframe.style.zIndex = '2147483647'
+    //   iframe.style.height = '100%'
+    //   iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
+      
+    //   document.body.appendChild(iframe)
+    //   setTimeout(() => {
+    //     if (document.getElementById("iframe_loading")) {
+    //       document.getElementById("iframe_loading").remove();
+    //     }
+    //   }, 1500)
+    // }).catch(() => {
+    //   if (document.getElementById("iframe_loading")) {
+    //     document.getElementById("iframe_loading").remove();
+    //   }
+    // })
+
+    iframe = document.createElement('iframe')
       iframe.id = 'iframe_popup'
       iframe.style.border = 'none'
       iframe.style.position = 'fixed'
@@ -140,16 +162,6 @@ function renderPopup (result) {
       iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
       
       document.body.appendChild(iframe)
-      setTimeout(() => {
-        if (document.getElementById("iframe_loading")) {
-          document.getElementById("iframe_loading").remove();
-        }
-      }, 1500)
-    }).catch(() => {
-      if (document.getElementById("iframe_loading")) {
-        document.getElementById("iframe_loading").remove();
-      }
-    })
   } else {
     window.open('http://hasbrain.surge.sh/#/?extensionId='+ chrome.runtime.id)
   }
