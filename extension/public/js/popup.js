@@ -321,8 +321,8 @@ $(document).ready(function() {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
     const record = {...bookmarkData}
-    delete record.tags
-    delete record.innerText
+    // delete record.tags
+    // delete record.innerText
     
     graphql({
       query: `

@@ -173,8 +173,8 @@ $(document).ready(function() {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
     const record = {...bookmarkData}
-    delete record.tags
-    delete record.innerText
+    // delete record.tags
+    // delete record.innerText
     articleCreateIfNotExist(record).then(function (res) {
       if (res.status !== 200) return
       const result = res.data
@@ -219,8 +219,8 @@ $(document).ready(function() {
         toRemoveIframe = null
       }
       toRemoveIframe = setTimeout(() => {
-        // chrome.runtime.sendMessage({action: 'remove-iframe'});
-      }, 4000)
+        chrome.runtime.sendMessage({action: 'remove-iframe'});
+      }, 5000)
     }
   );
 

@@ -15,9 +15,7 @@ function getLevels() {
     if (res.status !== 200) {
       return
     }
-    console.log('res', res)
     const result = res.data
-    console.log(result)
     if (!result || result.errors) return result
     return { data: result.data.viewer.levelMany }
   })
@@ -28,7 +26,7 @@ function postComment({articleId = '', comment = ''}) {
     query: `
       mutation ($comment: String) {
         user {
-          userCommentCreate(record: {
+          userCommentCreateOrUpdate(record: {
             articleId: "${articleId}",
             comment: $comment
           }) {

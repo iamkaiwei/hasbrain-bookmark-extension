@@ -150,7 +150,9 @@ function renderPopup (result) {
     //     document.getElementById("iframe_loading").remove();
     //   }
     // })
-
+    var bookmarkData = {url, title, sourceImage: photo, shortDescription: description, readingTime, sourceName: 'extension', sourceCreatedAt: new Date().toISOString()}
+    console.log('bookmark', bookmarkData)
+    chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
     iframe = document.createElement('iframe')
       iframe.id = 'iframe_popup'
       iframe.style.border = 'none'
