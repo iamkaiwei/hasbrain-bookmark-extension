@@ -219,7 +219,7 @@ $(document).ready(function() {
         toRemoveIframe = null
       }
       toRemoveIframe = setTimeout(() => {
-        chrome.runtime.sendMessage({action: 'remove-iframe'});
+        // chrome.runtime.sendMessage({action: 'remove-iframe'});
       }, 5000)
     }
   );
@@ -280,34 +280,34 @@ $(document).ready(function() {
           <div class="item" data-value="${_id}">${_source.title}</div>
         `)
           $(menuItem).click(function(e) {
-            !isExecuting && _renderPageSaving()
+            // !isExecuting && _renderPageSaving()
             if (topicIds.indexOf(_id) === -1) {
               topicIds.push(_id)
             }
-            articleAddTopicsLevel({
-              articleId,
-              topicIds,
-              levelId: selectedLevel._id
-            }).then(res => {
-              console.log('xxxx',res)
-              if (res.status !== 200) {
-                _renderPageSavedError()
-                tagRemove(_id)
-                return
-              }
-              const result = res.data
-              if (!result || result.errors) {
-                _renderPageSavedError()
-                tagRemove(_id)
-                return
-              }
-              currentTopicId = _id
-              _renderPageSaved()
-            }).catch(err => {
-              console.log(err)
-              _renderPageSavedError()
-              tagRemove(_id)
-            })
+            // articleAddTopicsLevel({
+            //   articleId,
+            //   topicIds,
+            //   levelId: selectedLevel._id
+            // }).then(res => {
+            //   console.log('xxxx',res)
+            //   if (res.status !== 200) {
+            //     _renderPageSavedError()
+            //     tagRemove(_id)
+            //     return
+            //   }
+            //   const result = res.data
+            //   if (!result || result.errors) {
+            //     _renderPageSavedError()
+            //     tagRemove(_id)
+            //     return
+            //   }
+            //   currentTopicId = _id
+            //   _renderPageSaved()
+            // }).catch(err => {
+            //   console.log(err)
+            //   _renderPageSavedError()
+            //   tagRemove(_id)
+            // })
           })
           searchSeries.find('.menu').append(menuItem)
           return true
@@ -407,28 +407,28 @@ $(document).ready(function() {
       $(difficulty__level).click(function(e) {
         const _this = this
         selectedLevel = level
-        _renderPageSaving()
-        articleAddTopicsLevel({
-          articleId,
-          topicIds,
-          levelId: selectedLevel._id
-        }).then(res => {
-          if (res.status !== 200) {
-            _renderPageSavedError()
-            return
-          }
-          const result = res.data
-          if (!result || result.errors) {
-            _renderPageSavedError()
-            return
-          }
-          $('#difficulty__title').text(level.title)
-          $('.difficulty__level').removeClass('active')
-          $(_this).addClass('active')
-          _renderPageSaved()
-        }).catch(() => {
-          _renderPageSavedError()
-        })
+        // _renderPageSaving()
+        // articleAddTopicsLevel({
+        //   articleId,
+        //   topicIds,
+        //   levelId: selectedLevel._id
+        // }).then(res => {
+        //   if (res.status !== 200) {
+        //     _renderPageSavedError()
+        //     return
+        //   }
+        //   const result = res.data
+        //   if (!result || result.errors) {
+        //     _renderPageSavedError()
+        //     return
+        //   }
+        //   _renderPageSaved()
+        // }).catch(() => {
+        //   _renderPageSavedError()
+        // })
+        $('#difficulty__title').text(level.title)
+        $('.difficulty__level').removeClass('active')
+        $(_this).addClass('active')
       })
 
       $(difficulty__levels).prepend(difficulty__level)
@@ -442,32 +442,94 @@ $(document).ready(function() {
     $('#difficulty__levels > *:last-child').addClass('active')
   })
 
-  $('#comment__text').keyup(function(e) {
-    const comment = $(this).val()
-    !isExecuting && _renderPageSaving()
-    if (toComment) {
-      clearTimeout(toComment)
-      toComment = null
-    }
-    toComment = setTimeout(() => {
+  // $('#comment__text').keyup(function(e) {
+  //   const comment = $(this).val()
+  //   !isExecuting && _renderPageSaving()
+  //   if (toComment) {
+  //     clearTimeout(toComment)
+  //     toComment = null
+  //   }
+  //   toComment = setTimeout(() => {
+  //     postComment({
+  //       articleId,
+  //       comment
+  //     }).then(res => {
+  //       if (res.status !== 200) {
+  //         _renderPageSavedError()
+  //         return
+  //       }
+  //       const result = res.data
+  //       if (!result || result.errors) {
+  //         _renderPageSavedError()
+  //         return
+  //       }
+  //       _renderPageSaved()
+  //     }).catch(() => {
+  //       _renderPageSavedError()
+  //     })
+  //   }, 300)
+  // })
+
+  // $('#comment__private').click(function(e) {
+  //   if (isExecuting) return
+  //   _renderPageSaving()
+  //   $(this).addClass('loading')
+  //   postComment({
+  //     articleId,
+  //     comment: $('#comment__text').val()
+  //   }).then(res => {
+  //     $(this).removeClass('loading')
+  //     if (res.status !== 200) {
+  //       _renderPageSavedError()
+  //       return
+  //     }
+  //     const result = res.data
+  //     if (!result || result.errors) {
+  //       _renderPageSavedError()
+  //       return
+  //     }
+  //     _renderPageSaved()
+  //   }).catch(() => {
+  //     $(this).removeClass('loading')
+  //     _renderPageSavedError()
+  //   })
+  // })
+
+  $('#comment__public').click(function(e) {
+    if (isExecuting) return
+    _renderPageSaving()
+    $(this).addClass('loading')
+    Promise.all([
+      articleAddTopicsLevel({
+        articleId,
+        topicIds,
+        levelId: selectedLevel._id
+      }),
       postComment({
         articleId,
-        comment
-      }).then(res => {
-        if (res.status !== 200) {
-          _renderPageSavedError()
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          _renderPageSavedError()
-          return
-        }
-        _renderPageSaved()
-      }).catch(() => {
-        _renderPageSavedError()
+        comment: $('#comment__text').val(),
+        isPublic: true
       })
-    }, 300)
+    ])
+    .then(res => {
+      $(this).removeClass('loading')
+      console.log('ré', res)
+      const [res1, res2] = res
+      if (res1.status !== 200 || res2.status !== 200) {
+        _renderPageSavedError()
+        return
+      }
+      const result1 = res1.data
+      const result2 = res2.data
+      if (!result1 || result1.errors || !result2 || result2.errors) {
+        _renderPageSavedError()
+        return
+      }
+      _renderPageSaved()
+    }).catch(() => {
+      $(this).removeClass('loading')
+      _renderPageSavedError()
+    })
   })
 
 })

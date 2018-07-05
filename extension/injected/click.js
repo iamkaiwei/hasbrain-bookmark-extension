@@ -161,6 +161,7 @@ function renderPopup (result) {
       iframe.style.right = '10px'
       iframe.style.zIndex = '2147483647'
       iframe.style.height = '100%'
+      iframe.style.width = '360px'
       iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
       
       document.body.appendChild(iframe)

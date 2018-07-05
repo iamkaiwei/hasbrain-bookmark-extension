@@ -259,3 +259,31 @@ input#tags_tag {
 .difficulty__level:hover ~ .difficulty__level .point {
   background-color: #0083A0 !important;
 }
+
+.comment__actions {
+  padding-top: 15px;
+  text-align: right;
+}
+.comment__actions > div {
+  margin-left: 10px;
+}
+.ui.basic.button.comment__btn {
+  text-transform: uppercase;
+  /* font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid;
+  height: 32px; */
+  line-height: 32px;
+  padding: 0 7px;
+  background-color: #FFF !important;
+}
+
+.ui.basic.button.comment__btn--1 {
+  color: #747474;
+  border-color: #747474;
+}
+
+.ui.basic.button.comment__btn--2 {
+  color: #0083A0;
+  border-color: #0083A0;
+}

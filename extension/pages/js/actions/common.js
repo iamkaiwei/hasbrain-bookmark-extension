@@ -21,14 +21,15 @@ function getLevels() {
   })
 }
 
-function postComment({articleId = '', comment = ''}) {
+function postComment({articleId = '', comment = '', isPublic = false}) {
   return graphql({
     query: `
       mutation ($comment: String) {
         user {
           userCommentCreateOrUpdate(record: {
             articleId: "${articleId}",
-            comment: $comment
+            comment: $comment,
+            isPublic: ${isPublic}
           }) {
             recordId
           }
