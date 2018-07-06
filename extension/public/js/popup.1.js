@@ -505,15 +505,14 @@ $(document).ready(function() {
         topicIds,
         levelId: selectedLevel._id
       }),
-      postComment({
+      $('#comment__text').val().length ? postComment({
         articleId,
         comment: $('#comment__text').val(),
         isPublic: true
-      })
+      }) : {status: 200, data: {}}
     ])
     .then(res => {
       $(this).removeClass('loading')
-      console.log('ré', res)
       const [res1, res2] = res
       if (res1.status !== 200 || res2.status !== 200) {
         _renderPageSavedError()

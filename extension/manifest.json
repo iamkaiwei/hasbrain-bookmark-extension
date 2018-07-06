@@ -14,7 +14,8 @@
     "tabs",
     "background",
     "storage",
-    "<all_urls>"
+    "<all_urls>",
+    "http://userkit-sdk.surge.sh/userkit_sdk.min.js"
   ],
   "content_scripts": [
     {
@@ -36,7 +37,7 @@
       ]
     }
   ],
-  "version": "4.7",
+  "version": "4.8",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",
