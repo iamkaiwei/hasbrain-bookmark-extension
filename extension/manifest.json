@@ -37,7 +37,7 @@
       ]
     }
   ],
-  "version": "4.9",
+  "version": "4.12",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",

@@ -341,7 +341,7 @@ $(document).ready(function() {
   })
   $('#archive__bookmark').click(() => {
     $('#setting__block').removeClass('show')
-    $('#save__section, #relative__news').remove()
+    $('#save__section, #relative__news, #relative__path').remove()
     $('#remove__block').hide()
     $('#archive__block').show()
     $('#archiving').show()
@@ -364,7 +364,7 @@ $(document).ready(function() {
   })
   $('#remove__bookmark').click(() => {
     $('#setting__block').removeClass('show')
-    $('#save__section, #relative__news').remove()
+    $('#save__section, #relative__news, #relative__path').remove()
     $('#archive__block').hide()
     $('#remove__block').show()
     $('#removing').show()
