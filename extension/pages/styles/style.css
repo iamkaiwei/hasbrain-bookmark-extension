@@ -78,13 +78,7 @@ input#tags_tag {
   color: #999;
 }
 
-#saved__block { position: relative; }
-#saved__block > span {
-  color: #002257;
-  font-style: italic;
-}
-
-.saved__block-title {
+.popup__title-status {
   color: #002257;
   font-style: italic;
   text-transform: uppercase;

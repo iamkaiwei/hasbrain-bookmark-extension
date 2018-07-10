@@ -153,42 +153,20 @@ function listRemove (id) {
   })
 }
 
-function _renderPageSaving () {
-  isExecuting = true
-  $('.saved__block-title').html('').append('<div class="ui active inline loader tiny"></div> &nbsp; PAGE SAVING')
-}
-
-function _renderPageSavedError () {
+function _renderExecuting (text) {
   isExecuting = false
-  $('.saved__block-title').html('').append('<i class="exclamation triangle icon"></i> &nbsp; PAGE SAVED ERROR')
+  $('.popup__title-status').html('').append(`<div class="ui active inline loader tiny"></div> &nbsp; ${text}`)
 }
 
-function _renderPageSaved () {
+function _renderSuccess (text) {
   isExecuting = false
-  $('.saved__block-title').html('').append('PAGE SAVED')
+  $('.popup__title-status').html('').append(`${text}`)
 }
 
-function _renderPageArchived () {
-  $('.saved__block-title').html('').append('PAGE Archived')
-}
-
-function _renderPageArchiving () {
-  $('.saved__block-title').html('').append('<div class="ui active inline loader tiny"></div> &nbsp; Archiving...')
-}
-
-function _renderPageArchiveError () {
-  $('.saved__block-title').html('').append('<i class="exclamation triangle icon"></i> &nbsp; Archived error')
-}
-
-function _renderPageRemoved () {
-  $('.saved__block-title').html('').append('PAGE Removed')
-}
-
-function _renderPageRemoving () {
-  $('.saved__block-title').html('').append('<div class="ui active inline loader tiny"></div> &nbsp; Removing...')
-}
-function _renderPageRemoveError () {
-  $('.saved__block-title').html('').append('<i class="exclamation triangle icon"></i> &nbsp; Archived error')
+function _renderError (text) {
+  console.log('render error', text)
+  isExecuting = false
+  $('.popup__title-status').html('').append(`<i class="exclamation triangle icon"></i> &nbsp; ${text}`)
 }
 
 $(document).ready(function() {
@@ -196,7 +174,7 @@ $(document).ready(function() {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
     const record = {...bookmarkData}
-
+    _renderExecuting('page saving')
     articleCreateIfNotExist(record).then(function (res) {
       if (res.status !== 200) return
       const result = res.data
@@ -207,27 +185,22 @@ $(document).ready(function() {
       const { data: { user: { articleCreateIfNotExist: { recordId } } } } = result
       articleId = recordId
       userbookmarkCreate(recordId).then(res => {
-        $('#saving__block').hide()
         if (res.status !== 200) {
-          $('#save__error').show()
+          _renderError('Error bookmark!')
           return
         }
-        $('#saved__block').show()
+        _renderSuccess('page saved')
         $('#save-to-topics').checkbox('set unchecked')
 
         // change extension icon when bookmark successfully
         chrome.runtime.sendMessage({action: 'change-icon'});
       }).catch(err => {
         console.log(err)
-        $('#saving__block').hide()
-        $('#save__error').show()
-        $('#saved__block').hide()
+        _renderError('Error bookmark!')
       })
     }).catch((err) => {
       console.log(err)
-      $('#saving__block').hide()
-      $('#save__error').show()
-      $('#saved__block').hide()
+      _renderError('Error bookmark!')
     })
   })
 
@@ -309,34 +282,9 @@ $(document).ready(function() {
           <div class="item" data-value="${_id}">${_source.title}</div>
         `)
           $(menuItem).click(function(e) {
-            // !isExecuting && _renderPageSaving()
             if (topicIds.indexOf(_id) === -1) {
               topicIds.push(_id)
             }
-            // articleAddTopicsLevel({
-            //   articleId,
-            //   topicIds,
-            //   levelId: selectedLevel._id
-            // }).then(res => {
-            //   console.log('xxxx',res)
-            //   if (res.status !== 200) {
-            //     _renderPageSavedError()
-            //     tagRemove(_id)
-            //     return
-            //   }
-            //   const result = res.data
-            //   if (!result || result.errors) {
-            //     _renderPageSavedError()
-            //     tagRemove(_id)
-            //     return
-            //   }
-            //   currentTopicId = _id
-            //   _renderPageSaved()
-            // }).catch(err => {
-            //   console.log(err)
-            //   _renderPageSavedError()
-            //   tagRemove(_id)
-            // })
           })
           searchSeries.find('.menu').append(menuItem)
           return true
@@ -370,51 +318,43 @@ $(document).ready(function() {
   })
   $('#archive__bookmark').click(() => {
     $('#setting__block').removeClass('show')
-    $('#save__section, #relative__news, #relative__path').remove()
-    $('#remove__block').hide()
-    $('#archive__block').show()
-    $('#archiving').show()
+    $('#series__section, #relative__path').remove()
+
+    _renderExecuting('Bookmark Archiving...')
     bookmarkArchive(articleId).then(res => {
-      $('#archiving').hide()
       if (res.status !== 200) {
-        $('#archived__error').show()
+        _renderError('Bookmark Archive Error!')
         return
       }
       const result = res.data
       if (!result || result.errors) {
-        $('#archived__error').show()
+        _renderError('Bookmark Archive Error!')
         return
       }
-      $('#archived').show()
+      _renderSuccess('Bookmark archived')
     }).catch(() => {
-      $('#archiving').hide()
-      $('#archived__error').show()
+      _renderError('Bookmark Archive Error!')
     })
   })
   $('#remove__bookmark').click(() => {
     $('#setting__block').removeClass('show')
-    $('#save__section, #relative__news, #relative__path').remove()
-    $('#archive__block').hide()
-    $('#remove__block').show()
-    $('#removing').show()
+    $('#series__section, #relative__path, #setting__block').remove()
+    _renderExecuting('Bookmark removing...')
     bookmarkRemove(articleId).then(res => {
-      $('#removing').hide()
       if (res.status !== 200) {
-        $('#removed__error').show()
+        _renderError('Bookmark Remove Error!')
         return
       }
       const result = res.data
       if (!result || result.errors) {
-        $('#removed__error').show()
+        _renderError('Bookmark Remove Error!')
         return
       }
-      $('#setting__block').remove()
-      $('#removed').show()
+      _renderSuccess('Bookmark removed')
       // change icon outline when remove bookmark
       chrome.runtime.sendMessage({action: 'change-icon-outline'});
     }).catch(() => {
-      $('#removing').hide()
-      $('#removed__error').show()
+      _renderError('Bookmark Remove Error!')
     })
   })
 
@@ -438,25 +378,6 @@ $(document).ready(function() {
       $(difficulty__level).click(function(e) {
         const _this = this
         selectedLevel = level
-        // _renderPageSaving()
-        // articleAddTopicsLevel({
-        //   articleId,
-        //   topicIds,
-        //   levelId: selectedLevel._id
-        // }).then(res => {
-        //   if (res.status !== 200) {
-        //     _renderPageSavedError()
-        //     return
-        //   }
-        //   const result = res.data
-        //   if (!result || result.errors) {
-        //     _renderPageSavedError()
-        //     return
-        //   }
-        //   _renderPageSaved()
-        // }).catch(() => {
-        //   _renderPageSavedError()
-        // })
         $('#difficulty__title').text(level.title)
         $('.difficulty__level').removeClass('active')
         $(_this).addClass('active')
@@ -473,62 +394,9 @@ $(document).ready(function() {
     $('#difficulty__levels > *:last-child').addClass('active')
   })
 
-  // $('#comment__text').keyup(function(e) {
-  //   const comment = $(this).val()
-  //   !isExecuting && _renderPageSaving()
-  //   if (toComment) {
-  //     clearTimeout(toComment)
-  //     toComment = null
-  //   }
-  //   toComment = setTimeout(() => {
-  //     postComment({
-  //       articleId,
-  //       comment
-  //     }).then(res => {
-  //       if (res.status !== 200) {
-  //         _renderPageSavedError()
-  //         return
-  //       }
-  //       const result = res.data
-  //       if (!result || result.errors) {
-  //         _renderPageSavedError()
-  //         return
-  //       }
-  //       _renderPageSaved()
-  //     }).catch(() => {
-  //       _renderPageSavedError()
-  //     })
-  //   }, 300)
-  // })
-
-  // $('#comment__private').click(function(e) {
-  //   if (isExecuting) return
-  //   _renderPageSaving()
-  //   $(this).addClass('loading')
-  //   postComment({
-  //     articleId,
-  //     comment: $('#comment__text').val()
-  //   }).then(res => {
-  //     $(this).removeClass('loading')
-  //     if (res.status !== 200) {
-  //       _renderPageSavedError()
-  //       return
-  //     }
-  //     const result = res.data
-  //     if (!result || result.errors) {
-  //       _renderPageSavedError()
-  //       return
-  //     }
-  //     _renderPageSaved()
-  //   }).catch(() => {
-  //     $(this).removeClass('loading')
-  //     _renderPageSavedError()
-  //   })
-  // })
-
   $('#comment__public').click(function(e) {
     if (isExecuting) return
-    _renderPageSaving()
+    _renderExecuting('page saving...')
     $(this).addClass('loading')
     Promise.all([
       articleAddTopicsLevel({
@@ -546,19 +414,19 @@ $(document).ready(function() {
       $(this).removeClass('loading')
       const [res1, res2] = res
       if (res1.status !== 200 || res2.status !== 200) {
-        _renderPageSavedError()
+        _renderError('page saved error!')
         return
       }
       const result1 = res1.data
       const result2 = res2.data
       if (!result1 || result1.errors || !result2 || result2.errors) {
-        _renderPageSavedError()
+        _renderError('page saved error!')
         return
       }
-      _renderPageSaved()
+      _renderSuccess('page saved')
     }).catch(() => {
       $(this).removeClass('loading')
-      _renderPageSavedError()
+      _renderError('page saved error!')
     })
   })
 
