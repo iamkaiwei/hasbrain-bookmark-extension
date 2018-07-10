@@ -1,7 +1,6 @@
 var profile = null
 var iframe = null
 
-
 chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'], result => {
   if (!result.bookmark_token) {
     window.open('http://hasbrain.surge.sh/#/?extensionId='+ chrome.runtime.id)

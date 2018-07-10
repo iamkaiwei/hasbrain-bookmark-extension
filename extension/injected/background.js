@@ -43,18 +43,22 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === 'hide-homepage') {
     bookmark_hide_newtab = request.result
   }
+
+  if (request.action === 'change-icon') {
+    console.log('sender', sender)
+    chrome.browserAction.setIcon({
+      path: '/assets/images/hasbrain-logo-full.png',
+      tabId: sender.tab.id
+    })
+  }
+
+  if (request.action === 'change-icon-outline') {
+    chrome.browserAction.setIcon({
+      path: '/assets/images/hasbrain-logo-outline.png',
+      tabId: sender.tab.id
+    })
+  }
 });
-
-// chrome.tabs.onCreated.addListener(function(tab) {
-//   chrome.storage.sync.get(["bookmark_hide_newtab"], result => {
-//     if (result.bookmark_hide_newtab && tab.url === "chrome://newtab/") {
-//       chrome.tabs.update(tab.id, {
-//         url: "chrome-search://local-ntp/local-ntp.html"
-//       });
-//     }
-//   });
-// });
-
 
 chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
   bookmark_hide_newtab = result.bookmark_hide_newtab
@@ -62,10 +66,11 @@ chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
 
 
 chrome.tabs.onCreated.addListener(function(tab) {
-  console.log('bookmark_hide_newtab', bookmark_hide_newtab)
   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
     chrome.tabs.update(tab.id, {
       url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
     })
   }
 })
+
+chrome.tabs.executeScript(null, { file: "injected/checkBookmark.js" });

@@ -84,6 +84,12 @@ input#tags_tag {
   font-style: italic;
 }
 
+.saved__block-title {
+  color: #002257;
+  font-style: italic;
+  text-transform: uppercase;
+}
+
 .news__item {overflow: hidden; clear: both; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #dddddd}
 .news__item .loading, .news__item .done {display: none !important}
 .news__item.news--bookmarking .loading { display: inline-block !important }

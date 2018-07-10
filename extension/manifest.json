@@ -3,7 +3,12 @@
   "name": "hasBrain tracker",
   "manifest_version": 2,
   "browser_action": {
-    "default_icon": "public/img/icon.png"
+    "default_icon": "assets/images/hasbrain-logo-outline.png"
+  },
+  "icons": {
+    "16": "assets/images/hasbrain-logo.png",
+    "48": "assets/images/hasbrain-logo.png",
+    "128": "assets/images/hasbrain-logo.png"
   },
   "background": {
     "scripts": [
@@ -30,14 +35,15 @@
         "public/js/keywords.js",
         "injected/highlight.js",
         "public/js/semantic.min.js",
-        "public/js/jwt-decode.js"
+        "public/js/jwt-decode.js",
+        "injected/checkBookmark.js"
       ],
       "css": [
         "public/css/mycss.css"
       ]
     }
   ],
-  "version": "4.12",
+  "version": "4.13",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",

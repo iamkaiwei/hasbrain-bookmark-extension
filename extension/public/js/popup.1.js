@@ -168,13 +168,35 @@ function _renderPageSaved () {
   $('.saved__block-title').html('').append('PAGE SAVED')
 }
 
+function _renderPageArchived () {
+  $('.saved__block-title').html('').append('PAGE Archived')
+}
+
+function _renderPageArchiving () {
+  $('.saved__block-title').html('').append('<div class="ui active inline loader tiny"></div> &nbsp; Archiving...')
+}
+
+function _renderPageArchiveError () {
+  $('.saved__block-title').html('').append('<i class="exclamation triangle icon"></i> &nbsp; Archived error')
+}
+
+function _renderPageRemoved () {
+  $('.saved__block-title').html('').append('PAGE Removed')
+}
+
+function _renderPageRemoving () {
+  $('.saved__block-title').html('').append('<div class="ui active inline loader tiny"></div> &nbsp; Removing...')
+}
+function _renderPageRemoveError () {
+  $('.saved__block-title').html('').append('<i class="exclamation triangle icon"></i> &nbsp; Archived error')
+}
+
 $(document).ready(function() {
   chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
     const record = {...bookmarkData}
-    // delete record.tags
-    // delete record.innerText
+
     articleCreateIfNotExist(record).then(function (res) {
       if (res.status !== 200) return
       const result = res.data
@@ -192,13 +214,20 @@ $(document).ready(function() {
         }
         $('#saved__block').show()
         $('#save-to-topics').checkbox('set unchecked')
-      }).catch(() => {
+
+        // change extension icon when bookmark successfully
+        chrome.runtime.sendMessage({action: 'change-icon'});
+      }).catch(err => {
+        console.log(err)
         $('#saving__block').hide()
         $('#save__error').show()
+        $('#saved__block').hide()
       })
-    }).catch(() => {
+    }).catch((err) => {
+      console.log(err)
       $('#saving__block').hide()
       $('#save__error').show()
+      $('#saved__block').hide()
     })
   })
 
@@ -381,6 +410,8 @@ $(document).ready(function() {
       }
       $('#setting__block').remove()
       $('#removed').show()
+      // change icon outline when remove bookmark
+      chrome.runtime.sendMessage({action: 'change-icon-outline'});
     }).catch(() => {
       $('#removing').hide()
       $('#removed__error').show()
