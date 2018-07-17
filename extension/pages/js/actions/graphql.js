@@ -1,3 +1,5 @@
+const productionApi = 'https://contentkit-api.mstage.io/graphql'
+const stagingApi = 'https://contentkit-api-staging.mstage.io/graphql'
 function graphql({query, variables}) {
   return new Promise(function(resolve, reject) {
     chrome.storage.sync.get('bookmark_token', function(items) {
@@ -11,7 +13,7 @@ function graphql({query, variables}) {
   }).then(result => {
     token = result.bookmark_token
     return axios.post(
-      "https://contentkit-api.mstage.io/graphql",
+      stagingApi,
       JSON.stringify({
         query,
         variables

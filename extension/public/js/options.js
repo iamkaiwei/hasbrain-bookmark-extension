@@ -74,11 +74,13 @@ function _handleUpdateTags () {
 $(document).ready(function() {
   let accountName = ''
   let accountEmail = ''
-  chrome.storage.sync.get(['bookmark_profile', 'bookmark_hide_newtab'], result => {
+  chrome.storage.sync.get(['bookmark_profile', 'bookmark_hide_newtab', 'bookmark_hide_context_menu', 'bookmark_hide_newtab', 'bookmark_hide_circle_highlight'], result => {
     // set value checked or unchecked for checkbox homepage
-    chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
-      $('#newtab_checkbox').checkbox(`set ${result.bookmark_hide_newtab ? 'unchecked' : 'checked'}`);  
-    })
+    // chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
+    // })
+    $('#newtab_checkbox').checkbox(`set ${result.bookmark_hide_newtab ? 'unchecked' : 'checked'}`);  
+    $('#contextMenu_highlight').checkbox(`set ${result.bookmark_hide_context_menu ? 'unchecked' : 'checked'}`);  
+    $('#circle_highlight').checkbox(`set ${result.bookmark_hide_circle_highlight ? 'unchecked' : 'checked'}`);  
 
     const login = $(`<button>Click here to login</button>`)
     $(login).click(() => window.open(`http://hasbrain.surge.sh/#/?extensionId=${chrome.runtime.id}`))
@@ -120,6 +122,39 @@ $(document).ready(function() {
     'onAddTag': _handleUpdateTags,
     'onRemoveTag': _handleUpdateTags
   })
+
+  $('#contextMenu_highlight').checkbox({
+    onChecked: function () {
+      chrome.storage.sync.set({
+        'bookmark_hide_context_menu': false
+      })
+      chrome.runtime.sendMessage({
+        action: 'bookmark-update-context-menu'
+      })
+    },
+    onUnchecked: function () {
+      chrome.storage.sync.set({
+        'bookmark_hide_context_menu': true
+      })
+      chrome.runtime.sendMessage({
+        action: 'bookmark-update-context-menu'
+      })
+    }
+  })
+  
+  $('#circle_highlight').checkbox({
+    onChecked: function () {
+      chrome.storage.sync.set({
+        'bookmark_hide_circle_highlight': false
+      })
+    },
+    onUnchecked: function () {
+      chrome.storage.sync.set({
+        'bookmark_hide_circle_highlight': true
+      })
+    }
+  })
+
 })
 
 chrome.runtime.onMessageExternal.addListener(

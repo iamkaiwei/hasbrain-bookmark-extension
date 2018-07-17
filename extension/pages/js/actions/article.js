@@ -7,6 +7,11 @@ function articleCreateIfNotExist (record) {
             recordId
             record {
               tags
+              title
+              sourceImage
+              sourceData {
+                sourceImage
+              }
             }
             isBookmarked
           }
@@ -89,5 +94,49 @@ function bookmarkArticle (articleId) {
         }
       }
     `
+  })
+}
+
+function getBookmarkList () {
+  return graphql({
+    query: `
+      query{
+        viewer{
+          userbookmarkPagination(
+            perPage: 200,
+            filter: {
+              state: published
+            }
+          ) {
+            items {
+              content{
+                contentId
+              }
+            }
+          }
+        }
+      }
+    `
+  }).then(response => {
+    if (response.status !== 200) return
+    const result = response.data
+    const {
+      data: {
+        viewer: {
+          userbookmarkPagination: { items = [] }
+        }
+      }
+    } = result
+
+    let listUrlBookmarked = []
+    items.map(i => i.content && i.content.contentId && listUrlBookmarked.push(i.content.contentId))
+    chrome.storage.sync.set({
+      'hasbrain_bookmark_list': JSON.stringify(listUrlBookmarked)
+    }, function() {  
+      var error = chrome.runtime.lastError;  
+      if (error) {  
+        console.log(error)
+      }  
+   })
   })
 }

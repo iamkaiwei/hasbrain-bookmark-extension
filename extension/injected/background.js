@@ -58,19 +58,56 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       tabId: sender.tab.id
     })
   }
+
+  if (request.action === 'bookmark-update-context-menu') {
+    chrome.storage.sync.get(['bookmark_hide_context_menu'], result => {
+      chrome.contextMenus.update('hasBrainHighlight', {
+        visible: !(result.bookmark_hide_context_menu)
+      })
+    })
+  }
 });
 
 chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
   bookmark_hide_newtab = result.bookmark_hide_newtab
 })
 
-
 chrome.tabs.onCreated.addListener(function(tab) {
   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
     chrome.tabs.update(tab.id, {
-      url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
+      // url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
+      url: `http://hasbrain-tracker.surge.sh/#/`
     })
   }
 })
 
-chrome.tabs.executeScript(null, { file: "injected/checkBookmark.js" });
+chrome.tabs.onActivated.addListener(tab => {
+  chrome.tabs.get(tab.tabId, tabInfo => {
+    chrome.storage.sync.get(['hasbrain_bookmark_list'], result => {
+      const list = result.hasbrain_bookmark_list || ''
+      list.includes(tabInfo.url) && chrome.browserAction.setIcon({
+        path: '/assets/images/hasbrain-logo-full.png',
+        tabId: tabInfo.id
+      })
+    })
+  })
+})
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.sync.get(['bookmark_hide_context_menu'], result => {
+    chrome.contextMenus.create({
+      id: 'hasBrainHighlight',
+      visible: !(!!result.bookmark_hide_context_menu),
+      title: 'Highlight it',
+      contexts: ['selection'],
+      onclick: () => {
+        console.log('xxxx')
+        chrome.tabs.executeScript(null, { file: "injected/click.js" });
+      }
+    })
+  })
+
+  // const body = document.getElementsByTagName('body')
+  // console.log('body', body)
+  // body[0].append(`<div>dasdasdad</div>`)
+})

@@ -13,7 +13,7 @@
   <script src="./js/actions/article.js"></script>
   <script src="./js/actions/topic.js"></script>
   <script src="./js/actions/common.js"></script>
-  <script type="text/javascript" src="../public/js/popup.1.js"></script>
+  <script type="text/javascript" src="../public/js/popup.js"></script>
 
   <title>popup</title>
 </head>
@@ -24,10 +24,12 @@
     </div> -->
     <div class="segments-wrapper">
       <div class="ui segment">
-        <span class="popup__title-status"></span>
+        <span class="popup__title-status">Page saving</span>
         <div id="remove__iframe" class="remove__iframe">
           <i class="close icon"></i>
         </div>
+
+        <!-- Setting block for article -->
         <div class="setting__block" id="setting__block">
           <i class="ellipsis vertical icon"></i>
           <div class="setting__dropdown">
@@ -52,85 +54,76 @@
             </div>
           </div>
         </div>
-        <div id="series__section" class="series__section">
+        <!-- Setting block for article -->
+
+        <div id="series__section" class="series__section" hidden>
           <div class="ui divider"></div>
-          <!-- <div class="tags__block" id="tags__block">
-            <label>Tags saved:</label>
-            <input type="tags" id="tags" />
-          </div> -->
-          <div id="series__block" class="series__block" style="margin-top: 10px">
+
+          <!-- Review Block -->
+          <div class="review">
+            <div class="review__left">
+              <div class="review__image" id="review__image">
+              </div>
+              <div class="review__source-image" id="review__source-image">
+              </div>
+            </div>
+            <div class="review__right">
+              <div class="review__title" id="review__title"></div>
+            </div>
+          </div>
+          <!-- Review Block -->
+
+          <div id="series__block" class="series__block show-saving" style="margin-top: 10px">
             <div class="ui form">
               <div class="field">
-                <div class="ui checkbox" id="save-to-topics">
-                  <input type="checkbox" name="example">
-                  <label>SAVE TO TOPICS</label>
-                  <span class="note">(#topics make comment shared)</span>
+                <div class="ui icon input" id="topic_search">
+                  <input type="text" placeholder="Name this topic or select one below">
+                  <i class="search icon"></i>
                 </div>
-                <!-- <label>Add to series:</label> -->
-                <div class="ui fluid search selection multiple dropdown" id="search_list">
-                  <i class="dropdown icon"></i>
-                  <input class="search">
-                  <div class="default text">Search topics...</div>
-                  <div class="menu">
+              </div>
+            </div>
+            <div id="topic__list" class="topic__list">
+              <!-- <div class="topic">
+                <div class="topic__privacy"><img src="/assets/images/world.png" alt=""></div>
+                <div class="topic__title">xxx</div>
+                <div class="ui checkbox">
+                  <input type="checkbox">
+                  <label></label>
+                </div>
+              </div> -->
+            </div>
+          </div>
+          <div class="relative__path" id="relative__path">
+            <div class="comment__block">
+              <span>COMMENT</span>
+              <div class="comment__wrapper">
+                <textarea name="" id="comment__text" rows="5" placeholder="Comment for article"></textarea>
+                <div class="comment__privacy" data-privacy="private" id="comment__privacy">
+                  <img src="/assets/images/lock-2.png" alt="">
+                  <span>Share to private</span>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="difficulty__block" id="difficulty__block">
+              <span>SUGGESTED DIFFICULTY</span>
+              <div class="difficulty__selector">
+                <div class="difficulty__title" id="difficulty__title"></div>
+                <div class="difficulty__select">
+                  <span class="difficulty__line"></span>
+                  <div class="difficulty__levels" id="difficulty__levels">
                   </div>
                 </div>
               </div>
+            </div> -->
+            <div class="comment__actions">
+              <button class="comment__btn comment__btn--2 ui primary basic button tiny" id="comment__public">
+                Save Comment
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="relative__path" id="relative__path">
-          <div class="comment__block">
-            <span>COMMENT</span>
-            <textarea name="" id="comment__text" rows="5" placeholder="Comment for article"></textarea>
-          </div>
-          <div class="difficulty__block" id="difficulty__block">
-            <span>SUGGESTED DIFFICULTY</span>
-            <div class="difficulty__selector">
-              <div class="difficulty__title" id="difficulty__title"></div>
-              <div class="difficulty__select">
-                <span class="difficulty__line"></span>
-                <div class="difficulty__levels" id="difficulty__levels">
-                  <!-- <span class="difficulty__level">
-                    <span class="point"></span>
-                  </span>
-                  <span class="difficulty__level">
-                    <span class="point"></span>
-                  </span>
-                  <span class="difficulty__level">
-                    <span class="point"></span>
-                  </span>
-                  <span class="difficulty__level">
-                    <span class="point"></span>
-                  </span>
-                  <span class="difficulty__level">
-                    <span class="point"></span>
-                  </span> -->
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="comment__actions">
-            <!-- <button class="comment__btn comment__btn--1 ui basic button tiny" id="comment__private">
-              Save to private
-            </button> -->
-            <button class="comment__btn comment__btn--2 ui primary basic button tiny" id="comment__public">
-              Share to public
-            </button>
-          </div>
-        </div>
       </div>
-      <!-- <div class="ui segment" id="relative__news" hidden>
-        <div id="load__news__error" hidden>
-          <i class="exclamation triangle icon"></i> &nbsp; Error load news
-        </div>
-        <div id="loading__news">
-          <div class="ui active inline loader tiny"></div> &nbsp; Loading
-        </div>
-        <div class="relative__news" id="loaded__news" hidden>
-          <h4>Recommend News</h4>
-        </div>
-      </div> -->
     </div>
   </div>
 </body>

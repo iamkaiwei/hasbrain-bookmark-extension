@@ -194,6 +194,7 @@ $(document).ready(function() {
 
         // change extension icon when bookmark successfully
         chrome.runtime.sendMessage({action: 'change-icon'});
+        getBookmarkList()
       }).catch(err => {
         console.log(err)
         _renderError('Error bookmark!')
@@ -332,6 +333,8 @@ $(document).ready(function() {
         return
       }
       _renderSuccess('Bookmark archived')
+      chrome.runtime.sendMessage({action: 'change-icon-outline'});
+      getBookmarkList()
     }).catch(() => {
       _renderError('Bookmark Archive Error!')
     })
@@ -353,6 +356,7 @@ $(document).ready(function() {
       _renderSuccess('Bookmark removed')
       // change icon outline when remove bookmark
       chrome.runtime.sendMessage({action: 'change-icon-outline'});
+      getBookmarkList()
     }).catch(() => {
       _renderError('Bookmark Remove Error!')
     })

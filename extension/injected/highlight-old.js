@@ -1,6 +1,3 @@
-const productionApi = 'https://contentkit-api.mstage.io/graphql'
-const stagingApi = 'https://contentkit-api-staging.mstage.io/graphql'
-
 var profile = null
 var isSending = false
 var position = 0
@@ -84,9 +81,9 @@ var textSelected=false;
 
 let token = ''
 
-function checkHidingCircleHighlight () {
+function checkHighlightWhitelist () {
   return new Promise(function(resolve, reject) {
-    chrome && chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_hide_circle_highlight'], function(items) {
+    chrome && chrome.storage.sync.get(['bookmark_profile', 'bookmark_token'], function(items) {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
       } else {
@@ -98,20 +95,25 @@ function checkHidingCircleHighlight () {
     const {bookmark_profile = '{}', bookmark_token} = result
     profile = JSON.parse(bookmark_profile)
     token = bookmark_token
-    return !!result.bookmark_hide_circle_highlight
+    const domain = document.domain
+    const highlight_whitelist = profile.highlight_whitelist || []
+    if ( (!domain.includes('www') && highlight_whitelist.indexOf('www.' + domain) !== -1) ||
+      highlight_whitelist.indexOf(domain) !== -1
+    ) return true
+    return false
   }).then(res => res)
 }
 
 async function renderBtnHighlight (e) {
-  var hideCircle = await checkHidingCircleHighlight()
-  if (hideCircle) return
-
+  var showBtn = await checkHighlightWhitelist()
+  // if (!showBtn) return
+  if (window.localStorage.getItem('bookmark_hide_circle_highlight')) return
   _renderInitialHighlight()
   $(commentBlock).hide()
   $(wrapper).removeClass('show-comment__block')
   $(commentText).find('textarea').val('')
   $('body').append(wrapper)
-
+  // $(trackerButton).find('span').text('Add to highlight')
   var selection = $.trim(getSelected().toString());
   $(wrapper).css('display', 'none');
   if (isDict(selection.toString())) {
@@ -142,15 +144,12 @@ async function renderBtnHighlight (e) {
     // wrapper.append(highlightButton)
     // wrapper.append(commentButton)
     // wrapper.append(commentBlock)
-    const offset = getSelectionCharOffsetsWithin(document.body)
-    const dimension = getSelectionDimensions()
 
     $(wrapper)
       .css('display', 'none').css({
-      'right': ($(document).width() - offset.width) / 2,
-      'top': offset.offset.top + (dimension.height / 2),
-      'display': 'block',
-      'z-index': 1000
+      'left': e.pageX,
+      'top': e.pageY - 88,
+      'display': 'block'
     }).attr('rel', selection);
     if (selection.length) {
       const highlightOffset = getSelectionCharOffsetsWithin(document.body)
@@ -212,23 +211,19 @@ function restore() {
 }
 
 function getSelectionCharOffsetsWithin(element) {
-  var start = 0, end = 0, width = 0, offset = {};
+  var start = 0, end = 0;
   var sel, range, priorRange;
   if (typeof window.getSelection != "undefined") {
     if (!window.getSelection().getRangeAt(0)) return
     range = window.getSelection().getRangeAt(0);
     priorRange = range.cloneRange();
     priorRange.selectNodeContents(element);
-    width = $(range.startContainer.parentNode).innerWidth() || 0
-    offset = $(range.startContainer.parentNode).offset()
     priorRange.setEnd(range.startContainer, range.startOffset);
     start = priorRange.toString().length;
     end = start + range.toString().length;
   } else if (typeof document.selection != "undefined" &&
           (sel = document.selection).type != "Control") {
     range = sel.createRange();
-    width = $(range.startContainer.parentNode).innerWidth() || 0
-    offset = $(range.startContainer.parentNode).offset()
     priorRange = document.body.createTextRange();
     priorRange.moveToElementText(element);
     priorRange.setEndPoint("EndToStart", range);
@@ -237,33 +232,8 @@ function getSelectionCharOffsetsWithin(element) {
   }
   return {
     start: start,
-    end: end,
-    width,
-    offset
+    end: end
   };
-}
-
-function getSelectionDimensions() {
-  var sel = document.selection, range;
-  var width = 0, height = 0;
-  if (sel) {
-      if (sel.type != "Control") {
-          range = sel.createRange();
-          width = range.boundingWidth;
-          height = range.boundingHeight;
-      }
-  } else if (window.getSelection) {
-      sel = window.getSelection();
-      if (sel.rangeCount) {
-          range = sel.getRangeAt(0).cloneRange();
-          if (range.getBoundingClientRect) {
-              var rect = range.getBoundingClientRect();
-              width = rect.right - rect.left;
-              height = rect.bottom - rect.top;
-          }
-      }
-  }
-  return { width: width , height: height };
 }
 
 function postHighlight ({ position = '' }) {
@@ -300,7 +270,7 @@ function postHighlight ({ position = '' }) {
     }
     var bookmarkData = data      
     axios.post(
-      stagingApi,
+      "https://contentkit-api.mstage.io/graphql",
       JSON.stringify({
         query: `
           mutation ($record: CreateOnearticletypeInput!) {
@@ -332,7 +302,7 @@ function postHighlight ({ position = '' }) {
       }
       const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
       axios.post(
-        stagingApi,
+        "https://contentkit-api.mstage.io/graphql",
         JSON.stringify({
           query: `
             mutation ($highlight: String) {
@@ -449,7 +419,7 @@ function postComment ({ position = '' }) {
     }
     var bookmarkData = data      
     axios.post(
-      stagingApi,
+      "https://contentkit-api.mstage.io/graphql",
       JSON.stringify({
         query: `
           mutation ($record: CreateOnearticletypeInput!) {
@@ -484,7 +454,7 @@ function postComment ({ position = '' }) {
       const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
       // console.log('record', recordId)
       axios.post(
-        stagingApi,
+        "https://contentkit-api.mstage.io/graphql",
         JSON.stringify({
           query: `
             mutation{

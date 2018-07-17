@@ -1,6 +1,7 @@
 {
   "short_name": "hasBrain tracker",
   "name": "hasBrain tracker",
+  "description": "Management bookmark, highlight and relative articles",
   "manifest_version": 2,
   "browser_action": {
     "default_icon": "assets/images/hasbrain-logo-outline.png"
@@ -12,6 +13,7 @@
   },
   "background": {
     "scripts": [
+      "public/js/axios.js",
       "injected/background.js"
     ]
   },
@@ -20,7 +22,8 @@
     "background",
     "storage",
     "<all_urls>",
-    "http://userkit-sdk.surge.sh/userkit_sdk.min.js"
+    "http://userkit-sdk.surge.sh/userkit_sdk.min.js",
+    "contextMenus"
   ],
   "content_scripts": [
     {
@@ -35,15 +38,14 @@
         "public/js/keywords.js",
         "injected/highlight.js",
         "public/js/semantic.min.js",
-        "public/js/jwt-decode.js",
-        "injected/checkBookmark.js"
+        "public/js/jwt-decode.js"
       ],
       "css": [
         "public/css/mycss.css"
       ]
     }
   ],
-  "version": "4.13",
+  "version": "4.14",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",
