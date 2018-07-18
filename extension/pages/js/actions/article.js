@@ -140,3 +140,61 @@ function getBookmarkList () {
    })
   })
 }
+
+function getArticleUser(filter = {}) {
+  return graphql({
+    query: `
+      query($filter: articleUserActionFilter){
+        viewer{
+          articleUserAction(filter: $filter) {
+            _id
+            title
+            sourceImage
+            sourceData {
+              title
+              sourceId
+              sourceImage
+            }
+            userCommentData {
+              articleId
+              comment
+              state
+              createdAt
+              updatedAt
+              profileId
+              projectId
+              wasNew
+              isPublic
+            }
+            userBookmarkData {
+              contentId
+              kind
+              state
+              createdAt
+              updatedAt
+              profileId
+              projectId
+            }
+            userHighlightData {
+              articleId
+              highlight
+              state
+              createdAt
+              updatedAt
+              profileId
+              projectId
+              wasNew
+              isPublic
+            }
+          }
+        }
+      }
+    `,
+    variables: { filter }
+  }).then(response => {
+    if (response.status !== 200) return
+    const result = response.data
+    if (!result || result.errors || !result.data) return result
+    return {data: result.data.viewer.articleUserAction}
+  })
+}

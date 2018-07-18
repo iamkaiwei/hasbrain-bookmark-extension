@@ -1,5 +1,6 @@
 var bookmarkData = {}
 var toRemoveIframe = null
+var article = {}
 var articleId = ''
 var profile = {}
 var levels = []
@@ -233,6 +234,82 @@ function _buildTopicList() {
   }
 }
 
+function _bookmarkArticle() {
+  articleCreateIfNotExist(bookmarkData)
+  .then(function(res) {
+    if (res.status !== 200) return
+    const result = res.data
+    if (!result || result.errors) {
+      return
+    }
+    const {
+      data: {
+        user: {
+          articleCreateIfNotExist: {
+            recordId,
+            record: { sourceImage, title, sourceData }
+          }
+        }
+      }
+    } = result
+    articleId = recordId
+    userbookmarkCreate(recordId)
+      .then(res => {
+        if (res.status !== 200) {
+          _renderError('Error bookmark!')
+          return
+        }
+        _renderSuccess('page saved')
+        $('#save-to-topics').checkbox('set unchecked')
+        $('#series__section').show()
+        $('#review__title').text(title)
+        $('#review__image').css({
+          'background-image': `url(${sourceImage})`
+        })
+        $('#review__source-image').css({
+          'background-image': `url(${(sourceData &&
+            sourceData.sourceImage) ||
+            '/assets/images/hasbrain-logo-grey.png'})`
+        })
+
+        // change extension icon when bookmark successfully
+        chrome.runtime.sendMessage({ action: 'change-icon' })
+        // getBookmarkList()
+      })
+      .catch(err => {
+        console.log(err)
+        _renderError('Error bookmark!')
+      })
+  })
+  .catch(err => {
+    console.log(err)
+    _renderError('Error bookmark!')
+  })
+}
+
+function _buildOldData () {
+  const { userCommentData, title, sourceImage, sourceData } = article
+
+  $('#save-to-topics').checkbox('set unchecked')
+  $('#series__section').show()
+  $('#review__title').text(title)
+  $('#review__image').css({
+    'background-image': `url(${sourceImage})`
+  })
+  $('#review__source-image').css({
+    'background-image': `url(${(sourceData &&
+      sourceData.sourceImage) ||
+      '/assets/images/hasbrain-logo-grey.png'})`
+  })
+  chrome.runtime.sendMessage({ action: 'change-icon' })
+
+  // set comment data
+  $('#comment__text').val(userCommentData.comment)
+  $('#comment__privacy img').attr('src', userCommentData.isPublic ? worldImgWrapper : lockImgWrapper)
+  $('#comment__privacy span').text(userCommentData.isPublic ? 'Share to public' : 'Share to private')
+  $('#comment__privacy').attr('data-privacy', userCommentData.isPublic ? 'public' : 'private')
+}
+
 $(document).ready(function() {
   console.log($('#iframe_popup'))
   // $(document).click(function(e) {
@@ -252,56 +329,19 @@ $(document).ready(function() {
     getAllTopics()
     // Get all user topics
 
-    articleCreateIfNotExist(record)
-      .then(function(res) {
-        if (res.status !== 200) return
-        const result = res.data
-        if (!result || result.errors) {
-          return
-        }
-        const {
-          data: {
-            user: {
-              articleCreateIfNotExist: {
-                recordId,
-                record: { sourceImage, title, sourceData }
-              }
-            }
-          }
-        } = result
-        articleId = recordId
-        userbookmarkCreate(recordId)
-          .then(res => {
-            if (res.status !== 200) {
-              _renderError('Error bookmark!')
-              return
-            }
-            _renderSuccess('page saved')
-            $('#save-to-topics').checkbox('set unchecked')
-            $('#series__section').show()
-            $('#review__title').text(title)
-            $('#review__image').css({
-              'background-image': `url(${sourceImage})`
-            })
-            $('#review__source-image').css({
-              'background-image': `url(${(sourceData &&
-                sourceData.sourceImage) ||
-                '/assets/images/hasbrain-logo-grey.png'})`
-            })
+    getArticleUser({
+      url: record.url
+    }).then(result => {
+      if (result.data === null) return _bookmarkArticle()
+      _renderSuccess('page saved')
+      article = result.data
+      articleId = article._id
+      _buildOldData()
+    }).catch(err => {
+      console.log(err)
+      _renderError('Error bookmark!')
+    })
 
-            // change extension icon when bookmark successfully
-            chrome.runtime.sendMessage({ action: 'change-icon' })
-            // getBookmarkList()
-          })
-          .catch(err => {
-            console.log(err)
-            _renderError('Error bookmark!')
-          })
-      })
-      .catch(err => {
-        console.log(err)
-        _renderError('Error bookmark!')
-      })
   })
 
   $(document).hover(
@@ -483,7 +523,7 @@ $(document).ready(function() {
   $('#comment__privacy').click(function(e) {
     const privacy = $(this).data('privacy')
     if (privacy === 'private') {
-      $(this).data('privacy', 'publish')
+      $(this).data('privacy', 'public')
       $(this)
         .find('img')
         .attr('src', worldImgWrapper)
@@ -491,7 +531,7 @@ $(document).ready(function() {
         .find('span')
         .text('Share to public')
       isPublicComment = true
-    } else if (privacy === 'publish') {
+    } else if (privacy === 'public') {
       $(this).data('privacy', 'private')
       isPublicComment = false
       $(this)
