@@ -395,10 +395,17 @@ input#tags_tag {
   max-height: 120px;
   overflow: hidden;
   margin-top: 10px;
-  box-shadow: 0 1px 5px 0px rgba(0,0,0,0.1);
+  /* box-shadow: 0 1px 5px 0px rgba(0,0,0,0.1); */
   padding: 5px 10px;
+}
+.topic__list.has-shadow {
+  box-shadow: 0 1px 5px 0px rgba(0,0,0,0.1);
 }
 .topic__list:hover {
   overflow-y: overlay;
+}
+.topic__error {
+  color: red;
+  padding: 10px 0;
 }
 /* Topic list */

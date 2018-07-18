@@ -81,17 +81,17 @@ chrome.tabs.onCreated.addListener(function(tab) {
   }
 })
 
-chrome.tabs.onActivated.addListener(tab => {
-  chrome.tabs.get(tab.tabId, tabInfo => {
-    chrome.storage.sync.get(['hasbrain_bookmark_list'], result => {
-      const list = result.hasbrain_bookmark_list || ''
-      list.includes(tabInfo.url) && chrome.browserAction.setIcon({
-        path: '/assets/images/hasbrain-logo-full.png',
-        tabId: tabInfo.id
-      })
-    })
-  })
-})
+// chrome.tabs.onActivated.addListener(tab => {
+//   chrome.tabs.get(tab.tabId, tabInfo => {
+//     chrome.storage.sync.get(['hasbrain_bookmark_list'], result => {
+//       const list = result.hasbrain_bookmark_list || ''
+//       list.includes(tabInfo.url) && chrome.browserAction.setIcon({
+//         path: '/assets/images/hasbrain-logo-full.png',
+//         tabId: tabInfo.id
+//       })
+//     })
+//   })
+// })
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(['bookmark_hide_context_menu'], result => {

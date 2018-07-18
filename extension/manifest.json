@@ -1,7 +1,7 @@
 {
   "short_name": "hasBrain tracker",
   "name": "hasBrain tracker",
-  "description": "Management bookmark, highlight and relative articles",
+  "description": "A productivity app for developers to organise and keep track of the online content that they want to read later.",
   "manifest_version": 2,
   "browser_action": {
     "default_icon": "assets/images/hasbrain-logo-outline.png"

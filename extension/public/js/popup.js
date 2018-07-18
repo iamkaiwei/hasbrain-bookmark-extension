@@ -16,7 +16,7 @@ var worldImg = '/assets/images/world.png'
 var worldImgWrapper = '/assets/images/world-2.png'
 var lockImg = '/assets/images/lock.png'
 var lockImgWrapper = '/assets/images/lock-2.png'
-
+var enableAddNew = false
 function _renderExecuting(text) {
   isExecuting = false
   $('.popup__title-status')
@@ -60,18 +60,25 @@ function _buildTopicList() {
     )
   }
   $(topicList).html('')
-  if (list.length === 0) {
+  if (list.length === 0 && searchTopicText.length) {
     const addnew = $(
       `<div class="topic__add">Add new topic <b>${searchTopicText}</b></div>`
     )
     $(addnew).click(function() {
       $(topicList).append(
-        '<div class="ui dimmer active inverted"><div class="ui loader"></div></div>'
+        '<div class="ui dimmer active inverted" id="topic__loading"><div class="ui loader"></div></div>'
       )
       topicCreate({
         title: searchTopicText
       }).then(result => {
-        if (!result || result.errors) return
+        if (!result || result.errors) {
+          $('#topic__loading').remove()
+          $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
+          setTimeout(() => {
+            $('#topic__error').hide().find('span').text('')
+          }, 1500)
+          return
+        }
         $('.topic__add').remove()
         const { record } = result.data
         userTopics.unshift({ _id: record._id, _source: record })
@@ -218,9 +225,23 @@ function _buildTopicList() {
       )
     $(topicList).append(topic)
   })
+
+  if (list.length || searchTopicText.length) {
+    $(topicList).addClass('has-shadow')
+  } else {
+    $(topicList).removeClass('has-shadow')
+  }
 }
 
 $(document).ready(function() {
+  console.log($('#iframe_popup'))
+  // $(document).click(function(e) {
+  //   const container = $('#tracker-root')
+  //   if (!container.is(e.target) && container.has(e.target).length === 0) 
+  //   {
+  //     chrome.runtime.sendMessage({action: 'remove-iframe'})
+  //   }
+  // })
   chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
@@ -309,6 +330,7 @@ $(document).ready(function() {
   const topicList = $('#topic__list')
   let toSearchTopic = null
   $('#topic_search > input').keyup(function() {
+    if (!enableAddNew) enableAddNew = true
     if (!$('#topic_search').hasClass('loading'))
       $('#topic_search').addClass('loading')
     searchTopicText = $(this).val()

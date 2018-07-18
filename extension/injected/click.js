@@ -153,17 +153,25 @@ function renderPopup (result) {
 
     chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
     iframe = document.createElement('iframe')
-      iframe.id = 'iframe_popup'
-      iframe.style.border = 'none'
-      iframe.style.position = 'fixed'
-      iframe.style.top = '0'
-      iframe.style.right = '10px'
-      iframe.style.zIndex = '2147483647'
-      iframe.style.height = '100%'
-      iframe.style.width = '360px'
-      iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
-      
-      document.body.appendChild(iframe)
+    iframe.id = 'iframe_popup'
+    iframe.style.border = 'none'
+    iframe.style.position = 'fixed'
+    iframe.style.top = '0'
+    iframe.style.right = '10px'
+    iframe.style.zIndex = '2147483647'
+    iframe.style.height = '100%'
+    iframe.style.width = '360px'
+    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
+    
+    document.body.appendChild(iframe)
+    const container = $('#tracker-root')
+    window.addEventListener('click', function(e){
+      const container = document.getElementById('iframe_popup')
+      if (!container.contains(e.target)) 
+      {
+        chrome.runtime.sendMessage({action: 'remove-iframe'})
+      }
+    });
   } else {
     window.open('http://hasbrain.surge.sh/#/?extensionId='+ chrome.runtime.id)
   }
