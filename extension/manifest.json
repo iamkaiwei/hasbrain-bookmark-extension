@@ -36,9 +36,15 @@
         "public/js/jquery.js",
         "public/js/variables.js",
         "public/js/keywords.js",
-        "injected/highlight.js",
         "public/js/semantic.min.js",
-        "public/js/jwt-decode.js"
+        "public/js/jwt-decode.js",
+        "public/js/rangy-core.js",
+        "public/js/rangy-classapplier.js",
+        "public/js/rangy-highlighter.js",
+        "public/js/rangy-selectionsaverestore.js",
+        "public/js/rangy-serializer.js",
+        "public/js/rangy-textrange.js",
+        "injected/highlight-minhhien.js"
       ],
       "css": [
         "public/css/mycss.css"
