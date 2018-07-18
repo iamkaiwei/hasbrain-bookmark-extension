@@ -95,14 +95,25 @@ chrome.tabs.onCreated.addListener(function(tab) {
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(['bookmark_hide_context_menu'], result => {
+    // chrome.contextMenus.create({
+    //   id: 'hasBrainHighlight',
+    //   visible: !(!!result.bookmark_hide_context_menu),
+    //   title: 'Highlight it',
+    //   contexts: ['selection'],
+    //   onclick: () => {
+    //     console.log('xxxx')
+    //     chrome.tabs.executeScript(null, { file: "injected/click.js" });
+    //   }
+    // })
+    
     chrome.contextMenus.create({
       id: 'hasBrainHighlight',
       visible: !(!!result.bookmark_hide_context_menu),
-      title: 'Highlight it',
+      title: 'Highlight it MINHHIEN',
       contexts: ['selection'],
       onclick: () => {
-        console.log('xxxx')
-        chrome.tabs.executeScript(null, { file: "injected/click.js" });
+        console.log('MINHHIEN', window.getSelection().toString())
+        chrome.tabs.executeScript(null, { file: "injected/minhhien-highlight.js" });
       }
     })
   })
