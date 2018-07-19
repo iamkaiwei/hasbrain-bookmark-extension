@@ -51,7 +51,7 @@ function getHighlighter() {
   if (!window.minhhienHighlighter) {
     const HIGHLIGHT_NAME = 'highlight-hasbrain';
     rangy.init();
-    const highlighter = rangy.createHighlighter();
+    const highlighter = rangy.createHighlighter(document, 'TextRange');
     highlighter.addClassApplier(rangy.createClassApplier(HIGHLIGHT_NAME, {
       ignoreWhiteSpace: true,
       tagNames: ["span", "a"]
@@ -632,7 +632,7 @@ function getOldHighlight(url, token) {
       const oldHighlight = highlightData && highlightData.length && highlightData[0]
       const serialized = oldHighlight && oldHighlight.serialized
       if (serialized) {
-        
+        console.log('SERIALIZED', serialized)
         const { highlighter } = getHighlighter();
         highlighter.deserialize(serialized)
       }
