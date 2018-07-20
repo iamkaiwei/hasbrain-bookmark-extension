@@ -35,6 +35,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       ? "from a content script:" + sender.tab.url
       : "from the extension"
   );
+  sendResponse({message: 'get message'})
   if (request.action == "remove-iframe") {
     chrome.tabs.executeScript(null, { file: "injected/remove_iframe.js" });
     sendResponse({ farewell: "da nhan dc message cua ban. goodbye" });
@@ -76,7 +77,7 @@ chrome.tabs.onCreated.addListener(function(tab) {
   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
     chrome.tabs.update(tab.id, {
       // url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
-      url: `http://hasbrain-tracker.surge.sh/#/`
+      url: `http://tracker.hasbrain.com/#/?extensionId=${chrome.runtime.id}`
     })
   }
 })
@@ -117,8 +118,4 @@ chrome.runtime.onInstalled.addListener(() => {
       }
     })
   })
-
-  // const body = document.getElementsByTagName('body')
-  // console.log('body', body)
-  // body[0].append(`<div>dasdasdad</div>`)
 })

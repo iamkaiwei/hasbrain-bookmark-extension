@@ -3,7 +3,7 @@ var iframe = null
 
 chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'], result => {
   if (!result.bookmark_token) {
-    window.open('http://hasbrain.surge.sh/#/?extensionId='+ chrome.runtime.id)
+    window.open('http://tracker.hasbrain.com/#/?extensionId='+ chrome.runtime.id)
     return
   }
   const rt_expire = jwtDecode(result.bookmark_token).exp * 1000 || 0
@@ -11,7 +11,7 @@ chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_refresh
 
   if (new Date().getTime() > rt_expire) {
     chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
-    window.open('http://hasbrain.surge.sh/#/?extensionId='+ chrome.runtime.id)
+    window.open('http://tracker.hasbrain.com/#/?extensionId='+ chrome.runtime.id)
     return
   }
   if (new Date().getTime() > t_expire) {
@@ -173,7 +173,7 @@ function renderPopup (result) {
       }
     });
   } else {
-    window.open('http://hasbrain.surge.sh/#/?extensionId='+ chrome.runtime.id)
+    window.open('http://tracker.hasbrain.com/#/?extensionId='+ chrome.runtime.id)
   }
 
 }

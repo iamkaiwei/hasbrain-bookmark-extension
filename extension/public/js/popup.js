@@ -1,3 +1,4 @@
+var token = ''
 var bookmarkData = {}
 var toRemoveIframe = null
 var article = {}
@@ -46,7 +47,6 @@ function getAllTopics() {
     const { count, hits = [] } = result.data
     const topicList = $('#topic__list')
     userTopics = hits
-    _buildTopicList()
   })
 }
 
@@ -81,12 +81,21 @@ function _buildTopicList() {
           return
         }
         $('.topic__add').remove()
+        searchTopicText = ''
+        $('#topic_search > input').val('')
+
         const { record } = result.data
         userTopics.unshift({ _id: record._id, _source: record })
-        selectedTopicIds.push(record._id)
-        $('#topic_search > input').val('')
-        searchTopicText = ''
         _buildTopicList()
+        topicAddContent({
+          articleId,
+          topicId: record._id,
+          levelId: selectedLevel._id
+        }).then(result => {
+          if (!result || result.errors) return
+          selectedTopicIds.push(record._id)
+          _buildTopicList()
+        })
       })
     })
     $(topicList).append(addnew)
@@ -179,14 +188,21 @@ function _buildTopicList() {
         img = worldImg
         newPrivacy = 'everyone'
       }
-      //update topic privacy
-      topicUpdate({
-        topicId: item._id,
-        record: {
-          privacy: newPrivacy
-        }
-      })
-        .then(result => {
+
+      const tokenDecode = jwt_decode(token)
+      if (!tokenDecode.role || tokenDecode.role !== 'contributor') {
+        $('#topic__error').show().find('span').text('Only contributor can public the topic')
+        setTimeout(() => {
+          $('#topic__error').hide().find('span').text('')
+        }, 1500)
+      } else {
+        // update topic privacy
+        topicUpdate({
+          topicId: item._id,
+          record: {
+            privacy: newPrivacy
+          }
+        }).then(result => {
           if (!result || result.errors) {
             $(this)
               .find('img')
@@ -197,8 +213,7 @@ function _buildTopicList() {
             )
             return
           }
-        })
-        .catch(err => {
+        }).catch(err => {
           $(this)
             .find('img')
             .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
@@ -207,10 +222,12 @@ function _buildTopicList() {
             newPrivacy === 'private' ? 'everyone' : 'private'
           )
         })
-      $(this)
-        .find('img')
-        .attr('src', img)
-      $(this).attr('data-privacy', newPrivacy)
+        // update topic privacy
+        $(this)
+          .find('img')
+          .attr('src', img)
+        $(this).attr('data-privacy', newPrivacy)
+      }
     })
     $(topic).append(topicPrivacy)
     $(topic).append(
@@ -271,6 +288,7 @@ function _bookmarkArticle() {
             sourceData.sourceImage) ||
             '/assets/images/hasbrain-logo-grey.png'})`
         })
+        _buildTopicList()
 
         // change extension icon when bookmark successfully
         chrome.runtime.sendMessage({ action: 'change-icon' })
@@ -288,8 +306,12 @@ function _bookmarkArticle() {
 }
 
 function _buildOldData () {
-  const { userCommentData, title, sourceImage, sourceData } = article
+  const { userCommentData, title, sourceImage, sourceData, topicData } = article
+  const commentData = userCommentData || []
+  const {comment = '', isPublic = false} = commentData
 
+  topicData && topicData.map(topic => selectedTopicIds.push(topic._id))
+  console.log(topicData)
   $('#save-to-topics').checkbox('set unchecked')
   $('#series__section').show()
   $('#review__title').text(title)
@@ -304,14 +326,13 @@ function _buildOldData () {
   chrome.runtime.sendMessage({ action: 'change-icon' })
 
   // set comment data
-  $('#comment__text').val(userCommentData.comment)
-  $('#comment__privacy img').attr('src', userCommentData.isPublic ? worldImgWrapper : lockImgWrapper)
-  $('#comment__privacy span').text(userCommentData.isPublic ? 'Share to public' : 'Share to private')
-  $('#comment__privacy').attr('data-privacy', userCommentData.isPublic ? 'public' : 'private')
+  $('#comment__text').val(comment)
+  $('#comment__privacy img').attr('src', isPublic ? worldImgWrapper : lockImgWrapper)
+  $('#comment__privacy span').text(isPublic ? 'Share to public' : 'Share to private')
+  $('#comment__privacy').attr('data-privacy', isPublic ? 'public' : 'private')
 }
 
 $(document).ready(function() {
-  console.log($('#iframe_popup'))
   // $(document).click(function(e) {
   //   const container = $('#tracker-root')
   //   if (!container.is(e.target) && container.has(e.target).length === 0) 
@@ -319,16 +340,13 @@ $(document).ready(function() {
   //     chrome.runtime.sendMessage({action: 'remove-iframe'})
   //   }
   // })
-  chrome.storage.sync.get(['bookmark_profile', 'bookmark_data'], result => {
+  chrome.storage.sync.get(['bookmark_profile', 'bookmark_data', 'bookmark_token'], result => {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
+    token = result.bookmark_token
     const record = { ...bookmarkData }
     _renderExecuting('page saving')
-
-    // Get all user topics
     getAllTopics()
-    // Get all user topics
-
     getArticleUser({
       url: record.url
     }).then(result => {
@@ -337,6 +355,9 @@ $(document).ready(function() {
       article = result.data
       articleId = article._id
       _buildOldData()
+      // Get all user topics
+      _buildTopicList()
+      // Get all user topics
     }).catch(err => {
       console.log(err)
       _renderError('Error bookmark!')

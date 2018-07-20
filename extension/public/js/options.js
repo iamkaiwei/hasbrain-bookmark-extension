@@ -49,7 +49,7 @@ function renderUserInfo () {
     chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
     $('#user__logged').html('')
     const login = $(`<button>Click here to login</button>`)
-    $(login).click(() => window.open(`http://hasbrain.surge.sh/#/?extensionId=${chrome.runtime.id}`))
+    $(login).click(() => window.open(`http://tracker.hasbrain.com/#/?extensionId=${chrome.runtime.id}`))
     $(login).appendTo($('#user__logged'))
   })
   $('#user__logged').append(`
@@ -83,7 +83,7 @@ $(document).ready(function() {
     $('#circle_highlight').checkbox(`set ${result.bookmark_hide_circle_highlight ? 'unchecked' : 'checked'}`);  
 
     const login = $(`<button>Click here to login</button>`)
-    $(login).click(() => window.open(`http://hasbrain.surge.sh/#/?extensionId=${chrome.runtime.id}`))
+    $(login).click(() => window.open(`http://tracker.hasbrain.com/#/?extensionId=${chrome.runtime.id}`))
     if (!result || !result.bookmark_profile) {
       $(login).appendTo($('#user__logged'))
       return

@@ -150,6 +150,16 @@ function getArticleUser(filter = {}) {
             _id
             title
             sourceImage
+            topicData {
+              _id
+              privacy
+              forkedFrom
+              gitlabProjectId
+              gitlabUserName
+              title
+              state
+              kind
+            }
             sourceData {
               title
               sourceId

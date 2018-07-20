@@ -1,7 +1,7 @@
 {
   "short_name": "hasBrain tracker",
   "name": "hasBrain tracker",
-  "description": "A productivity app for developers to organise and keep track of the online content that they want to read later.",
+  "description": "This is a productivity app for developers to organise and keep track of the online content that they want to read later.",
   "manifest_version": 2,
   "browser_action": {
     "default_icon": "assets/images/hasbrain-logo-outline.png"
@@ -66,7 +66,7 @@
     "/pages/newtab/*.js"
   ],
   "externally_connectable": {
-    "matches": ["*://*.hasbrain.surge.sh/*"]
+    "matches": ["*://*.hasbrain.com/*"]
   },
   "options_page": "pages/options.html",
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
