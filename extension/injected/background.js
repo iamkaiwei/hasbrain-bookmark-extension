@@ -110,7 +110,7 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
       id: 'hasBrainHighlight',
       visible: !(!!result.bookmark_hide_context_menu),
-      title: 'Highlight it MINHHIEN',
+      title: 'Highlight it',
       contexts: ['selection'],
       onclick: () => {
         console.log('MINHHIEN', window.getSelection().toString())
