@@ -77,7 +77,7 @@ chrome.tabs.onCreated.addListener(function(tab) {
   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
     chrome.tabs.update(tab.id, {
       // url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
-      url: `http://tracker.hasbrain.com/#/?extensionId=${chrome.runtime.id}`
+      url: `http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}`
     })
   }
 })

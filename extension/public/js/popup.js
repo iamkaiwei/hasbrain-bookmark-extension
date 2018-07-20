@@ -34,7 +34,6 @@ function _renderSuccess(text) {
 }
 
 function _renderError(text) {
-  console.log('render error', text)
   isExecuting = false
   $('.popup__title-status')
     .html('')
@@ -141,7 +140,6 @@ function _buildTopicList() {
             }
             const index = selectedTopicIds.indexOf(item._id)
             selectedTopicIds.splice(index, 1)
-            console.log('selectedIds', selectedTopicIds)
           })
           .catch(err => {
             $(this)
@@ -163,7 +161,6 @@ function _buildTopicList() {
               return
             }
             selectedTopicIds.push(item._id)
-            console.log('selectedIds', selectedTopicIds)
           })
           .catch(err => {
             $(this)
@@ -306,12 +303,17 @@ function _bookmarkArticle() {
 }
 
 function _buildOldData () {
-  const { userCommentData, title, sourceImage, sourceData, topicData } = article
+  const { userCommentData, title, sourceImage, sourceData, topicData, userBookmarkData } = article
   const commentData = userCommentData || []
   const {comment = '', isPublic = false} = commentData
 
+  if (!userBookmarkData) {
+    // TODO: bookmark article again if it is NULL
+    userbookmarkCreate(articleId)
+  }
+
   topicData && topicData.map(topic => selectedTopicIds.push(topic._id))
-  console.log(topicData)
+
   $('#save-to-topics').checkbox('set unchecked')
   $('#series__section').show()
   $('#review__title').text(title)
@@ -333,13 +335,6 @@ function _buildOldData () {
 }
 
 $(document).ready(function() {
-  // $(document).click(function(e) {
-  //   const container = $('#tracker-root')
-  //   if (!container.is(e.target) && container.has(e.target).length === 0) 
-  //   {
-  //     chrome.runtime.sendMessage({action: 'remove-iframe'})
-  //   }
-  // })
   chrome.storage.sync.get(['bookmark_profile', 'bookmark_data', 'bookmark_token'], result => {
     bookmarkData = JSON.parse(result.bookmark_data || '{}')
     profile = JSON.parse(result.bookmark_profile)
@@ -395,7 +390,6 @@ $(document).ready(function() {
     if (!$('#topic_search').hasClass('loading'))
       $('#topic_search').addClass('loading')
     searchTopicText = $(this).val()
-    console.log('sadasd', searchTopicText)
     if (toSearchTopic) {
       clearTimeout(toSearchTopic)
       toSearchTopic = null
