@@ -144,10 +144,11 @@ function getHighlighter() {
 }
 
 (function(){
-  const { highlighter, highlighterName } = getHighlighter();
-  highlighter.highlightSelection(highlighterName)
-  const serialized = highlighter.serialize();
-  // const serialized = JSON.stringify(rangy.getSelection().getBookmark());
-  const highlight = Array.from(document.getElementsByClassName(highlighterName)).reduce((total, ele) => `${total}$${highlighterName}$${ele.innerText}`, "");
-  postHighlight ({ serialized, highlight })
+  // const { highlighter, highlighterName } = getHighlighter();
+  // highlighter.highlightSelection(highlighterName)
+  // const serialized = highlighter.serialize();
+  // // const serialized = JSON.stringify(rangy.getSelection().getBookmark());
+  // const highlight = Array.from(document.getElementsByClassName(highlighterName)).reduce((total, ele) => `${total}$${highlighterName}$${ele.innerText}`, "");
+  // postHighlight ({ serialized, highlight })
+  return new window.HighlightHelper().createHighlight();
 })()

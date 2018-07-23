@@ -2,9 +2,9 @@ const path = require('path');
 
 module.exports = {
   target: 'web',
-  entry: './src/getBoundingRect.js',
+  entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'getBoundingRect.js'
+    filename: 'HighlightHelper.js'
   }
 };

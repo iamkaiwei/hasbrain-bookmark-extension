@@ -44,7 +44,8 @@
         "public/js/rangy-selectionsaverestore.js",
         "public/js/rangy-serializer.js",
         "public/js/rangy-textrange.js",
-        "injected/highlight-minhhien.js"
+        "injected/highlight-minhhien.js",
+        "injected/HighlightHelper.js"
       ],
       "css": [
         "public/css/mycss.css"

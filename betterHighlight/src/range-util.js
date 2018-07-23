@@ -123,11 +123,18 @@ function selectionFocusRect(selection) {
   }
 }
 
-function getFocusRect() {
-  var selection;
-  selection = document.getSelection();
-  focusRect = selectionFocusRect(selection);
+module.exports = {
+  getTextBoundingBoxes: getTextBoundingBoxes,
+  isNodeInRange: isNodeInRange,
+  isSelectionBackwards: isSelectionBackwards,
+  selectionFocusRect: selectionFocusRect,
+};
 
-  return focusRect
-}
-window.getFocusRect = getFocusRect
+// function getFocusRect() {
+//   var selection;
+//   selection = document.getSelection();
+//   focusRect = selectionFocusRect(selection);
+
+//   return focusRect
+// }
+// window.getFocusRect = getFocusRect

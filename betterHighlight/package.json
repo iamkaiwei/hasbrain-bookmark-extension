@@ -4,6 +4,16 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "dom-anchor-text-quote": "^4.0.2"
+    "dom-anchor-fragment": "^1.0.4",
+    "dom-anchor-text-quote": "^4.0.2",
+    "dom-seek": "^4.0.3",
+    "jquery": "^3.3.1"
+  },
+  "scripts": {
+    "build": "webpack && cp ./build/HighlightHelper.js ../extension/injected/HighlightHelper.js"
+  },
+  "devDependencies": {
+    "webpack": "^4.16.1",
+    "webpack-cli": "^3.1.0"
   }
 }
