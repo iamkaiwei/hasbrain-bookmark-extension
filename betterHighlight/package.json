@@ -1,0 +1,9 @@
+{
+  "name": "betterHighlight",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "dom-anchor-text-quote": "^4.0.2"
+  }
+}

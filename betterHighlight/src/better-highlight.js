@@ -1,3 +1,5 @@
+const domAnchorTextQuote = require('dom-anchor-text-quote');
+
 class TextQuoteAnchor {
   constructor(root, exact, context = {}) {
     this.root = root;

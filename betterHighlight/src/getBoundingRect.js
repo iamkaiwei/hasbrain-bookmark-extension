@@ -130,3 +130,4 @@ function getFocusRect() {
 
   return focusRect
 }
+window.getFocusRect = getFocusRect
