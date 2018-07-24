@@ -3,8 +3,29 @@ rangeUtil = require('./range-util')
 xpathRange = require('./anchoring/range')
 rangeUtil = require('./range-util')
 anchoring = require('./anchoring/html');
+const { normalizeURI } = require('./util/url')
+const raf = require('raf')
+
+const animationPromise = function(fn) {
+  return new Promise(function(resolve, reject) {
+    return raf(function() {
+      var error;
+      try {
+        return resolve(fn());
+      } catch (_error) {
+        error = _error;
+        return reject(error);
+      }
+    });
+  });
+};
 class HighlightHelper {
   
+  constructor() {
+    this.anchors = []
+    this.rangeUtil = rangeUtil
+  }
+
   getAnchoring() {
     return anchoring
   }
@@ -18,21 +39,22 @@ class HighlightHelper {
     return this.createAnnotation({$highlight: true})
   }
   createAnnotation(annotation) {
-    var getSelectors, info, metadata, ranges, ref, ref1, root, selectors, self, setDocumentInfo, setTargets, targets;
+    var info, metadata, ranges, ref, ref1, selectors, self, setDocumentInfo, setTargets, targets;
     if (annotation == null) {
       annotation = {};
     }
     self = this;
-    root = this.element[0];
+    // root = this.element[0];
+    const root = document.body
     ranges = (ref = this.selectedRanges) != null ? ref : [];
     this.selectedRanges = null;
-    getSelectors = function(range) {
+    const getSelectors = (root) => function(range) {
       var options;
       options = {
         cache: self.anchoringCache,
         ignoreSelector: '[class^="annotator-"]'
       };
-      return self.getAnchoring.describe(root, range, options);
+      return self.getAnchoring().describe(root, range, options);
     };
     setDocumentInfo = function(info) {
       annotation.document = info.metadata;
@@ -56,26 +78,38 @@ class HighlightHelper {
       })();
     };
     info = this.getDocumentInfo();
-    selectors = Promise.all(ranges.map(getSelectors));
+    console.log('RANGES', ranges);
+    selectors = Promise.all(ranges.map(getSelectors(root)));
     metadata = info.then(setDocumentInfo);
     targets = Promise.all([info, selectors]).then(setTargets);
-    targets.then(function() {
-      return self.publish('beforeAnnotationCreated', [annotation]);
-    });
+    // targets.then(function() {
+    //   return self.publish('beforeAnnotationCreated', [annotation]);
+    // });
     targets.then(function() {
       return self.anchor(annotation);
     });
-    if (!annotation.$highlight) {
-      if ((ref1 = this.crossframe) != null) {
-        ref1.call('showSidebar');
-      }
-    }
+    // if (!annotation.$highlight) {
+    //   if ((ref1 = this.crossframe) != null) {
+    //     ref1.call('showSidebar');
+    //   }
+    // }
     return annotation;
+  }
+  getDocumentInfo() {
+    const href = decodeURIComponent(window.location.href);
+    return Promise.resolve({
+      uri: normalizeURI(href),
+      metadata: {
+        title: document.title,
+        link: [{href: decodeURIComponent(window.location.href)}]
+      }
+    })
   }
   anchor(annotation) {
     var anchor, anchoredTargets, anchors, deadHighlights, highlight, i, j, len, len1, locate, ref, ref1, ref2, root, self, sync, target;
     self = this;
-    root = this.element[0];
+    // root = this.element[0];
+    root = document.body
     anchors = [];
     anchoredTargets = [];
     deadHighlights = [];
@@ -98,13 +132,15 @@ class HighlightHelper {
         cache: self.anchoringCache,
         ignoreSelector: '[class^="annotator-"]'
       };
-      return self.getAnchoring.anchor(root, target.selector, options).then(function(range) {
+      return self.getAnchoring().anchor(root, target.selector, options).then(function(range) {
+        console.log('RANGE', range, 'ROOT', root)
         return {
           annotation: annotation,
           target: target,
           range: range
         };
-      })["catch"](function() {
+      })["catch"](function(err) {
+        console.log('ERROR in get range', err, 'ROOT', root)
         return {
           annotation: annotation,
           target: target
@@ -112,6 +148,7 @@ class HighlightHelper {
       });
     };
     highlight = function(anchor) {
+      console.log('ANCHOR in HIGHLIGHT', anchor, anchor.range == null)
       if (anchor.range == null) {
         return anchor;
       }
@@ -141,19 +178,19 @@ class HighlightHelper {
       }
       annotation.$orphan = hasAnchorableTargets && !hasAnchoredTargets;
       self.anchors = self.anchors.concat(anchors);
-      if ((ref = self.plugins.BucketBar) != null) {
-        ref.update();
-      }
-      if ((ref1 = self.plugins.CrossFrame) != null) {
-        ref1.sync([annotation]);
-      }
+      // if ((ref = self.plugins.BucketBar) != null) {
+      //   ref.update();
+      // }
+      // if ((ref1 = self.plugins.CrossFrame) != null) {
+      //   ref1.sync([annotation]);
+      // }
       return anchors;
     };
     ref = self.anchors.splice(0, self.anchors.length);
     for (i = 0, len = ref.length; i < len; i++) {
       anchor = ref[i];
       if (anchor.annotation === annotation) {
-        if ((anchor.range != null) && (ref1 = anchor.target, indexOf.call(annotation.target, ref1) >= 0)) {
+        if ((anchor.range != null) && (annotation.target.indexOf(anchor.target) >= 0)) {
           anchors.push(anchor);
           anchoredTargets.push(anchor.target);
         } else if (anchor.highlights != null) {
@@ -171,7 +208,7 @@ class HighlightHelper {
     ref2 = annotation.target;
     for (j = 0, len1 = ref2.length; j < len1; j++) {
       target = ref2[j];
-      if (!(indexOf.call(anchoredTargets, target) < 0)) {
+      if (!(anchoredTargets.indexOf(target) < 0)) {
         continue;
       }
       anchor = locate(target).then(highlight);

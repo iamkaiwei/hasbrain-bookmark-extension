@@ -6,5 +6,9 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'HighlightHelper.js'
-  }
+  },
+  resolve: {
+    modules: ['node_modules']
+  },
+  mode: 'development'
 };

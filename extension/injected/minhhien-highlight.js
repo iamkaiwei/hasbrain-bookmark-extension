@@ -150,5 +150,17 @@ function getHighlighter() {
   // // const serialized = JSON.stringify(rangy.getSelection().getBookmark());
   // const highlight = Array.from(document.getElementsByClassName(highlighterName)).reduce((total, ele) => `${total}$${highlighterName}$${ele.innerText}`, "");
   // postHighlight ({ serialized, highlight })
-  return new window.HighlightHelper().createHighlight();
+  const highlightHelper = new window.HighlightHelper();
+  selection = document.getSelection()
+  isBackwards = highlightHelper.rangeUtil.isSelectionBackwards(selection)
+  focusRect = highlightHelper.rangeUtil.selectionFocusRect(selection)
+  if (!focusRect) {
+    return
+  }
+  if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+    highlightHelper.selectedRanges = [] 
+  } else {
+    highlightHelper.selectedRanges = [selection.getRangeAt(0)];
+  }
+  return highlightHelper.createHighlight();
 })()

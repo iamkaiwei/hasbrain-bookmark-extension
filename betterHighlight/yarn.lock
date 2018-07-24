@@ -714,6 +714,10 @@ diffie-hellman@^5.0.0:
     miller-rabin "^4.0.0"
     randombytes "^2.0.0"
 
+document-base-uri@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/document-base-uri/-/document-base-uri-1.0.0.tgz#88013e6ee6aa210f1a991953149f3a1698e1e661"
+
 dom-anchor-fragment@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/dom-anchor-fragment/-/dom-anchor-fragment-1.0.4.tgz#43c9d0596e29dcfda520f4b1d1c1702efc9cdf06"
@@ -1818,6 +1822,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+performance-now@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
+
 pify@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/pify/-/pify-3.0.0.tgz#e5a4acd2c101fdf3d9a4d07f0dbc4db49dd28176"
@@ -1896,6 +1904,12 @@ querystring-es3@^0.2.0:
 querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
+
+raf@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/raf/-/raf-3.4.0.tgz#a28876881b4bc2ca9117d4138163ddb80f781575"
+  dependencies:
+    performance-now "^2.1.0"
 
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
   version "2.0.6"

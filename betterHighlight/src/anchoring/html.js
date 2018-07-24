@@ -1,8 +1,8 @@
-var FragmentAnchor, RangeAnchor, TextPositionAnchor, TextQuoteAnchor, querySelector, ref;
+const {
+  FragmentAnchor, RangeAnchor, TextPositionAnchor, TextQuoteAnchor
+} = require('./types');
 
-ref = require('./types'), FragmentAnchor = ref.FragmentAnchor, RangeAnchor = ref.RangeAnchor, TextPositionAnchor = ref.TextPositionAnchor, TextQuoteAnchor = ref.TextQuoteAnchor;
-
-querySelector = function(type, root, selector, options) {
+const querySelector = function(type, root, selector, options) {
   var doQuery;
   doQuery = function(resolve, reject) {
     var anchor, error, range;
@@ -106,6 +106,7 @@ exports.describe = function(root, range, options) {
         anchor = type.fromRange(root, range, options);
         results.push(selector = anchor.toSelector(options));
       } catch (_error) {
+        console.log(_error, 'ERROR', i)
         continue;
       }
     }

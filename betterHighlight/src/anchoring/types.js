@@ -1,26 +1,25 @@
-var RangeAnchor, TextPositionAnchor, TextQuoteAnchor, domAnchorTextPosition, domAnchorTextQuote, missingParameter, xpathRange;
+const FragmentAnchor = require('dom-anchor-fragment').default;
+FragmentAnchor.toString = () => 'FragmentAnchor'
+const domAnchorTextPosition = require('dom-anchor-text-position');
+const domAnchorTextQuote = require('dom-anchor-text-quote');
 
-domAnchorTextPosition = require('dom-anchor-text-position');
+const xpathRange = require('./range');
 
-domAnchorTextQuote = require('dom-anchor-text-quote');
-
-xpathRange = require('./range');
-
-missingParameter = function(name) {
+const missingParameter = function(name) {
   throw new Error('missing required parameter "' + name + '"');
 };
 
 
 /**
- * class:: RangeAnchor(range)
-#
- * This anchor type represents a DOM Range.
-#
- * :param Range range: A range describing the anchor.
- */
+* class:: RangeAnchor(range)
+*
+* This anchor type represents a DOM Range.
+*
+* :param Range range: A range describing the anchor.
+*/
 
-RangeAnchor = (function() {
-  function RangeAnchor(root, range) {
+class RangeAnchor {
+  constructor(root, range) {
     if (root == null) {
       missingParameter('root');
     }
@@ -31,11 +30,15 @@ RangeAnchor = (function() {
     this.range = xpathRange.sniff(range).normalize(this.root);
   }
 
-  RangeAnchor.fromRange = function(root, range) {
+  static toString() {
+    return 'RangeAnchor'
+  }
+
+  static fromRange(root, range) {
     return new RangeAnchor(root, range);
   };
 
-  RangeAnchor.fromSelector = function(root, selector) {
+  static fromSelector(root, selector) {
     var data, range;
     data = {
       start: selector.startContainer,
@@ -47,11 +50,11 @@ RangeAnchor = (function() {
     return new RangeAnchor(root, range);
   };
 
-  RangeAnchor.prototype.toRange = function() {
+  toRange() {
     return this.range.toRange();
   };
 
-  RangeAnchor.prototype.toSelector = function(options) {
+  toSelector(options) {
     var range;
     if (options == null) {
       options = {};
@@ -65,59 +68,48 @@ RangeAnchor = (function() {
       endOffset: range.endOffset
     };
   };
-
-  return RangeAnchor;
-
-})();
+}
 
 
 /**
  * Converts between TextPositionSelector selectors and Range objects.
  */
-
-TextPositionAnchor = (function() {
-  function TextPositionAnchor(root, start, end) {
+class TextPositionAnchor {
+  constructor(root, start, end) {
     this.root = root;
     this.start = start;
     this.end = end;
   }
-
-  TextPositionAnchor.fromRange = function(root, range) {
-    var selector;
-    selector = domAnchorTextPosition.fromRange(root, range);
+  static fromRange(root, range) {
+    const selector = domAnchorTextPosition.fromRange(root, range);
     return TextPositionAnchor.fromSelector(root, selector);
   };
-
-  TextPositionAnchor.fromSelector = function(root, selector) {
+  static fromSelector(root, selector) {
     return new TextPositionAnchor(root, selector.start, selector.end);
   };
-
-  TextPositionAnchor.prototype.toSelector = function() {
+  static toString() {
+    return 'TextPositionAnchor'
+  }
+  toSelector() {
     return {
       type: 'TextPositionSelector',
       start: this.start,
       end: this.end
     };
   };
-
-  TextPositionAnchor.prototype.toRange = function() {
+  toRange() {
     return domAnchorTextPosition.toRange(this.root, {
       start: this.start,
       end: this.end
     });
   };
-
-  return TextPositionAnchor;
-
-})();
-
+}
 
 /**
  * Converts between TextQuoteSelector selectors and Range objects.
  */
-
-TextQuoteAnchor = (function() {
-  function TextQuoteAnchor(root, exact, context) {
+class TextQuoteAnchor {
+  constructor(root, exact, context) {
     if (context == null) {
       context = {};
     }
@@ -125,23 +117,23 @@ TextQuoteAnchor = (function() {
     this.exact = exact;
     this.context = context;
   }
-
-  TextQuoteAnchor.fromRange = function(root, range, options) {
-    var selector;
-    selector = domAnchorTextQuote.fromRange(root, range, options);
+  static fromRange(root, range, options) {
+    const selector = domAnchorTextQuote.fromRange(root, range, options);
     return TextQuoteAnchor.fromSelector(root, selector);
   };
-
-  TextQuoteAnchor.fromSelector = function(root, selector) {
+  static toString() {
+    return 'TextQuoteAnchor'
+  }
+  static fromSelector(root, selector) {
     var prefix, suffix;
     prefix = selector.prefix, suffix = selector.suffix;
     return new TextQuoteAnchor(root, selector.exact, {
       prefix: prefix,
       suffix: suffix
     });
-  };
+  }
 
-  TextQuoteAnchor.prototype.toSelector = function() {
+  toSelector() {
     return {
       type: 'TextQuoteSelector',
       exact: this.exact,
@@ -149,20 +141,19 @@ TextQuoteAnchor = (function() {
       suffix: this.context.suffix
     };
   };
-
-  TextQuoteAnchor.prototype.toRange = function(options) {
+  toRange(options) {
     var range;
     if (options == null) {
       options = {};
     }
+    console.log('ROOT in TextQuoteAnchor', this.root)
     range = domAnchorTextQuote.toRange(this.root, this.toSelector(), options);
     if (range === null) {
       throw new Error('Quote not found');
     }
     return range;
   };
-
-  TextQuoteAnchor.prototype.toPositionAnchor = function(options) {
+  toPositionAnchor(options) {
     var anchor;
     if (options == null) {
       options = {};
@@ -174,17 +165,11 @@ TextQuoteAnchor = (function() {
     return new TextPositionAnchor(this.root, anchor.start, anchor.end);
   };
 
-  return TextQuoteAnchor;
+}
 
-})();
-
-exports.RangeAnchor = RangeAnchor;
-
-exports.FragmentAnchor = require('dom-anchor-fragment');
-
-exports.TextPositionAnchor = TextPositionAnchor;
-
-exports.TextQuoteAnchor = TextQuoteAnchor;
-
-// ---
-// generated by coffee-script 1.9.2
+module.exports = {
+  RangeAnchor, 
+  FragmentAnchor,
+  TextPositionAnchor,
+  TextQuoteAnchor
+}
