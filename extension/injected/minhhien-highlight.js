@@ -154,17 +154,19 @@ function getHighlighter() {
   // postHighlight ({ serialized, highlight })
   // const highlightHelper = new window.HighlightHelper();
   const highlightHelper = getHighlighter();
+
+  // selection = document.getSelection()
+  // isBackwards = highlightHelper.rangeUtil.isSelectionBackwards(selection)
+  // focusRect = highlightHelper.rangeUtil.selectionFocusRect(selection)
+  // if (!focusRect) {
+  //   return
+  // }
+  // if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+  //   highlightHelper.selectedRanges = [] 
+  // } else {
+  //   highlightHelper.selectedRanges = [selection.getRangeAt(0)];
+  // }
+  // console.log(highlightHelper.createHighlight());
   
-  selection = document.getSelection()
-  isBackwards = highlightHelper.rangeUtil.isSelectionBackwards(selection)
-  focusRect = highlightHelper.rangeUtil.selectionFocusRect(selection)
-  if (!focusRect) {
-    return
-  }
-  if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
-    highlightHelper.selectedRanges = [] 
-  } else {
-    highlightHelper.selectedRanges = [selection.getRangeAt(0)];
-  }
-  return highlightHelper.createHighlight();
+  highlightHelper.restoreHighlightFromTargets(JSON.parse(`[{"source":"https://blog.hackster.io/are-floppy-disks-dead-technology-eb680cc60afc","selector":[{"type":"FragmentSelector","value":"e732","conformsTo":"https://tools.ietf.org/html/rfc3236"},{"type":"RangeSelector","startContainer":"/div[1]/div[2]/div[1]/main[1]/article[1]/div[1]/section[1]/div[2]/div[1]/p[9]","startOffset":0,"endContainer":"/div[1]/div[2]/div[1]/main[1]/article[1]/div[1]/section[1]/div[2]/div[1]/p[9]","endOffset":280},{"type":"TextPositionSelector","start":2856,"end":3136},{"type":"TextQuoteSelector","exact":"In any case the folks at Strudelsoft have left me feeling a bit paranoid about the fate of 3.5-inch floppies, and I’m starting to feel that not only should I hang on to my last USB floppy drive for a little bit longer, maybe I should pick up a spare while the going is still good?","prefix":"ow ‘retro’ has me a bit worried.","suffix":"While I’m feeling paranoid, anyo"}]}]`))
 })()
