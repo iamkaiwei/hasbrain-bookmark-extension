@@ -49,20 +49,22 @@ const commentPrivacy = $(`
 
 function getHighlighter() {
   if (!window.minhhienHighlighter) {
-    const HIGHLIGHT_NAME = 'highlight-hasbrain';
-    rangy.init();
-    const highlighter = rangy.createHighlighter(document, 'TextRange');
-    highlighter.addClassApplier(rangy.createClassApplier(HIGHLIGHT_NAME, {
-      ignoreWhiteSpace: true,
-      tagNames: ["span", "a"]
-    }));
-    window.minhhienHighlighter = highlighter
-    window.HIGHLIGHT_NAME = HIGHLIGHT_NAME
-  }
-  return {
-    highlighter: window.minhhienHighlighter,
-    highlighterName: window.HIGHLIGHT_NAME
-  }
+    //   const HIGHLIGHT_NAME = 'highlight-hasbrain';
+    //   rangy.init();
+    //   const highlighter = rangy.createHighlighter(document, 'TextRange');
+    //   highlighter.addClassApplier(rangy.createClassApplier(HIGHLIGHT_NAME, {
+    //     ignoreWhiteSpace: true,
+    //     tagNames: ["span", "a"]
+    //   }));
+    //   window.minhhienHighlighter = highlighter
+    //   window.HIGHLIGHT_NAME = HIGHLIGHT_NAME
+      window.minhhienHighlighter = new window.HighlightHelper();
+    }
+    // return {
+    //   highlighter: window.minhhienHighlighter,
+    //   highlighterName: window.HIGHLIGHT_NAME
+    // }
+    return window.minhhienHighlighter
 }
 
 
@@ -293,7 +295,7 @@ function getSelectionDimensions() {
   return { width: width , height: height };
 }
 
-function postHighlight ({ serialized, highlight }) {
+function postHighlight ({ core, prev, next, serialized  }) {
   if (!isSending) {
     // $(highlightButton).find('span').text('Adding...')
     $(highlightButton).find('span').html('').append(loadingIcon)
@@ -362,13 +364,15 @@ function postHighlight ({ serialized, highlight }) {
         stagingApi,
         JSON.stringify({
           query: `
-            mutation ($highlight: String, $serialized: String) {
+            mutation ($prev: String, $next: String, $core: String, $serialized: String) {
               user{
                 userhighlightAddOrUpdateOne(
                   filter:{
                     articleId: "${recordId}"
                   }, record: {
-                    highlight: $highlight,
+                    core: $core,
+                    prev: $prev,
+                    next: $next,
                     serialized: $serialized
                   }
                 ) {
@@ -376,7 +380,7 @@ function postHighlight ({ serialized, highlight }) {
                 }
               }
             }
-          `, variables: { highlight, serialized }
+          `, variables: { core, prev, next, serialized }
         }), {
         headers: {
           'Content-type': 'application/json',
@@ -599,8 +603,10 @@ function getOldHighlight(url, token) {
             userHighlightData {
               articleId
               highlights {
+                core
+                prev
+                next
                 serialized
-                highlight
               }
             }
           }
@@ -629,12 +635,15 @@ function getOldHighlight(url, token) {
       console.log('GET OLD HIGHLIGHT SUCESS', result);
       const articleUserAction = result.data.viewer.articleUserAction;
       const highlightData = articleUserAction && articleUserAction.userHighlightData && articleUserAction.userHighlightData.highlights;
-      const oldHighlight = highlightData && highlightData.length && highlightData[0]
-      const serialized = oldHighlight && oldHighlight.serialized
-      if (serialized) {
-        console.log('SERIALIZED', serialized)
-        const { highlighter } = getHighlighter();
-        highlighter.deserialize(serialized)
+      const oldHighlight = highlightData && highlightData.length
+      const targets = oldHighlight && highlightData.map(({ core, prev, next, serialized }) => ({
+        source: url,
+        selector: JSON.parse(serialized)
+      }))
+      console.log('TARGETS TO RESTORE', targets);
+      if (targets.length) {
+        const highlightHelper = getHighlighter();
+        highlightHelper.restoreHighlightFromTargets(targets);
       }
       window.readyForHighlight = true;
     }).catch(() => {
@@ -694,15 +703,35 @@ $(document).ready(function (e) {
     e.stopPropagation()
     const { highlighter, highlighterName } = getHighlighter();
     restoreOldSelection()
-    highlighter.highlightSelection(highlighterName)
-    console.log('RANGY', rangy)
-    const serialized = highlighter.serialize();
-    const highlight = Array.from(document.getElementsByClassName(highlighterName)).reduce((total, ele) => `${total}$${highlighterName}$${ele.innerText}`, "");
-    console.log('highlight serialized---', highlight, '---', serialized)
 
-    postHighlight({
-      serialized, highlight
-    })
+    const highlightHelper = getHighlighter();
+    selection = document.getSelection()
+    isBackwards = highlightHelper.rangeUtil.isSelectionBackwards(selection)
+    focusRect = highlightHelper.rangeUtil.selectionFocusRect(selection)
+    if (!focusRect) {
+      return
+    }
+    if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+      highlightHelper.selectedRanges = [] 
+    } else {
+      highlightHelper.selectedRanges = [selection.getRangeAt(0)];
+    }
+    highlightHelper.createHighlight().then(result => {
+      if (result.length) {
+        const anchor = result[0];
+        if (anchor && anchor.target && anchor.target.selector) {
+          const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
+          if (textQuoteSelector) {
+            postHighlight ({ 
+              core: textQuoteSelector.exact,
+              prev: textQuoteSelector.prefix,
+              next: textQuoteSelector.suffix,
+              serialized: JSON.stringify(anchor.target.selector)
+            })
+          }
+        }
+      }
+    });
   })
   $(commentPost).on('click', function (e) {
     e.stopPropagation()
