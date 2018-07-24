@@ -127,20 +127,22 @@ function postHighlight ({ serialized, highlight }) {
 
 function getHighlighter() {
   if (!window.minhhienHighlighter) {
-    const HIGHLIGHT_NAME = 'highlight-hasbrain';
-    rangy.init();
-    const highlighter = rangy.createHighlighter(document, 'TextRange');
-    highlighter.addClassApplier(rangy.createClassApplier(HIGHLIGHT_NAME, {
-      ignoreWhiteSpace: true,
-      tagNames: ["span", "a"]
-    }));
-    window.minhhienHighlighter = highlighter
-    window.HIGHLIGHT_NAME = HIGHLIGHT_NAME
+  //   const HIGHLIGHT_NAME = 'highlight-hasbrain';
+  //   rangy.init();
+  //   const highlighter = rangy.createHighlighter(document, 'TextRange');
+  //   highlighter.addClassApplier(rangy.createClassApplier(HIGHLIGHT_NAME, {
+  //     ignoreWhiteSpace: true,
+  //     tagNames: ["span", "a"]
+  //   }));
+  //   window.minhhienHighlighter = highlighter
+  //   window.HIGHLIGHT_NAME = HIGHLIGHT_NAME
+    window.minhhienHighlighter = new window.HighlightHelper();
   }
-  return {
-    highlighter: window.minhhienHighlighter,
-    highlighterName: window.HIGHLIGHT_NAME
-  }
+  // return {
+  //   highlighter: window.minhhienHighlighter,
+  //   highlighterName: window.HIGHLIGHT_NAME
+  // }
+  return window.minhhienHighlighter
 }
 
 (function(){
@@ -150,7 +152,9 @@ function getHighlighter() {
   // // const serialized = JSON.stringify(rangy.getSelection().getBookmark());
   // const highlight = Array.from(document.getElementsByClassName(highlighterName)).reduce((total, ele) => `${total}$${highlighterName}$${ele.innerText}`, "");
   // postHighlight ({ serialized, highlight })
-  const highlightHelper = new window.HighlightHelper();
+  // const highlightHelper = new window.HighlightHelper();
+  const highlightHelper = getHighlighter();
+  
   selection = document.getSelection()
   isBackwards = highlightHelper.rangeUtil.isSelectionBackwards(selection)
   focusRect = highlightHelper.rangeUtil.selectionFocusRect(selection)
