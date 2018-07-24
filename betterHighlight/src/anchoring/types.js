@@ -146,7 +146,7 @@ class TextQuoteAnchor {
     if (options == null) {
       options = {};
     }
-    console.log('ROOT in TextQuoteAnchor', this.root)
+    console.log('ROOT in TextQuoteAnchor', this.root, this.toSelector())
     range = domAnchorTextQuote.toRange(this.root, this.toSelector(), options);
     if (range === null) {
       throw new Error('Quote not found');

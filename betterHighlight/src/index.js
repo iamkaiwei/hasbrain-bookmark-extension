@@ -76,6 +76,7 @@ class HighlightHelper {
   }
   restoreHighlightFromTargets(targets) {
     const root = document.body
+    console.log('TARGET IN RESTORE', targets)
     return Promise.all(targets.map(target => locate(root)(target).then(highlight(root)))).then(this.sync.bind(this))
   }
   createAnnotation(annotation = {}) {
