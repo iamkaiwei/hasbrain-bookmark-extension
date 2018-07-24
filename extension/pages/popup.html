@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css"></link>
@@ -18,6 +19,7 @@
 
   <title>popup</title>
 </head>
+
 <body>
   <div id='tracker-root'>
     <!-- <div id="tracker-progress" class="tracker__progress">
@@ -74,36 +76,45 @@
           </div>
           <!-- Review Block -->
 
-          <div id="series__block" class="series__block show-saving" style="margin-top: 10px">
+          <!--  -->
+          <div class="option__buttons">
+            <div id="show-topic__button" class="show-topic__button">
+              move to topics
+            </div>
+            <div id="show-comment__button" class="show-comment__button">
+              add comments
+            </div>
+          </div>
+          <!--  -->
+
+
+
+          <div id="series__block" class="series__block">
             <div class="ui form">
               <div class="field">
                 <div class="ui icon input" id="topic_search">
                   <input type="text" placeholder="Name this topic or select one below">
-                  <i class="search icon"></i>
+                  <div class="ui toggle checkbox" id="new-topic__privacy">
+                    <input type="checkbox" name="public">
+                  </div>
                 </div>
               </div>
             </div>
             <div id="topic__list" class="topic__list">
-              <!-- <div class="topic">
-                <div class="topic__privacy"><img src="/assets/images/world.png" alt=""></div>
-                <div class="topic__title">xxx</div>
-                <div class="ui checkbox">
-                  <input type="checkbox">
-                  <label></label>
-                </div>
-              </div> -->
             </div>
-            <div id="topic__error" class="topic__error" hidden><i class="exclamation triangle icon"></i> &nbsp; <span></span></div>
+            <div id="topic__error" class="topic__error" hidden>
+              <i class="exclamation triangle icon"></i> &nbsp;
+              <span></span>
+            </div>
           </div>
-          <div class="relative__path" id="relative__path">
+
+
+          <div class="comment__section" id="comment__section">
             <div class="comment__block">
-              <span>COMMENT</span>
+              <!-- <span>COMMENT</span> -->
               <div class="comment__wrapper">
                 <textarea name="" id="comment__text" rows="5" placeholder="Comment for article"></textarea>
-                <div class="comment__privacy" data-privacy="private" id="comment__privacy">
-                  <img src="/assets/images/lock-2.png" alt="">
-                  <span>Share to private</span>
-                </div>
+
               </div>
             </div>
             <!-- <div class="difficulty__block" id="difficulty__block">
@@ -118,6 +129,10 @@
               </div>
             </div> -->
             <div class="comment__actions">
+              <div class="comment__privacy" data-privacy="private" id="comment__privacy">
+                <img src="/assets/images/lock-2.png" alt="">
+                <span>Share to private</span>
+              </div>
               <button class="comment__btn comment__btn--2 ui primary basic button tiny" id="comment__public">
                 Save Comment
               </button>
@@ -129,4 +144,5 @@
     </div>
   </div>
 </body>
+
 </html>

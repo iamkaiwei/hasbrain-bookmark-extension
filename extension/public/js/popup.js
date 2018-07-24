@@ -19,6 +19,7 @@ var worldImgWrapper = '/assets/images/world-2.png'
 var lockImg = '/assets/images/lock.png'
 var lockImgWrapper = '/assets/images/lock-2.png'
 var enableAddNew = false
+var newTopicPrivacy = false
 function _renderExecuting(text) {
   isExecuting = false
   $('.popup__title-status')
@@ -58,6 +59,7 @@ function _buildTopicList() {
         .toLowerCase()
         .includes(searchTopicText.toLowerCase())
     )
+    if (list.length === 0) enableAddNew = true
   }
   $(topicList).html('')
   if (list.length === 0 && searchTopicText.length) {
@@ -383,12 +385,21 @@ $(document).ready(function() {
     chrome.runtime.sendMessage({ action: 'remove-iframe' })
   })
 
+  $('#new-topic__privacy').checkbox({
+    onChecked: function() {
+      newTopicPrivacy = true
+    },
+    onUnchecked: function() {
+      newTopicPrivacy = false
+    }
+  })
+
   const topicList = $('#topic__list')
   let toSearchTopic = null
   $('#topic_search > input').keyup(function() {
-    if (!enableAddNew) enableAddNew = true
-    if (!$('#topic_search').hasClass('loading'))
-      $('#topic_search').addClass('loading')
+    if (enableAddNew) enableAddNew = false
+    // if (!$('#topic_search').hasClass('loading'))
+    //   $('#topic_search').addClass('loading')
     searchTopicText = $(this).val()
     if (toSearchTopic) {
       clearTimeout(toSearchTopic)
@@ -556,5 +567,19 @@ $(document).ready(function() {
         .find('span')
         .text('Share to private')
     }
+  })
+
+  $('#show-topic__button').click(function () {
+    $(this).addClass('active')
+    $('#show-comment__button').removeClass('active')
+    $('#series__block').show()
+    $('#comment__section').hide()
+  })
+
+  $('#show-comment__button').click(function () {
+    $(this).addClass('active')
+    $('#show-topic__button').removeClass('active')
+    $('#series__block').hide()
+    $('#comment__section').show()
   })
 })

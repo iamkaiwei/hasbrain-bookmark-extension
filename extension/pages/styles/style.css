@@ -82,6 +82,8 @@ input#tags_tag {
   color: #002257;
   font-style: italic;
   text-transform: uppercase;
+  display: block;
+  height: 19px;
 }
 
 
@@ -130,6 +132,10 @@ input#tags_tag {
 .series__block:not(.show-saving) .note, .series__block:not(.show-saving) #search_list {
   display: none;
 }
+
+.series__block {
+  /* display: none; */
+}
 .series__block .note {
   padding-left: 25px;
   line-height: 24px;
@@ -157,8 +163,12 @@ input#tags_tag {
   display: none;
 } */
 
+.comment__section {
+  display: none;
+}
+
 .comment__block {
-  margin-top: 20px;
+  /* margin-top: 20px; */
 }
 .comment__block > span, .difficulty__block > span {
   color: #97A3B4;
@@ -264,7 +274,10 @@ input#tags_tag {
 
 .comment__actions {
   padding-top: 15px;
-  text-align: right;
+  /* text-align: right; */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .comment__actions > div {
   margin-left: 10px;
@@ -344,7 +357,7 @@ input#tags_tag {
   background-color: #F8F8F8 !important;
   color: #7C8DA8;
   border: 0;
-  height: 40px;
+  height: 50px;
 }
 .topic {
   display: flex;
@@ -408,4 +421,73 @@ input#tags_tag {
   color: red;
   padding: 10px 0;
 }
+
+#new-topic__privacy {
+  position: absolute;
+  z-index: 2;
+  right: 10px;
+  top: 13px;
+  width: 72px;
+  height: 24px;
+}
+#new-topic__privacy.ui.toggle.checkbox .box:before, #new-topic__privacy.ui.toggle.checkbox label:before {
+  width: 72px;
+  height: 24px;
+  background-color: #EB5757 !important;
+  content: 'Private';
+  color: #FFF !important;
+  font-size: 12px;
+  padding-left: 18px;
+  line-height: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+#new-topic__privacy.ui.toggle.checkbox input:checked~.box:before,#new-topic__privacy.ui.toggle.checkbox input:checked~label:before {
+  background-color: #50DE72 !important;
+  content: 'Public';
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+#new-topic__privacy.ui.toggle.checkbox .box:after, #new-topic__privacy.ui.toggle.checkbox label:after {
+  width: 18px;
+  height: 18px;
+  background: #FFF !important;
+  box-shadow: none;
+  left: 3px;
+  top: 3px;
+}
+
+#new-topic__privacy.ui.toggle.checkbox input:checked~.box:after, #new-topic__privacy.ui.toggle.checkbox input:checked~label:after {
+  left: 51px;
+}
+
 /* Topic list */
+
+/* Option actions */
+.option__buttons {
+  padding: 20px 0;
+}
+.option__buttons > div {
+  margin: 0 10px;
+  color: #97A3B4;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: inline-block;
+  vertical-align: top;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.option__buttons > .active,
+.option__buttons > div:hover {
+  color: #35AFFC;
+}
+
+.option__buttons > div:first-child {
+  margin-left: 0;
+}
+
+.option__buttons > div:last-child {
+  margin-right: 0;
+}
