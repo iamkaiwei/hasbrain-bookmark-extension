@@ -79,8 +79,6 @@ class HighlightHelper {
     return Promise.all(targets.map(target => locate(root)(target).then(highlight(root)))).then(this.sync.bind(this))
   }
   createAnnotation(annotation = {}) {
-    const self = this;
-    // root = this.element[0];
     const root = document.body
     const ranges = this.selectedRanges || [];
     this.selectedRanges = null;
@@ -117,18 +115,8 @@ class HighlightHelper {
     const selectors = Promise.all(ranges.map(getSelectors(root)));
     const metadata = info.then(setDocumentInfo);
     const targets = Promise.all([info, selectors]).then(setTargets);
-    // targets.then(function() {
-    //   return self.publish('beforeAnnotationCreated', [annotation]);
-    // });
-    targets.then(function() {
-      return self.anchor(annotation);
-    });
-    // if (!annotation.$highlight) {
-    //   if ((ref1 = this.crossframe) != null) {
-    //     ref1.call('showSidebar');
-    //   }
-    // }
-    return annotation;
+    return targets.then(() => this.anchor(annotation));
+    // return annotation;
   }
   getDocumentInfo() {
     const href = decodeURIComponent(window.location.href);
