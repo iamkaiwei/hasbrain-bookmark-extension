@@ -643,7 +643,7 @@ function getOldHighlight(url, token) {
       console.log('TARGETS TO RESTORE', targets);
       if (targets.length) {
         const highlightHelper = getHighlighter();
-        highlightHelper.restoreHighlightFromTargets(targets);
+        setTimeout(() => highlightHelper.restoreHighlightFromTargets(targets), 2000); // delay to restore highlight after medium highlight their own
       }
       window.readyForHighlight = true;
     }).catch(() => {
