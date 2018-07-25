@@ -18,8 +18,12 @@ var worldImg = '/assets/images/world.png'
 var worldImgWrapper = '/assets/images/world-2.png'
 var lockImg = '/assets/images/lock.png'
 var lockImgWrapper = '/assets/images/lock-2.png'
+var questionImg = '/assets/images/question.png'
 var enableAddNew = false
-var newTopicPrivacy = false
+var newTopicPrivacy = null
+
+var toRenderStatusText = null
+
 function _renderExecuting(text) {
   isExecuting = false
   $('.popup__title-status')
@@ -59,48 +63,66 @@ function _buildTopicList() {
         .toLowerCase()
         .includes(searchTopicText.toLowerCase())
     )
-    if (list.length === 0) enableAddNew = true
+    if (list.length === 0) {
+      enableAddNew = true
+      newTopicPrivacy = false
+      $('#new-topic__privacy').show()
+      $('.topic__search-img__wrapper > img').attr('src', lockImg)
+    } else {
+      enableAddNew = false
+      newTopicPrivacy = null
+      $('#new-topic__privacy').hide()
+      $('.topic__search-img__wrapper > img').attr('src', questionImg)
+    }
+    // if (list.length === 0) {
+    // } else {
+    // }
+  } else {
+    enableAddNew = false
+    newTopicPrivacy = null
+    $('#new-topic__privacy').hide()
+    $('.topic__search-img__wrapper > img').attr('src', questionImg)
   }
   $(topicList).html('')
-  if (list.length === 0 && searchTopicText.length) {
-    const addnew = $(
-      `<div class="topic__add">Add new topic <b>${searchTopicText}</b></div>`
-    )
-    $(addnew).click(function() {
-      $(topicList).append(
-        '<div class="ui dimmer active inverted" id="topic__loading"><div class="ui loader"></div></div>'
-      )
-      topicCreate({
-        title: searchTopicText
-      }).then(result => {
-        if (!result || result.errors) {
-          $('#topic__loading').remove()
-          $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
-          setTimeout(() => {
-            $('#topic__error').hide().find('span').text('')
-          }, 1500)
-          return
-        }
-        $('.topic__add').remove()
-        searchTopicText = ''
-        $('#topic_search > input').val('')
+  // if (list.length === 0 && searchTopicText.length) {
+  //   const addnew = $(
+  //     `<div class="topic__add">Add new topic <b>${searchTopicText}</b></div>`
+  //   )
+  //   $(addnew).click(function() {
+  //     $(topicList).append(
+  //       '<div class="ui dimmer active inverted" id="topic__loading"><div class="ui loader"></div></div>'
+  //     )
+  //     topicCreate({
+  //       title: searchTopicText
+  //     }).then(result => {
+  //       if (!result || result.errors) {
+  //         $('#topic__loading').remove()
+  //         $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
+  //         setTimeout(() => {
+  //           $('#topic__error').hide().find('span').text('')
+  //         }, 1500)
+  //         return
+  //       }
+  //       $('.topic__add').remove()
+  //       searchTopicText = ''
+  //       $('#topic__search > input').val('')
 
-        const { record } = result.data
-        userTopics.unshift({ _id: record._id, _source: record })
-        _buildTopicList()
-        topicAddContent({
-          articleId,
-          topicId: record._id,
-          levelId: selectedLevel._id
-        }).then(result => {
-          if (!result || result.errors) return
-          selectedTopicIds.push(record._id)
-          _buildTopicList()
-        })
-      })
-    })
-    $(topicList).append(addnew)
-  }
+  //       const { record } = result.data
+  //       userTopics.unshift({ _id: record._id, _source: record })
+  //       _buildTopicList()
+  //       topicAddContent({
+  //         articleId,
+  //         topicId: record._id,
+  //         levelId: selectedLevel._id
+  //       }).then(result => {
+  //         if (!result || result.errors) return
+  //         selectedTopicIds.push(record._id)
+  //         _buildTopicList()
+  //       })
+  //     })
+  //   })
+  //   $(topicList).append(addnew)
+  // }
 
   list.map(item => {
     const { _source = {} } = item
@@ -174,60 +196,60 @@ function _buildTopicList() {
         .find('.ui.checkbox')
         .checkbox(`set ${isChecked ? 'checked' : 'unchecked'}`)
     })
-    $(topicPrivacy).click(function(e) {
-      e.preventDefault()
-      e.stopPropagation()
-      const privacy = $(this).attr('data-privacy')
-      let img = ''
-      let newPrivacy = ''
-      if (privacy === 'everyone') {
-        img = lockImg
-        newPrivacy = 'private'
-      } else {
-        img = worldImg
-        newPrivacy = 'everyone'
-      }
+    // $(topicPrivacy).click(function(e) {
+    //   e.preventDefault()
+    //   e.stopPropagation()
+    //   const privacy = $(this).attr('data-privacy')
+    //   let img = ''
+    //   let newPrivacy = ''
+    //   if (privacy === 'everyone') {
+    //     img = lockImg
+    //     newPrivacy = 'private'
+    //   } else {
+    //     img = worldImg
+    //     newPrivacy = 'everyone'
+    //   }
 
-      const tokenDecode = jwt_decode(token)
-      if (!tokenDecode.role || tokenDecode.role !== 'contributor') {
-        $('#topic__error').show().find('span').text('Only contributor can public the topic')
-        setTimeout(() => {
-          $('#topic__error').hide().find('span').text('')
-        }, 1500)
-      } else {
-        // update topic privacy
-        topicUpdate({
-          topicId: item._id,
-          record: {
-            privacy: newPrivacy
-          }
-        }).then(result => {
-          if (!result || result.errors) {
-            $(this)
-              .find('img')
-              .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
-            $(this).attr(
-              'data-privacy',
-              newPrivacy === 'private' ? 'everyone' : 'private'
-            )
-            return
-          }
-        }).catch(err => {
-          $(this)
-            .find('img')
-            .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
-          $(this).attr(
-            'data-privacy',
-            newPrivacy === 'private' ? 'everyone' : 'private'
-          )
-        })
-        // update topic privacy
-        $(this)
-          .find('img')
-          .attr('src', img)
-        $(this).attr('data-privacy', newPrivacy)
-      }
-    })
+    //   const tokenDecode = jwt_decode(token)
+    //   if (!tokenDecode.role || tokenDecode.role !== 'contributor') {
+    //     $('#topic__error').show().find('span').text('Only contributor can public the topic')
+    //     setTimeout(() => {
+    //       $('#topic__error').hide().find('span').text('')
+    //     }, 1500)
+    //   } else {
+    //     // update topic privacy
+    //     topicUpdate({
+    //       topicId: item._id,
+    //       record: {
+    //         privacy: newPrivacy
+    //       }
+    //     }).then(result => {
+    //       if (!result || result.errors) {
+    //         $(this)
+    //           .find('img')
+    //           .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
+    //         $(this).attr(
+    //           'data-privacy',
+    //           newPrivacy === 'private' ? 'everyone' : 'private'
+    //         )
+    //         return
+    //       }
+    //     }).catch(err => {
+    //       $(this)
+    //         .find('img')
+    //         .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
+    //       $(this).attr(
+    //         'data-privacy',
+    //         newPrivacy === 'private' ? 'everyone' : 'private'
+    //       )
+    //     })
+    //     // update topic privacy
+    //     $(this)
+    //       .find('img')
+    //       .attr('src', img)
+    //     $(this).attr('data-privacy', newPrivacy)
+    //   }
+    // })
     $(topic).append(topicPrivacy)
     $(topic).append(
       `<div class="topic__title">${_source.title || 'xxxx'}</div>`
@@ -243,7 +265,7 @@ function _buildTopicList() {
     $(topicList).append(topic)
   })
 
-  if (list.length || searchTopicText.length) {
+  if (list.length) {
     $(topicList).addClass('has-shadow')
   } else {
     $(topicList).removeClass('has-shadow')
@@ -314,8 +336,23 @@ function _buildOldData () {
     userbookmarkCreate(articleId)
   }
 
-  topicData && topicData.map(topic => selectedTopicIds.push(topic._id))
+  _renderSuccess('')
 
+  topicData && topicData.map(topic => selectedTopicIds.push(topic._id))
+  if (comment.length) {
+    $('#show-comment__button').click()
+    $('#show-topic__button').removeClass('active')
+    $('#series__block').hide()
+    $('#comment__section').show()
+    // _renderSuccess('Comment saved')
+  }
+  if (selectedTopicIds.length) {
+    $('#show-topic__button').click()
+    $('#show-comment__button').removeClass('active')
+    $('#series__block').show()
+    $('#comment__section').hide()
+    // _renderSuccess('Moved to topic')
+  }
   $('#save-to-topics').checkbox('set unchecked')
   $('#series__section').show()
   $('#review__title').text(title)
@@ -342,13 +379,13 @@ $(document).ready(function() {
     profile = JSON.parse(result.bookmark_profile)
     token = result.bookmark_token
     const record = { ...bookmarkData }
-    _renderExecuting('page saving')
+    _renderExecuting('page getting data')
     getAllTopics()
     getArticleUser({
       url: record.url
     }).then(result => {
       if (result.data === null) return _bookmarkArticle()
-      _renderSuccess('page saved')
+      // _renderSuccess('page saved')
       article = result.data
       articleId = article._id
       _buildOldData()
@@ -388,25 +425,87 @@ $(document).ready(function() {
   $('#new-topic__privacy').checkbox({
     onChecked: function() {
       newTopicPrivacy = true
+      $('.topic__search-img__wrapper > img').attr('src', worldImgWrapper)
+      setTimeout(() => {
+        $('#topic__search > input').focus()
+      }, 200)
     },
     onUnchecked: function() {
       newTopicPrivacy = false
+      $('.topic__search-img__wrapper > img').attr('src', lockImg)
+      setTimeout(() => {
+        $('#topic__search > input').focus()
+      }, 200)
     }
   })
 
   const topicList = $('#topic__list')
   let toSearchTopic = null
-  $('#topic_search > input').keyup(function() {
+  $('#topic__search > input').keyup(function(e) {
     if (enableAddNew) enableAddNew = false
-    // if (!$('#topic_search').hasClass('loading'))
-    //   $('#topic_search').addClass('loading')
     searchTopicText = $(this).val()
+
+    if (e.keyCode === 13 && searchTopicText.length && newTopicPrivacy !== null && !isExecuting) {
+      console.log('add new topic')
+      $(topicList).append(
+        '<div class="ui active centered inline loader" id="topic__loading"></div>'
+      )
+      _renderSuccess('Saving...')
+      if (!isExecuting) isExecuting = true
+      if (toRenderStatusText) {
+        clearTimeout(toRenderStatusText)
+        toRenderStatusText = null
+      }
+      topicCreate({
+        title: searchTopicText,
+        privacy: newTopicPrivacy ? 'everyone' : 'private'
+      }).then(result => {
+        if (!result || result.errors) {
+          $('#topic__loading').remove()
+          $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
+          setTimeout(() => {
+            $('#topic__error').hide().find('span').text('')
+          }, 1500)
+          _renderSuccess('')
+          return
+        }
+        newTopicPrivacy = null
+        searchTopicText = ''
+        $('#topic__search > input').val('')
+
+        const { record } = result.data
+        userTopics.unshift({ _id: record._id, _source: record })
+        _buildTopicList()
+        topicAddContent({
+          articleId,
+          topicId: record._id,
+          levelId: selectedLevel._id
+        }).then(result => {
+          if (!result || result.errors) return
+          selectedTopicIds.push(record._id)
+          _renderSuccess('moved to topic')
+          toRenderStatusText = setTimeout(() => {
+            _renderSuccess('')
+          }, 2000)
+          _buildTopicList()
+        }).catch(err => {
+          console.log(err)
+          _renderSuccess('')
+        })
+      }).catch(err => {
+        console.log(err)
+        $('#topic__loading').remove()
+        _renderSuccess('')
+      })
+      return
+    }
+
     if (toSearchTopic) {
       clearTimeout(toSearchTopic)
       toSearchTopic = null
     }
     toSearchTopic = setTimeout(() => {
-      $('#topic_search').removeClass('loading')
+      $('#topic__search').removeClass('loading')
       _buildTopicList()
     }, 350)
   })
@@ -519,8 +618,13 @@ $(document).ready(function() {
   })
 
   $('#comment__public').click(function(e) {
-    if (isExecuting) return
-    _renderExecuting('page saving...')
+    if (isExecuting || $('#comment__text').val().trim().length === 0) return
+    if (toRenderStatusText) {
+      clearTimeout(toRenderStatusText)
+      toRenderStatusText = null
+    }
+    _renderExecuting('comment saving...')
+    if (!isExecuting) isExecuting = true
     $(this).addClass('loading')
     postComment({
       articleId,
@@ -530,19 +634,23 @@ $(document).ready(function() {
       .then(res => {
         $(this).removeClass('loading')
         if (res.status !== 200) {
-          _renderError('page saved error!')
+          _renderError('comment saved error!')
           return
         }
         const result = res.data
         if (!result || result.errors) {
-          _renderError('page saved error!')
+          _renderError('comment saved error!')
           return
         }
-        _renderSuccess('page saved')
+        _renderSuccess('comment saved')
+
+        toRenderStatusText = setTimeout(() => {
+          _renderSuccess('')
+        }, 2000)
       })
       .catch(() => {
         $(this).removeClass('loading')
-        _renderError('page saved error!')
+        _renderError('comment saved error!')
       })
   })
 

@@ -80,10 +80,11 @@ input#tags_tag {
 
 .popup__title-status {
   color: #002257;
-  font-style: italic;
+  /* font-style: italic; */
   text-transform: uppercase;
   display: block;
   height: 19px;
+  font-weight: bold;
 }
 
 
@@ -134,7 +135,7 @@ input#tags_tag {
 }
 
 .series__block {
-  /* display: none; */
+  display: none;
 }
 .series__block .note {
   padding-left: 25px;
@@ -350,15 +351,31 @@ input#tags_tag {
 /* Review block */
 
 /* Topic list */
-#topic_search.ui.input {
+
+#topic__search #new-topic__privacy {
+  display: none;
+}
+#topic__search.ui.input {
   border: 1px solid #EBEDF8;
 }
-#topic_search.ui.input > input {
+#topic__search.ui.input > input {
   background-color: #F8F8F8 !important;
   color: #7C8DA8;
   border: 0;
-  height: 50px;
+  /* height: 50px; */
+  padding: 15.5px 30px;
 }
+.topic__search-img__wrapper {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 4px;
+  top: 14px;
+}
+
 .topic {
   display: flex;
   align-items: center;
@@ -405,6 +422,7 @@ input#tags_tag {
 }
 .topic__list {
   position: relative;
+  min-height: 38px;
   max-height: 120px;
   overflow: hidden;
   margin-top: 10px;
