@@ -94,18 +94,8 @@ chrome.tabs.onCreated.addListener(function(tab) {
 //   })
 // })
 
-chrome.runtime.onInstalled.addListener(() => {
+const registerContextMenu = () => {
   chrome.storage.sync.get(['bookmark_hide_context_menu'], result => {
-    // chrome.contextMenus.create({
-    //   id: 'hasBrainHighlight',
-    //   visible: !(!!result.bookmark_hide_context_menu),
-    //   title: 'Highlight it',
-    //   contexts: ['selection'],
-    //   onclick: () => {
-    //     console.log('xxxx')
-    //     chrome.tabs.executeScript(null, { file: "injected/click.js" });
-    //   }
-    // })
     
     chrome.contextMenus.create({
       id: 'hasBrainHighlight',
@@ -118,4 +108,7 @@ chrome.runtime.onInstalled.addListener(() => {
       }
     })
   })
-})
+}
+
+chrome.runtime.onInstalled.addListener(registerContextMenu)
+chrome.runtime.onStartup.addListener(registerContextMenu)
