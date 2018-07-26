@@ -171,20 +171,24 @@ async function renderBtnHighlight (e) {
     // wrapper.append(highlightButton)
     // wrapper.append(commentButton)
     // wrapper.append(commentBlock)
-    const offset = getSelectionCharOffsetsWithin(document.body)
-    const dimension = getSelectionDimensions()
+    const range =  document.getSelection().getRangeAt(0);
+    const boundingRect = range.getBoundingClientRect() // highlightHelper.getBoundingRect(nodes);
+    // console.log('BOUNDING RECT OFFSET', boundingRect)
+    
+    const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
+    const top = window.scrollY + topOffset
 
     $(wrapper)
       .css('display', 'none').css({
-      'right': ($(document).width() - offset.width) / 2,
-      'top': offset.offset.top + (dimension.height / 2),
+      'right': ($(document).width() - boundingRect.right) / 2, // ($(document).width() - offset.width) / 2,
+      'top':  top,// window.scrollY + Math.max(rangeStart.getClientRects()[0].top, 0) + rectHeight,// offset.top + (boundingRect.height / 2) + boundingRect.top,// offset.offset.top + (dimension.height / 2),
       'display': 'block',
       'z-index': 1000
     }).attr('rel', selection);
-    if (selection.length) {
-      const highlightOffset = getSelectionCharOffsetsWithin(document.body)
-      position = parseFloat(highlightOffset.start*100/$(document).height()).toFixed(2)
-    }
+    // if (selection.length) {
+    //   const highlightOffset = getSelectionCharOffsetsWithin(document.body, range)
+    //   position = parseFloat(highlightOffset.start*100/$(document).height()).toFixed(2)
+    // }
   }
 }
 

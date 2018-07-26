@@ -66,6 +66,23 @@ class HighlightHelper {
     this.rangeUtil = rangeUtil
   }
 
+  getSelectionFocusRect(_selection) {
+    const selection = _selection || document.getSelection();
+    return rangeUtil.selectionFocusRect(selection);
+  }
+
+  getBoundingRect(elements) {
+    const rects = elements.filter(n => typeof n.getBoundingClientRect === "function").map(n =>n.getBoundingClientRect());
+    return rects.reduce(function(acc, r) {
+      return {
+        top: Math.min(acc.top, r.top),
+        left: Math.min(acc.left, r.left),
+        bottom: Math.max(acc.bottom, r.bottom),
+        right: Math.max(acc.right, r.right)
+      };
+    });
+  }
+
   onHighlight() {
     // this.setVisibleHighlights(true);
     this.createHighlight();
