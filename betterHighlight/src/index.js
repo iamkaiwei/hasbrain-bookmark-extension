@@ -1,8 +1,7 @@
-highlighter = require('./highlighter')
-rangeUtil = require('./range-util')
-xpathRange = require('./anchoring/range')
-rangeUtil = require('./range-util')
-anchoring = require('./anchoring/html');
+const highlighter = require('./highlighter')
+const rangeUtil = require('./range-util')
+const xpathRange = require('./anchoring/range')
+const anchoring = require('./anchoring/html');
 const { normalizeURI } = require('./util/url')
 const raf = require('raf')
 

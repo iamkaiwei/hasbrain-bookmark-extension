@@ -1,12 +1,14 @@
 var $ = require('jquery');
 
+const highlightTagName = 'highlight-hasbrain';
+
 exports.highlightRange = function(normedRange, cssClass) {
   var hl, nodes, white;
   if (cssClass == null) {
-    cssClass = 'annotator-hl';
+    cssClass = 'highlight-hasbrain';
   }
   white = /^\s*$/;
-  hl = $("<hypothesis-highlight class='" + cssClass + "'></hypothesis-highlight>");
+  hl = $(`<${highlightTagName} class="${cssClass}"></${highlightTagName}>`);
   nodes = $(normedRange.textNodes()).filter(function(i) {
     return !white.test(this.nodeValue);
   });
