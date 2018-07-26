@@ -181,7 +181,7 @@ async function renderBtnHighlight (e) {
     $(wrapper)
       .css('display', 'none').css({
       'right': ($(document).width() - boundingRect.right) / 2, // ($(document).width() - offset.width) / 2,
-      'top':  top,// window.scrollY + Math.max(rangeStart.getClientRects()[0].top, 0) + rectHeight,// offset.top + (boundingRect.height / 2) + boundingRect.top,// offset.offset.top + (dimension.height / 2),
+      'top':  top - 22,// window.scrollY + Math.max(rangeStart.getClientRects()[0].top, 0) + rectHeight,// offset.top + (boundingRect.height / 2) + boundingRect.top,// offset.offset.top + (dimension.height / 2),
       'display': 'block',
       'z-index': 1000
     }).attr('rel', selection);
@@ -585,6 +585,10 @@ function restoreOldSelection() {
   selection.addRange(oldRange);
 }
 
+function removeHighlight(highlightId) {
+  console.log('REMOVE HIGHLIGHT ', highlightId);
+}
+
 function getOldHighlight(url, token) {
   console.log('GET OLD HIGHLIGHT')
   axios.post(
@@ -607,6 +611,7 @@ function getOldHighlight(url, token) {
             userHighlightData {
               articleId
               highlights {
+                _id
                 core
                 prev
                 next
@@ -647,7 +652,46 @@ function getOldHighlight(url, token) {
       console.log('TARGETS TO RESTORE', targets);
       if (targets.length) {
         const highlightHelper = getHighlighter();
-        setTimeout(() => highlightHelper.restoreHighlightFromTargets(targets), 2000); // delay to restore highlight after medium highlight their own
+        setTimeout(() => highlightHelper.restoreHighlightFromTargets(targets).then(() => {
+          const anchors = highlightHelper.getAnchors();
+          anchors.forEach((anchor, idx)  => {
+            const { range, highlights } = anchor;
+            const getOffsetRect = (elements) => {
+              const rects = elements.map(ele => $(ele).offset());
+              return rects.reduce(function(acc, r) {
+                return {
+                  top: Math.min(acc.top, r.top),
+                  left: Math.min(acc.left, r.left),
+                };
+              });
+            }
+
+            const boundingRect = anchor.range.getBoundingClientRect()
+            const offset = getOffsetRect(highlights) // $(range.startContainer.parentNode).offset()
+            const width = $(range.startContainer.parentNode).width()
+            const height = boundingRect.height
+            const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
+            const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
+            if (!currentHighlight) {
+              console.warn('CAN NOT FIND HIGHLIGHT FROM SELECTOR', textQuoteSelector)
+            }
+            const highlightDataId = (currentHighlight && currentHighlight._id) || idx;
+            const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}">${highlightDataId}</div>`)
+            const { top, left } = offset;
+            $(wrapper)
+              .css('display', 'block').css({
+                position: 'absolute',
+              'left': width + left + 20, // ($(document).width() - offset.width) / 2,
+              'top': top + height / 2 - 28,// offset.offset.top + (dimension.height / 2),
+              'display': 'block',
+              'z-index': 1000
+            })
+            const removeHighlightHanlder = () => highlightDataId && removeHighlight(highlightDataId);
+            $(wrapper).on('click', removeHighlightHanlder);
+            $('body').append(wrapper)
+          });
+          
+        }), 2000); // delay to restore highlight after medium highlight their own
       }
       window.readyForHighlight = true;
 
