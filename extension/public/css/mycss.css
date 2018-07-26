@@ -221,7 +221,7 @@
 }
 
 .highlight__circle.highlight__circle--outline {
-    background-color: transparent;
+    background-color: white;
 }
 
 .highlight__circle-wrapper .comment__block {

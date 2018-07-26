@@ -291,12 +291,12 @@ function postHighlight ({ core, prev, next, serialized }) {
       // $(highlightButton).find('span').text('Success!')
       isSending = false
       _renderSuccessHighlight()
-      // $(wrapper).hide()
-      // _renderNewCircle({
-      //   url,
-      //   highlightData: { core, prev, next, serialized },
-      //   result
-      // })
+      $(wrapper).hide()
+      _renderNewCircle({
+        url,
+        highlightData: { core, prev, next, serialized },
+        result
+      })
       return result
     }).catch(() => {
       _renderErrorHighlight()
@@ -407,6 +407,7 @@ function _renderNewCircle ({ url, highlightData, result }) {
           return
         }
         removeHighlight(highlightDataId).then(res => {
+          console.log('xxx', res)
           if (res.status !== 200) {
             return
           }
