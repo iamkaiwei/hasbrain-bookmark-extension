@@ -646,6 +646,10 @@ function getOldHighlight(url, token) {
         setTimeout(() => highlightHelper.restoreHighlightFromTargets(targets), 2000); // delay to restore highlight after medium highlight their own
       }
       window.readyForHighlight = true;
+
+      // change icon extension
+      const {userBookmarkData} = articleUserAction
+      userBookmarkData && userBookmarkData.contentId && chrome.runtime.sendMessage({ action: 'change-icon' })
     }).catch(() => {
       // _renderErrorHighlight()
       _renderErrorPost()

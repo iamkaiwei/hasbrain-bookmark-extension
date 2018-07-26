@@ -422,7 +422,7 @@ input#tags_tag {
 }
 .topic__list {
   position: relative;
-  min-height: 38px;
+  /* min-height: 38px; */
   max-height: 120px;
   overflow: hidden;
   margin-top: 10px;

@@ -61,7 +61,7 @@ function _buildTopicList() {
     list = userTopics.filter(i =>
       ((i._source && i._source.title) || '')
         .toLowerCase()
-        .includes(searchTopicText.toLowerCase())
+        .includes(searchTopicText.toLowerCase().trim())
     )
     if (list.length === 0) {
       enableAddNew = true
@@ -446,7 +446,15 @@ $(document).ready(function() {
     searchTopicText = $(this).val()
 
     if (e.keyCode === 13 && searchTopicText.length && newTopicPrivacy !== null && !isExecuting) {
-      console.log('add new topic')
+      const tokenDecode = jwt_decode(token)
+      if ((!tokenDecode.role || tokenDecode.role !== 'contributor') && newTopicPrivacy) {
+        // TODO: Only contributor can create public topic
+        $('#topic__error').show().find('span').text('Only contributor create public topic')
+        setTimeout(() => {
+          $('#topic__error').hide().find('span').text('')
+        }, 1500)
+        return
+      }
       $(topicList).append(
         '<div class="ui active centered inline loader" id="topic__loading"></div>'
       )
@@ -457,7 +465,7 @@ $(document).ready(function() {
         toRenderStatusText = null
       }
       topicCreate({
-        title: searchTopicText,
+        title: searchTopicText.trim(),
         privacy: newTopicPrivacy ? 'everyone' : 'private'
       }).then(result => {
         if (!result || result.errors) {

@@ -32,6 +32,9 @@ function postComment({articleId = '', comment = '', isPublic = false}) {
             isPublic: ${isPublic}
           }) {
             recordId
+            record {
+              isPublic
+            }
           }
         }
       }
