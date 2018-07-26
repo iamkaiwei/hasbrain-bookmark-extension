@@ -6,6 +6,12 @@ console.log('HIHGLIGHT MINHHIEN')
 var profile = null
 var isSending = false
 var position = 0
+var articleId = ''
+var token = ''
+var authorizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY'
+
+var currentPositionBtn = {}
+
 // var trackerButton = $('<a id="tracker__button" href="javascript:;"><img src="https://image.flaticon.com/icons/svg/751/751379.svg" alt="" /> <span>Add to highlight</span></a>')
 const wrapper = $('<div id="tracker__wrapper"></div>')
 const tracker__buttons = $('<div class="tracker__buttons"></div>')
@@ -88,13 +94,6 @@ commentActions
   .append(commentPrivacy)
 
 
-// commentBlock
-//   .append(commentUser)
-//   .append(commentText)
-//   .append(commentActions)
-
-
-
 // add comment block to wrapper
 wrapper.append(commentBlock)
 
@@ -105,7 +104,6 @@ var oldBody = body.innerHTML
 var idCounter=0;
 var textSelected=false;
 
-let token = ''
 
 function getProfileFromStorage() {
   return new Promise(function(resolve, reject) {
@@ -144,12 +142,6 @@ async function renderBtnHighlight (e) {
   var selection = $.trim(getSelected().toString());
   $(wrapper).css('display', 'none');
   if (isDict(selection.toString())) {
-    // $(trackerButton)
-    //   .css('display', 'none').css({
-    //   'left': e.pageX,
-    //   'top': e.pageY - 48,
-    //   'display': 'flex'
-    // }).attr('rel', selection);
     userAvatar.html('')
     if (profile._avatar.length) {
       userAvatar.append(`<img src="${profile._avatar}" alt="" >`)
@@ -159,25 +151,17 @@ async function renderBtnHighlight (e) {
       `)
     }
     userName.html('').append(profile.name)
-    // commentUser.html('')
-    // commentUser.append(userAvatar)
-    // commentUser.append(userName)
 
-    
-    
-    // commentBlock.append(commentUser)
-    // commentBlock.append(commentText)
-    // commentBlock.append(commentActions)
-    // wrapper.append(highlightButton)
-    // wrapper.append(commentButton)
-    // wrapper.append(commentBlock)
     const range =  document.getSelection().getRangeAt(0);
     const boundingRect = range.getBoundingClientRect() // highlightHelper.getBoundingRect(nodes);
     // console.log('BOUNDING RECT OFFSET', boundingRect)
     
     const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
     const top = window.scrollY + topOffset
-
+    currentPositionBtn = {
+      top: top - 22,
+      right: ($(document).width() - boundingRect.right) / 2
+    }
     $(wrapper)
       .css('display', 'none').css({
       'right': ($(document).width() - boundingRect.right) / 2, // ($(document).width() - offset.width) / 2,
@@ -185,26 +169,15 @@ async function renderBtnHighlight (e) {
       'display': 'block',
       'z-index': 1000
     }).attr('rel', selection);
-    // if (selection.length) {
-    //   const highlightOffset = getSelectionCharOffsetsWithin(document.body, range)
-    //   position = parseFloat(highlightOffset.start*100/$(document).height()).toFixed(2)
-    // }
   }
 }
 
 function _renderErrorHighlight () {
   isSending = false
-  // $(highlightButton).find('span').text('Error...!')
-  // _renderInitialHighlight()
   $(highlightButton).find('span').html('').append(errorIcon)
 }
 
 function _renderInitialHighlight () {
-  // setTimeout(function () {
-  //   $(highlightButton).find('span').text('Add to highlight')
-  //   $(highlightButton).removeClass('show')
-  //   $(highlightButton).css('display', 'none');
-  // }, 1000)
   $(highlightButton).find('span').html('').append(highlightIcon)
 }
 
@@ -212,205 +185,271 @@ function _renderSuccessHighlight () {
   $(highlightButton).find('span').html('').append(successHighlightIcon)
 }
 
+function postHighlight ({ core, prev, next, serialized }) {
+  if (isSending) return
+  // $(highlightButton).find('span').text('Adding...')
+  $(highlightButton).find('span').html('').append(loadingIcon)
+  isSending = true
+  var photo = null, description = null,
+    og = document.querySelector("meta[property='og:image']"),
+    des = document.querySelector("meta[name='description']"),
+    keywork = document.querySelector("meta[name='keywords']"),
+    title = document.querySelector("title").innerText,
+    h1s = document.getElementsByTagName("h1"),
+    h2s = document.getElementsByTagName("h2"),
+    h3s = document.getElementsByTagName("h3"),
+    readingTime = document.body.innerText.split(" ").length / 230,
+    url = document.location.href,
+    // highlight = $(wrapper).attr('rel'),
+    h1 = [], h2 = [], h3 = [], keywords = null
 
-function selectText() {	// onmouseup
-	if (window.getSelection) {
-		console.log("window.getSelection");
-		sel = window.getSelection();
-		if (sel.getRangeAt && sel.rangeCount) {	// Chrome, FF
-			console.log(sel.getRangeAt(0));
-			return sel.getRangeAt(0);
-		}
-		else{console.log(sel);}
-	} else if (document.selection && document.selection.createRange) {
-		console.log("elseif");
-		return document.selection.createRange();
-	}
-	return null;
-}
+  for (var o = 0; o < h1s.length; o++) {h1.push(h1s[o].innerText);}
+  for (var j = 0; j < h2s.length; j++) {h2.push(h2s[j].innerText);}
+  for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
+  if (des !== null) description = des.getAttribute("content")
+  if (og !== null) photo = og.getAttribute("content")
 
-function appendAnchor(r) {	// onmouseup
-	if (!r) return;
-	extracted = r.extractContents();
-	el = document.createElement('a');
-	el.setAttribute("id", "a-"+idCounter);
-	el.setAttribute("class", "highlighted");
-	el.appendChild(extracted);
-	r.insertNode(el)
-}
-
-function restore() {
-	p.innerHTML = old;
-  textSelected=false;
-}
-
-function getSelectionCharOffsetsWithin(element) {
-  var start = 0, end = 0, width = 0, offset = {};
-  var sel, range, priorRange;
-  if (typeof window.getSelection != "undefined") {
-    if (!window.getSelection().getRangeAt(0)) return
-    range = window.getSelection().getRangeAt(0);
-    priorRange = range.cloneRange();
-    priorRange.selectNodeContents(element);
-    width = $(range.startContainer.parentNode).innerWidth() || 0
-    offset = $(range.startContainer.parentNode).offset()
-    priorRange.setEnd(range.startContainer, range.startOffset);
-    start = priorRange.toString().length;
-    end = start + range.toString().length;
-  } else if (typeof document.selection != "undefined" &&
-          (sel = document.selection).type != "Control") {
-    range = sel.createRange();
-    width = $(range.startContainer.parentNode).innerWidth() || 0
-    offset = $(range.startContainer.parentNode).offset()
-    priorRange = document.body.createTextRange();
-    priorRange.moveToElementText(element);
-    priorRange.setEndPoint("EndToStart", range);
-    start = priorRange.text.length;
-    end = start + range.text.length;
+  const data = {
+    title,
+    url,
+    sourceImage: photo,
+    shortDescription: description,
+    // tags: keywords.tags,
+    readingTime
   }
-  return {
-    start: start,
-    end: end,
-    width,
-    offset
-  };
-}
-
-function getSelectionDimensions() {
-  var sel = document.selection, range;
-  var width = 0, height = 0;
-  if (sel) {
-      if (sel.type != "Control") {
-          range = sel.createRange();
-          width = range.boundingWidth;
-          height = range.boundingHeight;
-      }
-  } else if (window.getSelection) {
-      sel = window.getSelection();
-      if (sel.rangeCount) {
-          range = sel.getRangeAt(0).cloneRange();
-          if (range.getBoundingClientRect) {
-              var rect = range.getBoundingClientRect();
-              width = rect.right - rect.left;
-              height = rect.bottom - rect.top;
+  var bookmarkData = data      
+  return axios.post(
+    stagingApi,
+    JSON.stringify({
+      query: `
+        mutation ($record: CreateOnearticletypeInput!) {
+          user{
+            articleCreateIfNotExist(record: $record) {
+              recordId
+            }
           }
+        }
+      `,
+      variables: {
+        record: bookmarkData
       }
-  }
-  return { width: width , height: height };
-}
-
-function postHighlight ({ core, prev, next, serialized  }) {
-  if (!isSending) {
-    // $(highlightButton).find('span').text('Adding...')
-    $(highlightButton).find('span').html('').append(loadingIcon)
-    isSending = true
-    var photo = null, description = null,
-      og = document.querySelector("meta[property='og:image']"),
-      des = document.querySelector("meta[name='description']"),
-      keywork = document.querySelector("meta[name='keywords']"),
-      title = document.querySelector("title").innerText,
-      h1s = document.getElementsByTagName("h1"),
-      h2s = document.getElementsByTagName("h2"),
-      h3s = document.getElementsByTagName("h3"),
-      readingTime = document.body.innerText.split(" ").length / 230,
-      url = document.location.href,
-      // highlight = $(wrapper).attr('rel'),
-      h1 = [], h2 = [], h3 = [], keywords = null
-
-    for (var o = 0; o < h1s.length; o++) {h1.push(h1s[o].innerText);}
-    for (var j = 0; j < h2s.length; j++) {h2.push(h2s[j].innerText);}
-    for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
-    if (des !== null) description = des.getAttribute("content")
-    if (og !== null) photo = og.getAttribute("content")
-
-    const data = {
-      title,
-      url,
-      sourceImage: photo,
-      shortDescription: description,
-      // tags: keywords.tags,
-      readingTime
+    }), {
+    headers: {
+      'Content-type': 'application/json',
+      'authorization': authorizationToken,
+      'usertoken': token
     }
-    var bookmarkData = data      
-    axios.post(
+  }).then((res) => {
+    if (res.status !== 200) {
+      _renderErrorHighlight()
+      return
+    }
+    const result = res.data
+    if (!result || result.errors) {
+      _renderErrorHighlight()
+      return
+    }
+    const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+    articleId = recordId
+    return axios.post(
       stagingApi,
       JSON.stringify({
         query: `
-          mutation ($record: CreateOnearticletypeInput!) {
+          mutation ($prev: String, $next: String, $core: String, $serialized: String) {
             user{
-              articleCreateIfNotExist(record: $record) {
+              userhighlightAddOrUpdateOne(
+                filter:{
+                  articleId: "${recordId}"
+                }, record: {
+                  core: $core,
+                  prev: $prev,
+                  next: $next,
+                  serialized: $serialized
+                }
+              ) {
                 recordId
               }
             }
           }
-        `,
-        variables: {
-          record: bookmarkData
-        }
+        `, variables: { core, prev, next, serialized }
       }), {
       headers: {
         'Content-type': 'application/json',
-        'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+        'authorization': authorizationToken,
         'usertoken': token
       }
     }).then((res) => {
       if (res.status !== 200) {
         _renderErrorHighlight()
-        return
+        return null
       }
       const result = res.data
       if (!result || result.errors) {
         _renderErrorHighlight()
-        return
+        return result
       }
-      const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
-      axios.post(
-        stagingApi,
-        JSON.stringify({
-          query: `
-            mutation ($prev: String, $next: String, $core: String, $serialized: String) {
-              user{
-                userhighlightAddOrUpdateOne(
-                  filter:{
-                    articleId: "${recordId}"
-                  }, record: {
-                    core: $core,
-                    prev: $prev,
-                    next: $next,
-                    serialized: $serialized
-                  }
-                ) {
-                  recordId
-                }
-              }
-            }
-          `, variables: { core, prev, next, serialized }
-        }), {
-        headers: {
-          'Content-type': 'application/json',
-          'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
-          'usertoken': token
-        }
-      }).then((res) => {
-        if (res.status !== 200) {
-          _renderErrorHighlight()
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          _renderErrorHighlight()
-          return
-        }
-        // $(highlightButton).find('span').text('Success!')
-        isSending = false
-        _renderSuccessHighlight()
-      }).catch(() => {
-        _renderErrorHighlight()
-      })
+      // $(highlightButton).find('span').text('Success!')
+      isSending = false
+      _renderSuccessHighlight()
+      // $(wrapper).hide()
+      // _renderNewCircle({
+      //   url,
+      //   highlightData: { core, prev, next, serialized },
+      //   result
+      // })
+      return result
     }).catch(() => {
       _renderErrorHighlight()
     })
-  }
+  }).catch(() => {
+    _renderErrorHighlight()
+  })
+}
+
+function _renderNewCircle ({ url, highlightData, result }) {
+  const { serialized } = highlightData
+  const targets = [{
+    source: url,
+    selector: JSON.parse(serialized)
+  }]
+
+  const highlightDataId = result.data.user.userhighlightAddOrUpdateOne.recordId || ''
+
+  const highlightHelper = getHighlighter();
+  highlightHelper.restoreHighlightFromTargets(targets).then(() => {
+    const anchors = highlightHelper.getAnchors();
+    anchors.forEach((anchor, idx)  => {
+      const { range, highlights } = anchor;
+      const getOffsetRect = (elements) => {
+        const rects = elements.map(ele => $(ele).offset());
+        return rects.reduce(function(acc, r) {
+          return {
+            top: Math.min(acc.top, r.top),
+            left: Math.min(acc.left, r.left),
+          };
+        });
+      }
+
+      const boundingRect = anchor.range.getBoundingClientRect()
+      const offset = getOffsetRect(highlights) // $(range.startContainer.parentNode).offset()
+      const width = $(range.startContainer.parentNode).width()
+      const height = boundingRect.height
+      const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
+      const { top, left } = offset;
+      $(wrapper)
+        .css('display', 'block').css({
+          position: 'absolute',
+        'left': width + left + 20, // ($(document).width() - offset.width) / 2,
+        'top': top + height / 2 - 28,// offset.offset.top + (dimension.height / 2),
+        'display': 'block',
+        'z-index': 1000
+      })
+
+      const highlightCircle = $(`<div class="highlight__circle "></div>`)
+      
+      const commentBlock = $(`
+        <div class="comment__block">
+          <div class="comment__heading">Comment</div>
+        </div>
+      `)
+      const commentUser = $(`
+      <div class="comment__user">
+      </div>
+      `)
+      const userAvatar = $(`
+        <div class="comment__avt"></div>
+      `)
+      const userName = $(`
+        <span class="comment__user-name"></span>
+      `)
+      const commentText = $(`
+      <div class="comment__text">
+        <textarea id="comment__textarea" placeholder="Your comment here.." />
+      </div>
+      `)
+
+      const commentTextPreview = $(`
+      <div class="comment__text">
+      </div>
+      `)
+
+      const commentActions = $(`
+        <div class="comment__actions"></div>
+      `)
+      const commentPost = $(`
+        <div class="comment__post">Post</div>
+      `)
+      const commentPrivacy = $(`
+        <div class="comment__privacy">Privacy</div>
+      `)
+
+      $(commentActions)
+        .append(commentPost)
+        .append(commentPrivacy)
+      $(commentBlock)
+        // .append(commentUser)
+        .append(commentText)
+        .append(commentActions)
+
+      $(highlightCircle).on('click', function() {
+        if (!highlightDataId) return
+        console.log('highlightData', highlightData)
+        if ($(this).hasClass('highlight__circle--outline')) {
+          // TODO: highlight
+          justPostHighlight(highlightData).then(res => {
+            if (res.status !== 200) {
+              return
+            }
+            const result = res.data
+            if (!result || result.errors) return
+            $(this).removeClass('highlight__circle--outline')
+          })
+          return
+        }
+        removeHighlight(highlightDataId).then(res => {
+          if (res.status !== 200) {
+            return
+          }
+          const result = res.data
+          if (!result || result.errors) return
+          $(this).addClass('highlight__circle--outline')
+        })
+      });
+      $(wrapper).append(highlightCircle).append(commentBlock)
+      $('body').append(wrapper)
+    }); 
+  })
+}
+
+function justPostHighlight ({ core, prev, next, serialized }) {
+  return axios.post(
+    stagingApi,
+    JSON.stringify({
+      query: `
+        mutation ($prev: String, $next: String, $core: String, $serialized: String) {
+          user{
+            userhighlightAddOrUpdateOne(
+              filter:{
+                articleId: "${articleId}"
+              }, record: {
+                core: $core,
+                prev: $prev,
+                next: $next,
+                serialized: $serialized
+              }
+            ) {
+              recordId
+            }
+          }
+        }
+      `, variables: { core, prev, next, serialized }
+    }), {
+    headers: {
+      'Content-type': 'application/json',
+      'authorization': authorizationToken,
+      'usertoken': token
+    }
+  })
 }
 
 function _renderLoadingPost () {
@@ -501,7 +540,7 @@ function postComment ({ position = '' }) {
       }), {
       headers: {
         'Content-type': 'application/json',
-        'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+        'authorization': authorizationToken,
         'usertoken': token
       }
     }).then((res) => {
@@ -541,7 +580,7 @@ function postComment ({ position = '' }) {
         }), {
         headers: {
           'Content-type': 'application/json',
-          'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+          'authorization': authorizationToken,
           'usertoken': token
         }
       }).then((res) => {
@@ -587,6 +626,30 @@ function restoreOldSelection() {
 
 function removeHighlight(highlightId) {
   console.log('REMOVE HIGHLIGHT ', highlightId);
+  console.log('token', token)
+  console.log('articleId', articleId)
+  return axios.post(
+    stagingApi,
+    JSON.stringify({
+      query: `
+        mutation {
+          user {
+            userHighlightRemoveOne(filter: {
+              highlightId: "${highlightId}",
+              articleId: "${articleId}"
+            }) {
+              recordId
+            }
+          }
+        }
+      `
+    }), {
+    headers: {
+      'Content-type': 'application/json',
+      'authorization': authorizationToken,
+      'usertoken': token
+    }
+  })
 }
 
 function getOldHighlight(url, token) {
@@ -625,7 +688,7 @@ function getOldHighlight(url, token) {
       }), {
         headers: {
           'Content-type': 'application/json',
-          'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
+          'authorization': authorizationToken,
           'usertoken': token
         }
     }).then((res) => {
@@ -643,6 +706,7 @@ function getOldHighlight(url, token) {
       }
       console.log('GET OLD HIGHLIGHT SUCESS', result);
       const articleUserAction = result.data.viewer.articleUserAction;
+      articleId = articleUserAction._id
       const highlightData = articleUserAction && articleUserAction.userHighlightData && articleUserAction.userHighlightData.highlights;
       const oldHighlight = highlightData && highlightData.length
       const targets = oldHighlight && highlightData.map(({ core, prev, next, serialized }) => ({
@@ -676,7 +740,7 @@ function getOldHighlight(url, token) {
               console.warn('CAN NOT FIND HIGHLIGHT FROM SELECTOR', textQuoteSelector)
             }
             const highlightDataId = (currentHighlight && currentHighlight._id) || idx;
-            const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}">${highlightDataId}</div>`)
+            const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
             const { top, left } = offset;
             $(wrapper)
               .css('display', 'block').css({
@@ -686,8 +750,80 @@ function getOldHighlight(url, token) {
               'display': 'block',
               'z-index': 1000
             })
-            const removeHighlightHanlder = () => highlightDataId && removeHighlight(highlightDataId);
-            $(wrapper).on('click', removeHighlightHanlder);
+
+            const highlightCircle = $(`<div class="highlight__circle "></div>`)
+            
+            const commentBlock = $(`
+              <div class="comment__block">
+                <div class="comment__heading">Comment</div>
+              </div>
+            `)
+            const commentUser = $(`
+            <div class="comment__user">
+            </div>
+            `)
+            const userAvatar = $(`
+              <div class="comment__avt"></div>
+            `)
+            const userName = $(`
+              <span class="comment__user-name"></span>
+            `)
+            const commentText = $(`
+            <div class="comment__text">
+              <textarea id="comment__textarea" placeholder="Your comment here.." />
+            </div>
+            `)
+
+            const commentTextPreview = $(`
+            <div class="comment__text">
+            </div>
+            `)
+
+            const commentActions = $(`
+              <div class="comment__actions"></div>
+            `)
+            const commentPost = $(`
+              <div class="comment__post">Post</div>
+            `)
+            const commentPrivacy = $(`
+              <div class="comment__privacy">Privacy</div>
+            `)
+
+            $(commentActions)
+              .append(commentPost)
+              .append(commentPrivacy)
+            $(commentBlock)
+              // .append(commentUser)
+              .append(commentText)
+              .append(commentActions)
+
+
+            // const removeHighlightHanlder = () => highlightDataId && removeHighlight(highlightDataId);
+            $(highlightCircle).on('click', function() {
+              if (!highlightDataId) return
+              console.log('highlightData', currentHighlight)
+              if ($(this).hasClass('highlight__circle--outline')) {
+                // TODO: highlight
+                justPostHighlight(currentHighlight).then(res => {
+                  if (res.status !== 200) {
+                    return
+                  }
+                  const result = res.data
+                  if (!result || result.errors) return
+                  $(this).removeClass('highlight__circle--outline')
+                })
+                return
+              }
+              removeHighlight(highlightDataId).then(res => {
+                if (res.status !== 200) {
+                  return
+                }
+                const result = res.data
+                if (!result || result.errors) return
+                $(this).addClass('highlight__circle--outline')
+              })
+            });
+            $(wrapper).append(highlightCircle).append(commentBlock)
             $('body').append(wrapper)
           });
           
@@ -708,7 +844,8 @@ function getOldHighlight(url, token) {
 $(document).ready(function (e) {
   const url = document.location.href;
   getProfileFromStorage().then((result) => {
-    const { bookmark_token: token } = result
+    const { bookmark_token } = result
+    token = bookmark_token
     getOldHighlight(url, token);
   });
   $(this).mouseup(function (e) {
@@ -728,14 +865,10 @@ $(document).ready(function (e) {
 
   $(wrapper).hover(
     e => {
-      // console.log('hover')
       stopMouseUp = true
-      // appendAnchor(selectText())
     },
     e => {
-      // console.log('leave')
       stopMouseUp = false
-      // body.innerHTML = oldBody
     }
   )
   

@@ -209,3 +209,26 @@
 .highlight-hasbrain {
     background-color: yellow !important
 }
+
+.highlight__circle {
+    background-color: blue;
+    width: 22px;
+    height: 22px;
+    border: 1px solid blue;
+    border-radius: 50%;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.highlight__circle.highlight__circle--outline {
+    background-color: transparent;
+}
+
+.highlight__circle-wrapper .comment__block {
+    display: none;
+    opacity: 1;
+    visibility: visible;
+    position: absolute;
+    right: calc(100% - 22px);
+    width: 260px;
+}
