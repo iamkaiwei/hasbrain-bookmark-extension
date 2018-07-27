@@ -9,10 +9,13 @@ var articleId = ''
 var currentPositionBtn = {}
 
 // controls
-const wrapper = $('<div id="tracker__wrapper"></div>')
-const tracker__buttons = $('<div class="tracker__buttons"></div>')
-const highlightButton = $(`<a id="tracker__button" href="javascript:;" title="Highlight"><span>${highlightIcon}</span></a>`)
+// const wrapper = $('<div id="tracker__wrapper"></div>')
+const wrapper = $(`<div id="minhhien__highlight__I_AM_NEW_HAHA" class="highlight__circle-wrapper"></div>`)
+const newHighlightCircle = $(`<div class="highlight__circle"></div>`)
+wrapper.append(newHighlightCircle)
 
+// const tracker__buttons = $('<div class="tracker__buttons"></div>')
+// const highlightButton = $(`<a id="tracker__button" href="javascript:;" title="Highlight"><span>${highlightIcon}</span></a>`)
 function getHighlighter() {
   if (!window.minhhienHighlighter) {
     window.minhhienHighlighter = new window.HighlightHelper();
@@ -25,10 +28,10 @@ window.minhhienSelection = null;
 window.readyForHighlight = false;
 
 // add button highlight  to wrapper
-tracker__buttons
-  .append(highlightButton)
+// tracker__buttons
+//   .append(highlightButton)
 
-wrapper.append(tracker__buttons)
+// wrapper.append(tracker__buttons)
 
 var stopMouseUp = false
 
@@ -42,25 +45,29 @@ async function renderBtnHighlight () {
   var hideCircle = await checkHidingCircleHighlight()
   if (hideCircle) return
 
-  _renderInitialHighlight()
-  $('body').append(wrapper)
 
+  isSending = false
+  // const highlightDataId = 'I_AM_NEW_HAHA';
+  // const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
+  
+  // console.log(wrapper)
   var selection = $.trim(getSelected().toString());
   $(wrapper).css('display', 'none');
   if (isDict(selection.toString())) {
 
     const range =  document.getSelection().getRangeAt(0);
     const boundingRect = range.getBoundingClientRect() 
-    
     const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
     const top = window.scrollY + topOffset
     currentPositionBtn = {
       top: top - 22,
       right: ($(document).width() - boundingRect.right) / 2
     }
+    $(newHighlightCircle).addClass('highlight__circle--outline')
     $(wrapper)
-      .css('display', 'none').css({
+      .css({
       ...currentPositionBtn,
+      position: 'absolute',
       display: 'block',
       'z-index': 1000
     })
@@ -69,15 +76,15 @@ async function renderBtnHighlight () {
 
 function _renderErrorHighlight () {
   isSending = false
-  $(highlightButton).find('span').html('').append(errorIcon)
+  // $(highlightButton).find('span').html('').append(errorIcon)
 }
 
 function _renderInitialHighlight () {
-  $(highlightButton).find('span').html('').append(highlightIcon)
+  // $(highlightButton).find('span').html('').append(highlightIcon)
 }
 
 function _renderSuccessHighlight () {
-  $(highlightButton).find('span').html('').append(successHighlightIcon)
+  // $(highlightButton).find('span').html('').append(successHighlightIcon)
 }
 
 function _renderRestoreOldHighlightError () {
@@ -109,7 +116,6 @@ function getMetadata() {
 
 function postHighlight ({ core, prev, next, serialized }) {
   if (isSending) return
-  $(highlightButton).find('span').html('').append(loadingIcon)
   isSending = true
   
   const {
@@ -307,6 +313,7 @@ function handleMouseupToRenderHighlightCircle(e) {
 }
 
 function handleCreateHighlight(e) {
+  $(newHighlightCircle).removeClass('highlight__circle--outline')
   e.stopPropagation()
   restoreOldSelection()
 
@@ -353,7 +360,8 @@ $(document).ready(function (e) {
     }
   )
 
-  $(highlightButton).click(handleCreateHighlight)
+  $(newHighlightCircle).click(handleCreateHighlight)
+  $('body').append(wrapper)
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (msg.from === 'popup' && msg.method === 'ping') {

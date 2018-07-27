@@ -224,6 +224,10 @@
     background-color: white;
 }
 
+.highlight__circle.highlight__circle--outline:hover {
+    border: 3px solid blue;
+}
+
 .highlight__circle-wrapper .comment__block {
     display: none;
     opacity: 1;
