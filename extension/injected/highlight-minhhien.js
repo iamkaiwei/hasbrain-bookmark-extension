@@ -55,21 +55,8 @@ const commentPrivacy = $(`
 
 function getHighlighter() {
   if (!window.minhhienHighlighter) {
-    //   const HIGHLIGHT_NAME = 'highlight-hasbrain';
-    //   rangy.init();
-    //   const highlighter = rangy.createHighlighter(document, 'TextRange');
-    //   highlighter.addClassApplier(rangy.createClassApplier(HIGHLIGHT_NAME, {
-    //     ignoreWhiteSpace: true,
-    //     tagNames: ["span", "a"]
-    //   }));
-    //   window.minhhienHighlighter = highlighter
-    //   window.HIGHLIGHT_NAME = HIGHLIGHT_NAME
       window.minhhienHighlighter = new window.HighlightHelper();
     }
-    // return {
-    //   highlighter: window.minhhienHighlighter,
-    //   highlighterName: window.HIGHLIGHT_NAME
-    // }
     return window.minhhienHighlighter
 }
 

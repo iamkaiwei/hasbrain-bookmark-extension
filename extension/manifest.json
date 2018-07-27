@@ -38,12 +38,6 @@
         "public/js/keywords.js",
         "public/js/semantic.min.js",
         "public/js/jwt-decode.js",
-        "public/js/rangy-core.js",
-        "public/js/rangy-classapplier.js",
-        "public/js/rangy-highlighter.js",
-        "public/js/rangy-selectionsaverestore.js",
-        "public/js/rangy-serializer.js",
-        "public/js/rangy-textrange.js",
         "injected/highlight-minhhien.js",
         "injected/HighlightHelper.js"
       ],
