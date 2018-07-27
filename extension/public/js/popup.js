@@ -297,7 +297,7 @@ function _bookmarkArticle() {
           _renderError('Error bookmark!')
           return
         }
-        _renderSuccess('page saved')
+        _renderSuccess('saved to read it later')
         $('#save-to-topics').checkbox('set unchecked')
         $('#series__section').show()
         $('#review__title').text(title)
