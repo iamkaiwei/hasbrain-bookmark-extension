@@ -80,14 +80,9 @@ function _renderSuccessHighlight () {
   $(highlightButton).find('span').html('').append(successHighlightIcon)
 }
 
-function _renderErrorPost () {
-  setTimeout(() => {
-    _renderInitialPost()
-  }, 1500)
-}
-
-function _renderInitialPost () {
-  isSending = false
+function _renderRestoreOldHighlightError () {
+  isSending = false;
+  console.log('CAN NOT RESTORE OLD HIHGLIGHT')
 }
 
 function getMetadata() {
@@ -214,8 +209,8 @@ const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
   $(wrapper)
     .css('display', 'block').css({
       position: 'absolute',
-    'left': width + left + 20, // ($(document).width() - offset.width) / 2,
-    'top': top + height / 2 - 28,// offset.offset.top + (dimension.height / 2),
+    'left': width + left + 20,
+    'top': top + height / 2 - 28,
     'display': 'block',
     'z-index': 1000
   })
@@ -250,20 +245,16 @@ const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
 }
 
 function restoreOldHighlight(url) {
-  // console.log('GET OLD HIGHLIGHT')
   getApiClientByToken(token).getOldHighlight(url)
     .then((res) => {
-      // console.log('resssssssssssss', res)
+      isSending = false;
       if (res.status !== 200) {
-        // _renderErrorHighlight()
-        _renderErrorPost()
-        return
+        return _renderRestoreOldHighlightError()
+        
       }
       const result = res.data
       if (!result || result.errors) {
-        // _renderErrorHighlight()
-        _renderErrorPost()
-        return
+        return _renderRestoreOldHighlightError()
       }
       // console.log('GET OLD HIGHLIGHT SUCESS', result);
       const articleUserAction = result.data.viewer.articleUserAction;
@@ -290,8 +281,8 @@ function restoreOldHighlight(url) {
       userBookmarkData && userBookmarkData.contentId && chrome.runtime.sendMessage({ action: 'change-icon' })
     }).catch((error) => {
       console.log('CAN NOT RESTORE OLD HIGHLIGHT', error);
-      _renderErrorPost()
       window.readyForHighlight = true;
+      return _renderRestoreOldHighlightError();
     });
 }
 
