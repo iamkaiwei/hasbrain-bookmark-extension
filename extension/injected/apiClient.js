@@ -5,12 +5,11 @@ const authorizationToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY";
 
 class ContentkitApiClient {
-  apiClient = null;
   constructor(token) {
     this.apiClient = axios.create({
       baseURL: stagingApi,
       headers: {
-        "Content-type": "application/json",
+        'Content-Type': 'application/json',
         authorization: authorizationToken,
         usertoken: token
       },
@@ -45,11 +44,10 @@ class ContentkitApiClient {
               }
             }
           } 
-        }
-        `
+        }`
     });
   }
-  postHighlight(articleId, { core, prev, next, serialized }) {
+  addOrUpdateHighlight(articleId, { core, prev, next, serialized }) {
     return this.apiClient.post("/", {
       query: `
         mutation ($prev: String, $next: String, $core: String, $serialized: String) {
@@ -65,6 +63,15 @@ class ContentkitApiClient {
               }
             ) {
               recordId
+              record {
+                highlights {
+                  _id
+                  core
+                  prev
+                  next
+                  serialized
+                }
+              }
             }
           }
         }
@@ -102,4 +109,29 @@ class ContentkitApiClient {
       }
     });
   }
+  removeHighlight(articleId, highlightId) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation {
+          user {
+            userHighlightRemoveOne(filter: {
+              highlightId: "${highlightId}",
+              articleId: "${articleId}"
+            }) {
+              recordId
+            }
+          }
+        }
+      `
+    })
+  }
+}
+
+const apiClientByToken = {}
+
+function getApiClientByToken(token) {
+  if (!apiClientByToken[token]) {
+    apiClientByToken[token] = new ContentkitApiClient(token);
+  }
+  return apiClientByToken[token]
 }

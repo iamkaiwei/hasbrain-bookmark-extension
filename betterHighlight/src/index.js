@@ -70,6 +70,22 @@ class HighlightHelper {
     return rangeUtil.selectionFocusRect(selection);
   }
 
+  canCreateHighlightFromSelection(_selection) {
+    const selection = _selection || document.getSelection();
+    const isBackwards = this.rangeUtil.isSelectionBackwards(selection)
+    const focusRect = this.rangeUtil.selectionFocusRect(selection)
+    return !!focusRect;
+  }
+
+  saveRangeBeforeCreateHighlight(_selection) {
+    const selection = _selection || document.getSelection();
+    if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+      this.selectedRanges = [] 
+    } else {
+      this.selectedRanges = [selection.getRangeAt(0)];
+    }
+  }
+
   getBoundingRect(elements) {
     const rects = elements.filter(n => typeof n.getBoundingClientRect === "function").map(n =>n.getBoundingClientRect());
     return rects.reduce(function(acc, r) {

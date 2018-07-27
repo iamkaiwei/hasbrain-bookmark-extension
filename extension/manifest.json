@@ -14,6 +14,9 @@
   "background": {
     "scripts": [
       "public/js/axios.js",
+      "injected/HighlightHelper.js",
+      "injected/storageHelper.js",
+      "injected/apiClient.js",
       "injected/background.js"
     ]
   },
@@ -38,8 +41,10 @@
         "public/js/keywords.js",
         "public/js/semantic.min.js",
         "public/js/jwt-decode.js",
-        "injected/highlight-minhhien.js",
-        "injected/HighlightHelper.js"
+        "injected/storageHelper.js",
+        "injected/apiClient.js",
+        "injected/HighlightHelper.js",
+        "injected/highlight-minhhien.js"
       ],
       "css": [
         "public/css/mycss.css"
