@@ -730,7 +730,7 @@ function getOldHighlight(url, token) {
                 };
               });
             }
-
+            if(!anchor.range) return
             const boundingRect = anchor.range.getBoundingClientRect()
             const offset = getOffsetRect(highlights) // $(range.startContainer.parentNode).offset()
             const width = $(range.startContainer.parentNode).width()
