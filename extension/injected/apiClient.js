@@ -125,6 +125,22 @@ class ContentkitApiClient {
       `
     })
   }
+  userbookmarkCreate(articleId) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation{
+          user{
+            userbookmarkCreate(record:{
+              contentId: "${articleId}",
+              kind: "articletype"
+            }) {
+              recordId
+            }
+          }
+        }
+      `
+    })
+  }
 }
 
 const apiClientByToken = {}

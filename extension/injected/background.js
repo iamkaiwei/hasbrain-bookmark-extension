@@ -96,7 +96,6 @@ chrome.tabs.onCreated.addListener(function(tab) {
 
 const registerContextMenu = () => {
   chrome.storage.sync.get(['bookmark_hide_context_menu'], result => {
-    
     chrome.contextMenus.create({
       id: 'hasBrainHighlight',
       visible: !(!!result.bookmark_hide_context_menu),
@@ -112,3 +111,75 @@ const registerContextMenu = () => {
 
 chrome.runtime.onInstalled.addListener(registerContextMenu)
 chrome.runtime.onStartup.addListener(registerContextMenu)
+
+const handleHistoryStateUpdated = function(details) {
+  console.log("I AM CALLED DDDDDDD")
+  console.log('Page uses History API and we heard a pushSate/replaceState.', details);
+  chrome.tabs.executeScript(null, { file: "injected/onPageLoad.js" });
+}
+
+
+// dont know why onHistoryStateUpdated is call TWICE every url updated 
+chrome.webNavigation.onHistoryStateUpdated.addListener(debounce(handleHistoryStateUpdated, 200));
+
+function debounce(func, wait, immediate){
+  var timeout, args, context, timestamp, result;
+  if (null == wait) wait = 100;
+
+  function later() {
+    var last = Date.now() - timestamp;
+
+    if (last < wait && last >= 0) {
+      timeout = setTimeout(later, wait - last);
+    } else {
+      timeout = null;
+      if (!immediate) {
+        result = func.apply(context, args);
+        context = args = null;
+      }
+    }
+  };
+
+  var debounced = function(){
+    context = this;
+    args = arguments;
+    timestamp = Date.now();
+    var callNow = immediate && !timeout;
+    if (!timeout) timeout = setTimeout(later, wait);
+    if (callNow) {
+      result = func.apply(context, args);
+      context = args = null;
+    }
+
+    return result;
+  };
+
+  debounced.clear = function() {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+  
+  debounced.flush = function() {
+    if (timeout) {
+      result = func.apply(context, args);
+      context = args = null;
+      
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+
+  return debounced;
+};
+
+// chrome.webNavigation.onBeforeNavigate.addListener(() => console.log('onBeforeNavigate'))
+// chrome.webNavigation.onCommitted.addListener(() => console.log('onCommitted'))
+// chrome.webNavigation.onDOMContentLoaded.addListener(() => console.log('onDOMContentLoaded'))
+// chrome.webNavigation.onCompleted.addListener(() => console.log('onCompleted'))
+// chrome.webNavigation.onErrorOccurred.addListener(() => console.log('onErrorOccurred'))
+// chrome.webNavigation.onCreatedNavigationTarget.addListener(() => console.log('onCreatedNavigationTarget'))
+// chrome.webNavigation.onReferenceFragmentUpdated.addListener(() => console.log('onReferenceFragmentUpdated'))
+// chrome.webNavigation.onTabReplaced.addListener(() => console.log('onTabReplaced'))
+// chrome.webNavigation.onHistoryStateUpdated.addListener(() => console.log('onHistoryStateUpdated'))

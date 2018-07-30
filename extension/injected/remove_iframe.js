@@ -9,4 +9,4 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
   }
 }
 
-document.getElementById("iframe_popup").remove();
+document.getElementById("iframe_popup") && document.getElementById("iframe_popup").remove();

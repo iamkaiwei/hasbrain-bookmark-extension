@@ -8,6 +8,10 @@ var articleId = ''
 
 var currentPositionBtn = {}
 
+let shouldPopup = false
+
+const HIGHLIGHT_CIRCLE_WIDTH = 22
+
 // controls
 // const wrapper = $('<div id="tracker__wrapper"></div>')
 const wrapper = $(`<div id="minhhien__highlight__I_AM_NEW_HAHA" class="highlight__circle-wrapper"></div>`)
@@ -35,6 +39,46 @@ window.readyForHighlight = false;
 
 var stopMouseUp = false
 
+function renderPopup () {
+  if (document.getElementById("iframe_popup")) {
+    document.getElementById("iframe_popup").remove();
+  }
+  if (document.getElementById("iframe_loading")) {
+    document.getElementById("iframe_loading").remove();
+  }
+  if (profile) {
+    const {
+      url, readingTime, title, photo, description
+    } = getMetadata()
+    const bookmarkData = {
+      url, readingTime, title, photo, description,
+      sourceName: 'extension', sourceCreatedAt: new Date().toISOString()
+    } 
+    chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
+    const iframe = document.createElement('iframe')
+    iframe.id = 'iframe_popup'
+    iframe.style.border = 'none'
+    iframe.style.position = 'fixed'
+    iframe.style.top = '0'
+    iframe.style.right = '10px'
+    iframe.style.zIndex = '2147483647'
+    iframe.style.height = '100%'
+    iframe.style.width = '380px'
+    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
+    
+    document.body.appendChild(iframe)
+
+    window.addEventListener('click', function(e){
+      const container = document.getElementById('iframe_popup')
+      console.log('ON WINDOWS CLICK', container, e.target);
+      if (!e.target || (container && !container.contains(e.target))) 
+      {
+        chrome.runtime.sendMessage({action: 'remove-iframe'})
+      }
+    });
+  }
+}
+
 function checkHidingCircleHighlight () {
   return loadProfileToGlobal()
   .then(() => !!hideCircle)
@@ -56,12 +100,12 @@ async function renderBtnHighlight () {
   if (isDict(selection.toString())) {
 
     const range =  document.getSelection().getRangeAt(0);
-    const boundingRect = range.getBoundingClientRect() 
+    const boundingRect = range.getBoundingClientRect();
     const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
     const top = window.scrollY + topOffset
     currentPositionBtn = {
-      top: top - 22,
-      right: ($(document).width() - boundingRect.right) / 2
+      top: top - HIGHLIGHT_CIRCLE_WIDTH / 2,
+      left: boundingRect.width + boundingRect.left + 20// ($(document).width() - boundingRect.right) / 2
     }
     $(newHighlightCircle).addClass('highlight__circle--outline')
     $(wrapper)
@@ -93,10 +137,10 @@ function _renderRestoreOldHighlightError () {
 }
 
 function getMetadata() {
-  var photo = null, description = null,
+  var photo = null, description = null, title = null
     og = document.querySelector("meta[property='og:image']"),
-    des = document.querySelector("meta[name='description']"),
-    title = document.querySelector("title").innerText,
+    des = document.querySelector("meta[name='description']") || document.querySelector("meta[name='og:description']"),
+    titleTag = document.querySelector("title") || document.querySelector("og:title"),
     h1s = document.getElementsByTagName("h1"),
     h2s = document.getElementsByTagName("h2"),
     h3s = document.getElementsByTagName("h3"),
@@ -109,6 +153,7 @@ function getMetadata() {
   for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
   if (des !== null) description = des.getAttribute("content")
   if (og !== null) photo = og.getAttribute("content")
+  if (titleTag) title = titleTag.innerText
   return {
     url, readingTime, title, photo, description
   }
@@ -210,47 +255,65 @@ const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
     console.warn('CAN NOT FIND HIGHLIGHT FROM SELECTOR', textQuoteSelector)
   }
   const highlightDataId = (currentHighlight && currentHighlight._id);
-  const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
-  const { top, left } = offset;
-  $(wrapper)
-    .css('display', 'block').css({
-      position: 'absolute',
-    'left': width + left + 20,
-    'top': top + height / 2 - 28,
-    'display': 'block',
-    'z-index': 1000
-  })
+  const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
+  let selector = null;
+  if (!ele) {
+    const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
+    const highlightCircle = $(`<div class="highlight__circle "></div>`)
 
-  const highlightCircle = $(`<div class="highlight__circle "></div>`)
-
-  $(highlightCircle).on('click', function() {
-    if (!highlightDataId) return
-    console.log('highlightData', currentHighlight)
-    if ($(this).hasClass('highlight__circle--outline')) {
-      getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight).then(res => {
+    $(highlightCircle).on('click', function() {
+      if (!highlightDataId) return
+      console.log('highlightData', currentHighlight)
+      if ($(this).hasClass('highlight__circle--outline')) {
+        getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight).then(res => {
+          if (res.status !== 200) {
+            return
+          }
+          const result = res.data
+          if (!result || result.errors) return
+          $(this).removeClass('highlight__circle--outline')
+        })
+        return
+      }
+      removeHighlight(highlightDataId).then(res => {
         if (res.status !== 200) {
           return
         }
         const result = res.data
         if (!result || result.errors) return
-        $(this).removeClass('highlight__circle--outline')
+        $(this).addClass('highlight__circle--outline')
       })
-      return
-    }
-    removeHighlight(highlightDataId).then(res => {
-      if (res.status !== 200) {
-        return
-      }
-      const result = res.data
-      if (!result || result.errors) return
-      $(this).addClass('highlight__circle--outline')
-    })
-  });
-  $(wrapper).append(highlightCircle)
-  $('body').append(wrapper)
+    });
+    $(wrapper).append(highlightCircle)
+    $('body').append(wrapper)
+    selector = $(wrapper)
+  } else {
+    selector = $(`#minhhien__highlight__${highlightDataId}`)
+  }
+  
+  const { top, left } = offset;
+  selector
+    .css('display', 'block').css({
+      position: 'absolute',
+    'left': width + left + 20,
+    'top': top + height / 2 - HIGHLIGHT_CIRCLE_WIDTH / 2,
+    'display': 'block',
+    'z-index': 1000
+  })
 }
 
 function restoreOldHighlight(url) {
+  if (window.restoringHighlight) return;
+  const highlightWrapers = document.getElementsByClassName("highlight__circle-wrapper");
+  Array.from(highlightWrapers).forEach(ele => {
+    if (ele.id === "minhhien__highlight__I_AM_NEW_HAHA") {
+      $(ele).css({
+        display: 'none'
+      })
+    } else {
+      ele.remove();
+    }
+  })
   getApiClientByToken(token).getOldHighlight(url)
     .then((res) => {
       isSending = false;
@@ -264,6 +327,9 @@ function restoreOldHighlight(url) {
       }
       // console.log('GET OLD HIGHLIGHT SUCESS', result);
       const articleUserAction = result.data.viewer.articleUserAction;
+      const bookmarkData = articleUserAction && articleUserAction.userBookmarkData
+      shouldPopup = !bookmarkData || !bookmarkData.contentId
+      // console.log('SHOULD POPUP', shouldPopup)
       articleId = articleUserAction._id
       const highlightData = articleUserAction && articleUserAction.userHighlightData && articleUserAction.userHighlightData.highlights;
       const oldHighlight = highlightData && highlightData.length
@@ -279,10 +345,12 @@ function restoreOldHighlight(url) {
       // console.log('TARGETS TO RESTORE', targets);
       if (targets.length) {
         const highlightHelper = getHighlighter();
-        setTimeout(() => highlightHelper.restoreHighlightFromTargets(targets).then(() => {
-          const anchors = highlightHelper.getAnchors();
-          anchors.forEach(renderHighlightCircleFromAnchor(highlightData));
-        }), 2000); // delay to restore highlight after medium highlight their own
+        setTimeout(() => {
+          highlightHelper.restoreHighlightFromTargets(targets).then(() => {
+            const anchors = highlightHelper.getAnchors();
+            anchors.forEach(renderHighlightCircleFromAnchor(highlightData));
+          })
+        }, 2000); // delay to restore highlight after medium highlight their own
       }
       window.readyForHighlight = true;
     }).catch((error) => {
@@ -326,6 +394,7 @@ function handleCreateHighlight(e) {
   highlightHelper.saveRangeBeforeCreateHighlight(selection);
   highlightHelper.createHighlight().then(result => {
     if (result.length) {
+      window.getSelection().empty()
       const anchor = result[0];
       if (anchor && anchor.target && anchor.target.selector) {
         const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
@@ -339,6 +408,10 @@ function handleCreateHighlight(e) {
           .then(result => {
             const highlightData = result.data.user.userhighlightAddOrUpdateOne.record.highlights
             renderHighlightCircleFromAnchor(highlightData)(anchor)
+            if (shouldPopup) {
+              renderPopup();
+              shouldPopup = false
+            }
           })
         }
       }
@@ -346,11 +419,11 @@ function handleCreateHighlight(e) {
   });
 }
 
-$(document).ready(function (e) {
-  const url = document.location.href;
-  loadProfileToGlobal()
-  .then(() => restoreOldHighlight(url, token))
-  $(this).mouseup(handleMouseupToRenderHighlightCircle);
+function handleWindowReady(e) {
+  // const url = document.location.href;
+  // loadProfileToGlobal()
+  // .then(() => restoreOldHighlight(url))
+  $(window).mouseup(handleMouseupToRenderHighlightCircle);
   $(wrapper).hover(
     e => {
       stopMouseUp = true
@@ -361,6 +434,9 @@ $(document).ready(function (e) {
   )
 
   $(newHighlightCircle).click(handleCreateHighlight)
+  $(wrapper).css({
+    display: 'none'
+  })
   $('body').append(wrapper)
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
@@ -375,7 +451,9 @@ $(document).ready(function (e) {
       return true; // <-- Indicate that sendResponse will be async
     }
   });
-})
+}
+
+$(window).on('load', handleWindowReady);
 
 function isDict(str) {return str.length > 0 && str.length < 50000;}
 

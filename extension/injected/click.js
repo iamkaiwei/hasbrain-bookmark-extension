@@ -164,9 +164,9 @@ function renderPopup (result) {
     iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
     
     document.body.appendChild(iframe)
-    const container = $('#tracker-root')
     window.addEventListener('click', function(e){
       const container = document.getElementById('iframe_popup')
+      console.log('ON WINDOWS CLICK CLICK', container, e.target);
       if (!container.contains(e.target)) 
       {
         chrome.runtime.sendMessage({action: 'remove-iframe'})
