@@ -331,12 +331,18 @@ function _buildOldData () {
   const commentData = userCommentData || []
   const {comment = '', isPublic = false} = commentData
 
+  _renderSuccess('')
+
   if (!userBookmarkData) {
     // TODO: bookmark article again if it is NULL
-    userbookmarkCreate(articleId)
+    userbookmarkCreate(articleId).then(res => {
+      if (res.status !== 200) {
+        return
+      }
+      _renderSuccess('saved to read it later')
+    })
   }
 
-  _renderSuccess('')
 
   topicData && topicData.map(topic => selectedTopicIds.push(topic._id))
   if (comment.length) {

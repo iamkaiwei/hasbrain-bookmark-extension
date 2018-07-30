@@ -267,24 +267,24 @@ function restoreOldHighlight(url) {
       articleId = articleUserAction._id
       const highlightData = articleUserAction && articleUserAction.userHighlightData && articleUserAction.userHighlightData.highlights;
       const oldHighlight = highlightData && highlightData.length
-      const targets = oldHighlight && highlightData.map(({ core, prev, next, serialized }) => ({
+      const targets = (oldHighlight && highlightData.map(({ core, prev, next, serialized }) => ({
         source: url,
         selector: JSON.parse(serialized)
-      }))
+      }))) || []
+
+      // change icon extension
+      const {userBookmarkData} = articleUserAction
+      userBookmarkData && userBookmarkData.contentId && chrome.runtime.sendMessage({ action: 'change-icon' })
+
       // console.log('TARGETS TO RESTORE', targets);
       if (targets.length) {
         const highlightHelper = getHighlighter();
         setTimeout(() => highlightHelper.restoreHighlightFromTargets(targets).then(() => {
           const anchors = highlightHelper.getAnchors();
           anchors.forEach(renderHighlightCircleFromAnchor(highlightData));
-          
         }), 2000); // delay to restore highlight after medium highlight their own
       }
       window.readyForHighlight = true;
-
-      // change icon extension
-      const {userBookmarkData} = articleUserAction
-      userBookmarkData && userBookmarkData.contentId && chrome.runtime.sendMessage({ action: 'change-icon' })
     }).catch((error) => {
       console.log('CAN NOT RESTORE OLD HIGHLIGHT', error);
       window.readyForHighlight = true;
