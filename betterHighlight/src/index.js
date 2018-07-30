@@ -225,6 +225,10 @@ class HighlightHelper {
     });
     return Promise.all(anchors).then(this.sync.bind(this));
   }
+  removeHighlights(highlights) {
+    console.log('REMOVE HIHGLIGHTS', highlights)
+    return highlighter.removeHighlights(highlights);
+  }
 }
 
 module.exports = HighlightHelper
