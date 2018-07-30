@@ -228,6 +228,10 @@
     border: 3px solid #35affc;
 }
 
+.highlight__circle.highlight__circle:hover {
+    background-color: white;
+}
+
 .highlight__circle-wrapper .comment__block {
     display: none;
     opacity: 1;
