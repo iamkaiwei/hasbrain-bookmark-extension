@@ -39,7 +39,7 @@ window.readyForHighlight = false;
 
 var stopMouseUp = false
 
-function renderPopup () {
+function renderPopupForExt () {
   if (document.getElementById("iframe_popup")) {
     document.getElementById("iframe_popup").remove();
   }
@@ -409,7 +409,7 @@ function handleCreateHighlight(e) {
             const highlightData = result.data.user.userhighlightAddOrUpdateOne.record.highlights
             renderHighlightCircleFromAnchor(highlightData)(anchor)
             if (shouldPopup) {
-              renderPopup();
+              renderPopupForExt();
               shouldPopup = false
             }
           })
