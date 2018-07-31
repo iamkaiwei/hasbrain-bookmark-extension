@@ -97,8 +97,8 @@ async function renderBtnHighlight () {
   // console.log(wrapper)
   var selection = $.trim(getSelected().toString());
   $(wrapper).css('display', 'none');
+  console.log('IN RENDER BTN', selection.toString());
   if (isDict(selection.toString())) {
-
     const range =  document.getSelection().getRangeAt(0);
     const boundingRect = range.getBoundingClientRect();
     const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
@@ -160,7 +160,6 @@ function getMetadata() {
 }
 
 function postHighlight ({ core, prev, next, serialized }) {
-  if (isSending) return
   isSending = true
   
   const {
@@ -372,17 +371,21 @@ function loadProfileToGlobal() {
 }
 
 function handleMouseupToRenderHighlightCircle(e) {
+  console.log('readyForHighlight', window.readyForHighlight, 'stopMouseUp', stopMouseUp)
   if (!window.readyForHighlight || stopMouseUp) {
     return;
   }
   e.stopPropagation()
   return loadProfileToGlobal()
-  .then(() => renderBtnHighlight());
+  .then(() => {
+    renderBtnHighlight()
+  });
 }
 
 function handleCreateHighlight(e) {
   $(newHighlightCircle).removeClass('highlight__circle--outline')
   e.stopPropagation()
+  window.readyForHighlight = false;
   restoreOldSelection()
 
   const highlightHelper = getHighlighter();
@@ -393,12 +396,14 @@ function handleCreateHighlight(e) {
   }
   highlightHelper.saveRangeBeforeCreateHighlight(selection);
   highlightHelper.createHighlight().then(result => {
+    console.log('AFTER CREATE HIGHLIGHT', result)
     if (result.length) {
       window.getSelection().empty()
       const anchor = result[0];
       if (anchor && anchor.target && anchor.target.selector) {
         const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
         if (textQuoteSelector) {
+          console.log('TRGIGER POST HIHGLIGHT')
           postHighlight ({ 
             core: textQuoteSelector.exact,
             prev: textQuoteSelector.prefix,
@@ -406,6 +411,7 @@ function handleCreateHighlight(e) {
             serialized: JSON.stringify(anchor.target.selector)
           })
           .then(result => {
+            window.readyForHighlight = true;
             const highlightData = result.data.user.userhighlightAddOrUpdateOne.record.highlights
             renderHighlightCircleFromAnchor(highlightData)(anchor)
             if (shouldPopup) {
@@ -419,10 +425,24 @@ function handleCreateHighlight(e) {
   });
 }
 
+function handleHistoryStateUpdated() {
+  profile = null
+  hideCircle = false
+  token = ''
+  isSending = false
+  articleId = ''
+  currentPositionBtn = {}
+  shouldPopup = false
+  window.minhhienHighlighter = new window.HighlightHelper();
+  const url = document.location.href;
+  loadProfileToGlobal()
+  .then(() => restoreOldHighlight(url))
+  $(wrapper).css({
+    display: 'none'
+  })
+}
+
 function handleWindowReady(e) {
-  // const url = document.location.href;
-  // loadProfileToGlobal()
-  // .then(() => restoreOldHighlight(url))
   $(window).mouseup(handleMouseupToRenderHighlightCircle);
   $(wrapper).hover(
     e => {
@@ -434,9 +454,7 @@ function handleWindowReady(e) {
   )
 
   $(newHighlightCircle).click(handleCreateHighlight)
-  $(wrapper).css({
-    display: 'none'
-  })
+  
   $('body').append(wrapper)
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {

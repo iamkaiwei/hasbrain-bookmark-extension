@@ -120,7 +120,7 @@ const handleHistoryStateUpdated = function(details) {
 
 
 // dont know why onHistoryStateUpdated is call TWICE every url updated 
-chrome.webNavigation.onHistoryStateUpdated.addListener(debounce(handleHistoryStateUpdated, 200));
+chrome.webNavigation.onHistoryStateUpdated.addListener(debounce(handleHistoryStateUpdated, 500));
 
 function debounce(func, wait, immediate){
   var timeout, args, context, timestamp, result;
