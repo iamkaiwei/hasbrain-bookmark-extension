@@ -49,9 +49,10 @@ function renderUserInfo () {
     chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
     $('#user__logged').html('')
     const login = $(`<button>Click here to login</button>`)
-    $(login).click(() => window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&signout=true`))
+    $(login).click(() => window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`))
     $(login).appendTo($('#user__logged'))
     window.postMessage({ result: '{}', action: 'sign-out' }, 'http://pin.hasbrain.com/#/')
+    window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`)
   })
   $('#user__logged').append(`
     ${accountEmail}
@@ -84,7 +85,7 @@ $(document).ready(function() {
     $('#circle_highlight').checkbox(`set ${result.bookmark_hide_circle_highlight ? 'unchecked' : 'checked'}`);  
 
     const login = $(`<button>Click here to login</button>`)
-    $(login).click(() => window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&signout=true`))
+    $(login).click(() => window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`))
     if (!result || !result.bookmark_profile) {
       $(login).appendTo($('#user__logged'))
       return
