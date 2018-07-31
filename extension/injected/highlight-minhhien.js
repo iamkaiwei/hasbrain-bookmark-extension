@@ -303,6 +303,7 @@ const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
 
 function restoreOldHighlight(url) {
   if (window.restoringHighlight) return;
+  console.log('RESTORING OLD HIGHLIGHT');
   const highlightWrapers = document.getElementsByClassName("highlight__circle-wrapper");
   Array.from(highlightWrapers).forEach(ele => {
     if (ele.id === "minhhien__highlight__I_AM_NEW_HAHA") {
@@ -315,6 +316,7 @@ function restoreOldHighlight(url) {
   })
   getApiClientByToken(token).getOldHighlight(url)
     .then((res) => {
+      console.log('OLD HIHGLIHGT', res);
       isSending = false;
       if (res.status !== 200) {
         return _renderRestoreOldHighlightError()
@@ -336,10 +338,14 @@ function restoreOldHighlight(url) {
         source: url,
         selector: JSON.parse(serialized)
       }))) || []
-
       // change icon extension
+      
       const {userBookmarkData} = articleUserAction
-      userBookmarkData && userBookmarkData.contentId && chrome.runtime.sendMessage({ action: 'change-icon' })
+      if (userBookmarkData && userBookmarkData.contentId) {
+        chrome.runtime.sendMessage({ action: 'change-icon' })
+      } else {
+        chrome.runtime.sendMessage({ action: 'change-icon-outline' })
+      }
 
       // console.log('TARGETS TO RESTORE', targets);
       if (targets.length) {
