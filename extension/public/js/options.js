@@ -51,7 +51,6 @@ function renderUserInfo () {
     const login = $(`<button>Click here to login</button>`)
     $(login).click(() => window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`))
     $(login).appendTo($('#user__logged'))
-    window.postMessage({ result: '{}', action: 'sign-out' }, 'http://pin.hasbrain.com/#/')
     window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`)
   })
   $('#user__logged').append(`
