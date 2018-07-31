@@ -460,7 +460,9 @@ function handleWindowReady(e) {
   )
 
   $(newHighlightCircle).click(handleCreateHighlight)
-  
+  $(wrapper).css({
+    display: 'none'
+  })
   $('body').append(wrapper)
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
