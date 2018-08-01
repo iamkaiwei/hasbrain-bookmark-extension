@@ -21,6 +21,7 @@
     ]
   },
   "permissions": [
+    "activeTab",
     "tabs",
     "background",
     "storage",
@@ -52,7 +53,7 @@
       ]
     }
   ],
-  "version": "5.4",
+  "version": "5.6",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",

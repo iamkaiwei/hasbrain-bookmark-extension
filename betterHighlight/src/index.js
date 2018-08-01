@@ -74,7 +74,27 @@ class HighlightHelper {
     const selection = _selection || document.getSelection();
     const isBackwards = this.rangeUtil.isSelectionBackwards(selection)
     const focusRect = this.rangeUtil.selectionFocusRect(selection)
-    return !!focusRect;
+    if (!selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    const _iterator = document.createNodeIterator(
+      range.commonAncestorContainer,
+      NodeFilter.SHOW_ALL, // pre-filter
+      {
+          // custom filter
+          acceptNode: function (node) {
+              return NodeFilter.FILTER_ACCEPT;
+          }
+      }
+    );
+    const _nodes = [];
+    while (_iterator.nextNode()) {
+        if (_nodes.length === 0 && _iterator.referenceNode !== range.startContainer) continue;
+        _nodes.push(_iterator.referenceNode);
+        if (_iterator.referenceNode === range.endContainer) break;
+    }
+    const highlightTagName = 'highlight-hasbrain';
+    const containsHighlightTags = _nodes.some(ele => ele.tagName && (ele.tagName.toLowerCase() === highlightTagName.toLowerCase()));
+    return !!focusRect && !containsHighlightTags;
   }
 
   saveRangeBeforeCreateHighlight(_selection) {

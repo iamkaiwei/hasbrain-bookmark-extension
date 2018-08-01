@@ -1,5 +1,5 @@
 
 (function onPageLoad() {
-  const url = document.location.href;
-  handleHistoryStateUpdated()
+  // const url = document.location.href;
+  debouncedHandleHistoryStateUpdated()
 })()

@@ -96,7 +96,6 @@ async function renderBtnHighlight () {
   
   // console.log(wrapper)
   var selection = $.trim(getSelected().toString());
-  $(wrapper).css('display', 'none');
   console.log('IN RENDER BTN', selection.toString());
   if (isDict(selection.toString())) {
     const range =  document.getSelection().getRangeAt(0);
@@ -187,7 +186,7 @@ function postHighlight ({ core, prev, next, serialized }) {
     }
     const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
     articleId = recordId
-    const highlightObject = { core, prev, next, serialized }
+    const highlightObject = { core, prev, next, serialized, isPublic: false }
 
     return getApiClientByToken(token)
     .addOrUpdateHighlight(articleId, highlightObject)
@@ -232,8 +231,9 @@ function removeHighlight(highlightId) {
   return getApiClientByToken(token).removeHighlight(articleId, highlightId);
 }
 
-const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
-  const { range, highlights } = anchor;
+const renderHighlightCircleFromAnchor =  anchor => {
+  const { range, highlights, target } = anchor;
+  console.log('RENDER FROM ANCHOR', anchor)
   const getOffsetRect = (elements) => {
     const rects = elements.map(ele => $(ele).offset());
     return rects.reduce(function(acc, r) {
@@ -248,31 +248,39 @@ const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
   const offset = getOffsetRect(highlights) // $(range.startContainer.parentNode).offset()
   const width = $(range.startContainer.parentNode).width()
   const height = boundingRect.height
-  const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
-  const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
-  if (!currentHighlight) {
-    console.warn('CAN NOT FIND HIGHLIGHT FROM SELECTOR', textQuoteSelector)
+  const textQuoteSelector = target.selector.find(({ type }) => type === "TextQuoteSelector");
+  // const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
+  // if (!currentHighlight) {
+  //   console.warn('CAN NOT FIND HIGHLIGHT FROM SELECTOR', textQuoteSelector)
+  // }
+  const currentHighlight = {
+    prev: textQuoteSelector.prefix,
+    core: textQuoteSelector.exact,
+    next: textQuoteSelector.suffix,
+    serialized: JSON.stringify(target.selector)
   }
-  const highlightDataId = (currentHighlight && currentHighlight._id);
+  const highlightDataId = target._id; // (currentHighlight && currentHighlight._id);
   const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
   let selector = null;
   if (!ele) {
     const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
     const highlightCircle = $(`<div class="highlight__circle "></div>`)
-
+    const highlightHelper = getHighlighter();
     $(highlightCircle).on('click', function() {
       if (!highlightDataId) return
       console.log('highlightData', currentHighlight)
       if ($(this).hasClass('highlight__circle--outline')) {
-        getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight).then(res => {
-          if (res.status !== 200) {
-            return
-          }
-          const result = res.data
-          if (!result || result.errors) return
-          $(this).removeClass('highlight__circle--outline')
-        })
-        return
+        highlightHelper.restoreHighlightFromTargets([target])
+        .then(() => {
+          return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight).then(res => {
+            if (res.status !== 200) {
+              return
+            }
+            const result = res.data
+            if (!result || result.errors) return
+            $(this).removeClass('highlight__circle--outline')
+          })
+        })  
       }
       removeHighlight(highlightDataId).then(res => {
         if (res.status !== 200) {
@@ -280,6 +288,9 @@ const renderHighlightCircleFromAnchor = highlightData =>  anchor => {
         }
         const result = res.data
         if (!result || result.errors) return
+        const anchors = highlightHelper.getAnchors();
+        const anchor = anchors.find(anchor => anchor.target._id ===  highlightDataId);
+        highlightHelper.removeHighlights(anchor.highlights);
         $(this).addClass('highlight__circle--outline')
       })
     });
@@ -334,9 +345,10 @@ function restoreOldHighlight(url) {
       articleId = articleUserAction._id
       const highlightData = articleUserAction && articleUserAction.userHighlightData && articleUserAction.userHighlightData.highlights;
       const oldHighlight = highlightData && highlightData.length
-      const targets = (oldHighlight && highlightData.map(({ core, prev, next, serialized }) => ({
+      const targets = (oldHighlight && highlightData.map(({ core, prev, next, serialized, _id }) => ({
+        _id,
         source: url,
-        selector: JSON.parse(serialized)
+        selector: JSON.parse(serialized),
       }))) || []
       // change icon extension
       
@@ -353,7 +365,7 @@ function restoreOldHighlight(url) {
         setTimeout(() => {
           highlightHelper.restoreHighlightFromTargets(targets).then(() => {
             const anchors = highlightHelper.getAnchors();
-            anchors.forEach(renderHighlightCircleFromAnchor(highlightData));
+            anchors.forEach(renderHighlightCircleFromAnchor);
           })
         }, 2000); // delay to restore highlight after medium highlight their own
       }
@@ -384,6 +396,11 @@ function handleMouseupToRenderHighlightCircle(e) {
   e.stopPropagation()
   return loadProfileToGlobal()
   .then(() => {
+    const highlightHelper = getHighlighter();
+    const selection = window.getSelection();
+    if (!highlightHelper.canCreateHighlightFromSelection(selection)) {
+      return $(wrapper).css('display', 'none');
+    }
     renderBtnHighlight()
   });
 }
@@ -419,7 +436,18 @@ function handleCreateHighlight(e) {
           .then(result => {
             window.readyForHighlight = true;
             const highlightData = result.data.user.userhighlightAddOrUpdateOne.record.highlights
-            renderHighlightCircleFromAnchor(highlightData)(anchor)
+            const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
+            console.log({
+              ...anchor.target,
+              ...currentHighlight,
+            });
+            renderHighlightCircleFromAnchor({
+              ...anchor,
+              target: {
+                ...anchor.target,
+                ...currentHighlight,
+              },
+            })
             if (shouldPopup) {
               renderPopupForExt();
               shouldPopup = false
@@ -447,6 +475,8 @@ function handleHistoryStateUpdated() {
     display: 'none'
   })
 }
+
+const debouncedHandleHistoryStateUpdated = debounce(handleHistoryStateUpdated, 500);
 
 function handleWindowReady(e) {
   $(window).mouseup(handleMouseupToRenderHighlightCircle);
@@ -477,6 +507,7 @@ function handleWindowReady(e) {
       return true; // <-- Indicate that sendResponse will be async
     }
   });
+  debouncedHandleHistoryStateUpdated();
 }
 
 $(window).on('load', handleWindowReady);
@@ -493,3 +524,56 @@ function getSelected() {
   }
   return false;
 }
+
+
+function debounce(func, wait, immediate){
+  var timeout, args, context, timestamp, result;
+  if (null == wait) wait = 100;
+
+  function later() {
+    var last = Date.now() - timestamp;
+
+    if (last < wait && last >= 0) {
+      timeout = setTimeout(later, wait - last);
+    } else {
+      timeout = null;
+      if (!immediate) {
+        result = func.apply(context, args);
+        context = args = null;
+      }
+    }
+  };
+
+  var debounced = function(){
+    context = this;
+    args = arguments;
+    timestamp = Date.now();
+    var callNow = immediate && !timeout;
+    if (!timeout) timeout = setTimeout(later, wait);
+    if (callNow) {
+      result = func.apply(context, args);
+      context = args = null;
+    }
+
+    return result;
+  };
+
+  debounced.clear = function() {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+  
+  debounced.flush = function() {
+    if (timeout) {
+      result = func.apply(context, args);
+      context = args = null;
+      
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+
+  return debounced;
+};

@@ -47,10 +47,10 @@ class ContentkitApiClient {
         }`
     });
   }
-  addOrUpdateHighlight(articleId, { core, prev, next, serialized }) {
+  addOrUpdateHighlight(articleId, { core, prev, next, serialized, isPublic }) {
     return this.apiClient.post("/", {
       query: `
-        mutation ($prev: String, $next: String, $core: String, $serialized: String) {
+        mutation ($prev: String, $next: String, $core: String, $serialized: String, $isPublic: Boolean) {
           user{
             userhighlightAddOrUpdateOne(
               filter:{
@@ -59,7 +59,8 @@ class ContentkitApiClient {
                 core: $core,
                 prev: $prev,
                 next: $next,
-                serialized: $serialized
+                serialized: $serialized,
+                isPublic: $isPublic
               }
             ) {
               recordId
@@ -76,7 +77,7 @@ class ContentkitApiClient {
           }
         }
       `,
-      variables: { core, prev, next, serialized }
+      variables: { core, prev, next, serialized, isPublic }
     });
   }
 
