@@ -74,7 +74,7 @@ class HighlightHelper {
     const selection = _selection || document.getSelection();
     const isBackwards = this.rangeUtil.isSelectionBackwards(selection)
     const focusRect = this.rangeUtil.selectionFocusRect(selection)
-    if (!selection.rangeCount) return;
+    if (!selection.rangeCount) return false;
     const range = selection.getRangeAt(0);
     const _iterator = document.createNodeIterator(
       range.commonAncestorContainer,
