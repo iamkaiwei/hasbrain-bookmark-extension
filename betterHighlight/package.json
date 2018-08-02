@@ -13,7 +13,7 @@
     "raf": "^3.4.0"
   },
   "scripts": {
-    "build": "webpack && cp ./build/HighlightHelper.js ../extension/injected/HighlightHelper.js"
+    "build": "webpack && cp ./build/HighlightHelper.js ../extension/injected/HighlightHelper.js && cp ./build/HighlightHelper.js ../extension/pages/pdf-asset/HighlightHelper.js"
   },
   "devDependencies": {
     "webpack": "^4.16.1",

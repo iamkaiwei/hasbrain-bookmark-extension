@@ -100,9 +100,10 @@ const findPage = function(offset) {
 };
 
 const anchorByPosition = function(page, anchor, options) {
+  console.log('pAGE in anchorByPosition', page && page.textLayer && page.textLayer.renderingDone)
   var div, placeholder, range, ref1, ref2, renderingDone, renderingState, root, selector;
   renderingState = page.renderingState;
-  renderingDone = (ref1 = page.textLayer) != null ? ref1.renderingDone : void 0;
+  renderingDone = page.textLayer != null ? page.textLayer.renderingDone : undefined;
   if (renderingState === RenderingStates.FINISHED && renderingDone) {
     root = page.textLayer.textLayerDiv;
     selector = anchor.toSelector(options);

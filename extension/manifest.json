@@ -65,7 +65,9 @@
     "/pages/newtab/index.html",
     "public/*",
     "/pages/js/jquery.min.js",
-    "/pages/newtab/*.js"
+    "/pages/newtab/*.js",
+    "/pages/viewer.html",
+    "/pages/pdf-asset/*"
   ],
   "externally_connectable": {
     "matches": ["*://*.hasbrain.com/*"]
