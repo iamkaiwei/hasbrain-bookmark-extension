@@ -4,7 +4,12 @@ const xpathRange = require('./range');
 
 const html = require('./html');
 
-const RenderingStates = require('../pdfjs-rendering-states');
+const RenderingStates = {
+  INITIAL: 0,
+  RUNNING: 1,
+  PAUSED: 2,
+  FINISHED: 3,
+};
 
 const { TextPositionAnchor, TextQuoteAnchor } = require('./types')
 
@@ -120,7 +125,7 @@ const anchorByPosition = function(page, anchor, options) {
 
 const findInPages = function(arg, quote, position) {
   var content, page;
-  const pageIndex = arg[0], 
+  const pageIndex = arg[0];
   const rest = 2 <= arg.length ? slice.call(arg, 1) : [];
   if (pageIndex == null) {
     return Promise.reject(new Error('Quote not found'));
@@ -166,7 +171,7 @@ const findInPages = function(arg, quote, position) {
 };
 
 const prioritizePages = function(position) {
-  var i, pageIndices, pagesCount, results, sort;
+  var i, pageIndices, pagesCount, results;
   pagesCount = PDFViewerApplication.pdfViewer.pagesCount;
   pageIndices = (function() {
     results = [];

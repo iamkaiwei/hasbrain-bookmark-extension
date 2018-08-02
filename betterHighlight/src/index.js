@@ -1,9 +1,9 @@
 const highlighter = require('./highlighter')
 const rangeUtil = require('./range-util')
 const xpathRange = require('./anchoring/range')
-const rangeUtil = require('./range-util')
 const anchoring = require('./anchoring/html');
 const anchoringPdf = require('./anchoring/pdf');
+const domAnchorTextQuote = require('dom-anchor-text-quote');
 
 const { normalizeURI } = require('./util/url')
 const raf = require('raf')
@@ -261,21 +261,20 @@ const RenderingStates = {
   FINISHED: 3,
 }
 class PdfHighlighterHelper {
-  documentLoaded = null
-  observer = null
-  pdfViewer = null
-  anchors = []
   constructor() {
-    this.pdfViewer = PDFViewerApplication.pdfViewer;
-    this.pdfViewer.viewer.classList.add('has-transparent-text-layer');
 
-    this.observer = new MutationObserver(mutations => this._update());
-    return this.observer.observe(this.pdfViewer.viewer, {
-      attributes: true,
-      attributeFilter: ['data-loaded'],
-      childList: true,
-      subtree: true
-    });
+    this.documentLoaded = null
+    this.anchors = []
+    // this.pdfViewer = PDFViewerApplication.pdfViewer;
+    // this.pdfViewer.viewer.classList.add('has-transparent-text-layer');
+
+    // this.observer = new MutationObserver(mutations => this._update());
+    // return this.observer.observe(this.pdfViewer.viewer, {
+    //   attributes: true,
+    //   attributeFilter: ['data-loaded'],
+    //   childList: true,
+    //   subtree: true
+    // });
   }
   getMetadata() {
     const title = document.title;
@@ -289,68 +288,89 @@ class PdfHighlighterHelper {
     this.pdfViewer.viewer.classList.remove('has-transparent-text-layer');
     return this.observer.disconnect();
   }
-  _update() {
-    const { anchors, pdfViewer } = this;
 
-      // A list of annotations that need to be refreshed.
-      const refreshAnnotations = [];
-
-      // Check all the pages with text layers that have finished rendering.
-      for (let pageIndex = 0, end = pdfViewer.pagesCount, asc = 0 <= end; asc ? pageIndex < end : pageIndex > end; asc ? pageIndex++ : pageIndex--) {
-        const page = pdfViewer.getPageView(pageIndex);
-        if (!(page.textLayer != null ? page.textLayer.renderingDone : undefined)) { continue; }
-
-        const div = page.div != null ? page.div : page.el;
-        const placeholder = div.getElementsByClassName('annotator-placeholder')[0];
-
-        // Detect what needs to be done by checking the rendering state.
-        switch (page.renderingState) {
-          case RenderingStates.INITIAL:
-            // This page has been reset to its initial state so its text layer
-            // is no longer valid. Null it out so that we don't process it again.
-            page.textLayer = null;
-            break;
-          case RenderingStates.FINISHED:
-            // This page is still rendered. If it has a placeholder node that
-            // means the PDF anchoring module anchored annotations before it was
-            // rendered. Remove this, which will cause the annotations to anchor
-            // again, below.
-            if (placeholder != null) {
-              placeholder.parentNode.removeChild(placeholder);
-            }
-            break;
-        }
-      }
-
-      // Find all the anchors that have been invalidated by page state changes.
-      for (let anchor of anchors) {
-        // Skip any we already know about.
-        if (anchor.highlights != null) {
-          if (refreshAnnotations.includes(anchor.annotation)) {
-            continue;
-          }
-
-          // If the highlights are no longer in the document it means that either
-          // the page was destroyed by PDF.js or the placeholder was removed above.
-          // The annotations for these anchors need to be refreshed.
-          for (let hl of anchor.highlights) {
-            if (!document.body.contains(hl)) {
-              delete anchor.highlights;
-              delete anchor.range;
-              refreshAnnotations.push(anchor.annotation);
-              break;
-            }
-          }
-        }
-      }
-
-      const result = [];
-      for (let annotation of refreshAnnotations) {
-        result.push(annotator.anchor(annotation));
-      }
-      return result;
+  findText(container, text) {
+    return domAnchorTextQuote.toRange(container, {exact: text});
   }
+
+  getSelectorFromSelection() {
+    const selection = window.getSelection();
+    const container = document.body;
+    console.log('PDF EXACT TEXT SELCTION', selection.toString())
+    const range = this.findText(container, selection.toString());
+    return anchoringPdf.describe(container, range);
+  }
+
+  createHighlight(_selection) {
+    const container = document.body;
+    return this.getSelectorFromSelection(container).then(selectors => anchoringPdf.anchor(container, selectors))
+  }
+
+
+  // _update() {
+  //   const { anchors, pdfViewer } = this;
+  //   console.log('PDF HIGHLIGHTER', anchors, pdfViewer);
+  //     // A list of annotations that need to be refreshed.
+  //     const refreshAnnotations = [];
+
+  //     // Check all the pages with text layers that have finished rendering.
+  //     for (let pageIndex = 0, end = pdfViewer.pagesCount, asc = 0 <= end; asc ? pageIndex < end : pageIndex > end; asc ? pageIndex++ : pageIndex--) {
+  //       const page = pdfViewer.getPageView(pageIndex);
+  //       if (!(page.textLayer != null ? page.textLayer.renderingDone : undefined)) { continue; }
+
+  //       const div = page.div != null ? page.div : page.el;
+  //       const placeholder = div.getElementsByClassName('annotator-placeholder')[0];
+
+  //       // Detect what needs to be done by checking the rendering state.
+  //       switch (page.renderingState) {
+  //         case RenderingStates.INITIAL:
+  //           // This page has been reset to its initial state so its text layer
+  //           // is no longer valid. Null it out so that we don't process it again.
+  //           page.textLayer = null;
+  //           break;
+  //         case RenderingStates.FINISHED:
+  //           // This page is still rendered. If it has a placeholder node that
+  //           // means the PDF anchoring module anchored annotations before it was
+  //           // rendered. Remove this, which will cause the annotations to anchor
+  //           // again, below.
+  //           if (placeholder != null) {
+  //             placeholder.parentNode.removeChild(placeholder);
+  //           }
+  //           break;
+  //       }
+  //     }
+
+  //     // Find all the anchors that have been invalidated by page state changes.
+  //     for (let anchor of anchors) {
+  //       // Skip any we already know about.
+  //       if (anchor.highlights != null) {
+  //         if (refreshAnnotations.includes(anchor.annotation)) {
+  //           continue;
+  //         }
+
+  //         // If the highlights are no longer in the document it means that either
+  //         // the page was destroyed by PDF.js or the placeholder was removed above.
+  //         // The annotations for these anchors need to be refreshed.
+  //         for (let hl of anchor.highlights) {
+  //           if (!document.body.contains(hl)) {
+  //             delete anchor.highlights;
+  //             delete anchor.range;
+  //             refreshAnnotations.push(anchor.annotation);
+  //             break;
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     const result = [];
+  //     for (let annotation of refreshAnnotations) {
+  //       result.push(annotator.anchor(annotation));
+  //     }
+  //     return result;
+  // }
 }
 
-module.exports = HighlightHelper
+module.exports = { HighlightHelper, PdfHighlighterHelper }
+
 window.HighlightHelper = HighlightHelper
+window.PdfHighlighterHelper =  PdfHighlighterHelper
