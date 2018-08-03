@@ -2002,3 +2002,34 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
 .highlight-hasbrain {
   background-color: #dde025 !important
 }
+
+.highlight__circle {
+  background-color: #35affc50;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #35affc;
+  border-radius: 50%;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.highlight__circle.highlight__circle--outline {
+  background-color: white;
+}
+
+.highlight__circle.highlight__circle--outline:hover {
+  border: 3px solid #35affc;
+}
+
+.highlight__circle.highlight__circle:hover {
+  background-color: white;
+}
+
+.highlight__circle-wrapper .comment__block {
+  display: none;
+  opacity: 1;
+  visibility: visible;
+  position: absolute;
+  right: calc(100% - 22px);
+  width: 260px;
+}

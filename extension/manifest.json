@@ -28,7 +28,9 @@
     "<all_urls>",
     "http://userkit-sdk.surge.sh/userkit_sdk.min.js",
     "contextMenus",
-    "webNavigation"
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
   ],
   "content_scripts": [
     {
