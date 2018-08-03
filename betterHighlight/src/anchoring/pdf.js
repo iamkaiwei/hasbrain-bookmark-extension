@@ -124,51 +124,45 @@ const anchorByPosition = function(page, anchor, options) {
   }
 };
 
-const findInPages = function(arg, quote, position) {
-  var content, page;
-  const pageIndex = arg[0];
-  const rest = 2 <= arg.length ? slice.call(arg, 1) : [];
+const findInPages = function(...args) {
+  const [pageIndex, ...rest] = Array.from(args[0]), quote = args[1], position = args[2];
   if (pageIndex == null) {
     return Promise.reject(new Error('Quote not found'));
   }
+
   const attempt = function(info) {
-    var anchor, content, hint, offset, page, root;
-    page = info[0], content = info[1], offset = info[2];
-    root = {
-      textContent: content
-    };
-    anchor = new TextQuoteAnchor.fromSelector(root, quote);
+    // Try to find the quote in the current page.
+    const [page, content, offset] = Array.from(info);
+    const root = {textContent: content};
+    const anchor = TextQuoteAnchor.fromSelector(root, quote);
     if (position != null) {
-      hint = position.start - offset;
+      let hint = position.start - offset;
       hint = Math.max(0, hint);
       hint = Math.min(hint, content.length);
-      return anchor.toPositionAnchor({
-        hint: hint
-      });
+      return anchor.toPositionAnchor({hint});
     } else {
       return anchor.toPositionAnchor();
     }
   };
-  const next = function() {
-    return findInPages(rest, quote, position);
-  };
+
+  const next = () => findInPages(rest, quote, position);
+
   const cacheAndFinish = function(anchor) {
-    var name;
     if (position) {
-      if (quotePositionCache[name = quote.exact] == null) {
-        quotePositionCache[name] = {};
-      }
-      quotePositionCache[quote.exact][position.start] = {
-        page: page,
-        anchor: anchor
-      };
+      if (quotePositionCache[quote.exact] == null) { quotePositionCache[quote.exact] = {}; }
+      quotePositionCache[quote.exact][position.start] = {page, anchor};
     }
     return anchorByPosition(page, anchor);
   };
-  page = getPage(pageIndex);
-  content = getPageTextContent(pageIndex);
+
+  var page = getPage(pageIndex);
+  const content = getPageTextContent(pageIndex);
   const offset = getPageOffset(pageIndex);
-  return Promise.all([page, content, offset]).then(attempt).then(cacheAndFinish)["catch"](next);
+
+  return Promise.all([page, content, offset])
+  .then(attempt)
+  .then(cacheAndFinish)
+  .catch(next);
 };
 
 const prioritizePages = function(position) {

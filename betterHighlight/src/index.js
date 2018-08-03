@@ -266,6 +266,7 @@ class PdfHighlighterHelper {
     this.anchors = []
     this.pdfViewer = PDFViewerApplication.pdfViewer;
     this.pdfViewer.viewer.classList.add('has-transparent-text-layer');
+    this.root = document.getElementById("viewer");
 
     this.observer = new MutationObserver(mutations => this._update());
     return this.observer.observe(this.pdfViewer.viewer, {
@@ -294,14 +295,14 @@ class PdfHighlighterHelper {
 
   getSelectorFromSelection() {
     const selection = window.getSelection();
-    const container = document.body;
+    const container = this.root;;
     console.log('PDF EXACT TEXT SELCTION', selection.toString())
     const range = this.findText(container, selection.toString());
     return anchoringPdf.describe(container, range);
   }
 
   createHighlight(_selection) {
-    const container = document.body;
+    const container = this.root;;
     return this.getSelectorFromSelection(container).then(selectors => {
       console.log('PDF SELECTORS', selectors);
       return anchoringPdf.anchor(container, selectors)
@@ -342,9 +343,27 @@ class PdfHighlighterHelper {
     return anchors;
   };
 
-  // restoreHighlightFromTargets(targets) {
-  //   return Promise.all(targets.map(target => anchoringPdf.anchor(document.body, target.selector)))
-  // }
+  restoreHighlightFromTargets(targets) {
+    const container = this.root;
+    
+    return Promise.all(targets.map(target => {
+      const selectors = target.selector
+      anchoringPdf.anchor(container, selectors)
+      .then(range => {
+        console.log('RANGE', range, 'ROOT', container)
+          return {
+            // annotation: annotation,
+            target: {
+              selector: selectors
+            },
+            range: range
+          };
+      })
+      .then(highlight(container))
+      .then(anchor => [anchor])
+      .then(this.sync.bind(this))
+    }));
+  }
 
   // restoreHighlightFromThis() {
   //   return this.restoreHighlightFromTargets(this.anchors.map(({ target }) => target));
@@ -356,7 +375,7 @@ class PdfHighlighterHelper {
       // A list of annotations that need to be refreshed.
       const refreshAnnotations = [];
 
-      const container = document.body
+      const container = this.root;
       
       // Check all the pages with text layers that have finished rendering.
       for (let pageIndex = 0, end = pdfViewer.pagesCount, asc = 0 <= end; asc ? pageIndex < end : pageIndex > end; asc ? pageIndex++ : pageIndex--) {
@@ -413,7 +432,7 @@ class PdfHighlighterHelper {
         console.log('ANOOTATION', annotation);
         const selectors = annotation.target.selector;
         result.push(
-        anchoringPdf.anchor(document.body, selectors)
+        anchoringPdf.anchor(container, selectors)
         .then(range => {
           console.log('RANGE', range, 'ROOT', container)
             return {
