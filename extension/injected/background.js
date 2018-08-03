@@ -17,7 +17,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         // hideCircle = bookmark_hide_circle_highlight;
         apiClient = getApiClientByToken(token);
         const data = {
-          title: document.title,
+          title: tab.title,
           url: pdfFile
         }
         return apiClient
