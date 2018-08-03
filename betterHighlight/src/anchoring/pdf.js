@@ -1,27 +1,29 @@
-var RenderingStates, TextPositionAnchor, TextQuoteAnchor, anchorByPosition, findInPages, findPage, getNodeTextLayer, getPage, getPageOffset, getPageTextContent, getSiblingIndex, html, pageTextCache, prioritizePages, quotePositionCache, ref, seek, xpathRange,
-  slice = [].slice;
+const seek = require('dom-seek');
 
-seek = require('dom-seek');
+const xpathRange = require('./range');
 
-xpathRange = require('./range');
+const html = require('./html');
 
-html = require('./html');
+const RenderingStates = {
+  INITIAL: 0,
+  RUNNING: 1,
+  PAUSED: 2,
+  FINISHED: 3,
+};
 
-RenderingStates = require('../pdfjs-rendering-states');
-
-ref = require('./types'), TextPositionAnchor = ref.TextPositionAnchor, TextQuoteAnchor = ref.TextQuoteAnchor;
+const { TextPositionAnchor, TextQuoteAnchor } = require('./types')
 
 pageTextCache = {};
 
 quotePositionCache = {};
 
-getSiblingIndex = function(node) {
+const getSiblingIndex = function(node) {
   var siblings;
   siblings = Array.prototype.slice.call(node.parentNode.childNodes);
   return siblings.indexOf(node);
 };
 
-getNodeTextLayer = function(node) {
+const getNodeTextLayer = function(node) {
   var ref1;
   while (!((ref1 = node.classList) != null ? ref1.contains('page') : void 0)) {
     node = node.parentNode;
@@ -29,11 +31,11 @@ getNodeTextLayer = function(node) {
   return node.getElementsByClassName('textLayer')[0];
 };
 
-getPage = function(pageIndex) {
+const getPage = function(pageIndex) {
   return PDFViewerApplication.pdfViewer.getPageView(pageIndex);
 };
 
-getPageTextContent = function(pageIndex) {
+const getPageTextContent = function(pageIndex) {
   var joinItems;
   if (pageTextCache[pageIndex] != null) {
     return pageTextCache[pageIndex];
@@ -60,7 +62,7 @@ getPageTextContent = function(pageIndex) {
   }
 };
 
-getPageOffset = function(pageIndex) {
+const getPageOffset = function(pageIndex) {
   var index, next;
   index = -1;
   next = function(offset) {
@@ -74,7 +76,7 @@ getPageOffset = function(pageIndex) {
   return next(0);
 };
 
-findPage = function(offset) {
+const findPage = function(offset) {
   var count, index, total;
   index = 0;
   total = 0;
@@ -97,10 +99,11 @@ findPage = function(offset) {
   return getPageTextContent(0).then(count);
 };
 
-anchorByPosition = function(page, anchor, options) {
+const anchorByPosition = function(page, anchor, options) {
+  console.log('pAGE in anchorByPosition', page && page.textLayer && page.textLayer.renderingDone)
   var div, placeholder, range, ref1, ref2, renderingDone, renderingState, root, selector;
   renderingState = page.renderingState;
-  renderingDone = (ref1 = page.textLayer) != null ? ref1.renderingDone : void 0;
+  renderingDone = page.textLayer != null ? page.textLayer.renderingDone : undefined;
   if (renderingState === RenderingStates.FINISHED && renderingDone) {
     root = page.textLayer.textLayerDiv;
     selector = anchor.toSelector(options);
@@ -121,61 +124,56 @@ anchorByPosition = function(page, anchor, options) {
   }
 };
 
-findInPages = function(arg, quote, position) {
-  var attempt, cacheAndFinish, content, next, offset, page, pageIndex, rest;
-  pageIndex = arg[0], rest = 2 <= arg.length ? slice.call(arg, 1) : [];
+const findInPages = function(...args) {
+  const [pageIndex, ...rest] = Array.from(args[0]), quote = args[1], position = args[2];
   if (pageIndex == null) {
     return Promise.reject(new Error('Quote not found'));
   }
-  attempt = function(info) {
-    var anchor, content, hint, offset, page, root;
-    page = info[0], content = info[1], offset = info[2];
-    root = {
-      textContent: content
-    };
-    anchor = new TextQuoteAnchor.fromSelector(root, quote);
+
+  const attempt = function(info) {
+    // Try to find the quote in the current page.
+    const [page, content, offset] = Array.from(info);
+    const root = {textContent: content};
+    const anchor = TextQuoteAnchor.fromSelector(root, quote);
     if (position != null) {
-      hint = position.start - offset;
+      let hint = position.start - offset;
       hint = Math.max(0, hint);
       hint = Math.min(hint, content.length);
-      return anchor.toPositionAnchor({
-        hint: hint
-      });
+      return anchor.toPositionAnchor({hint});
     } else {
       return anchor.toPositionAnchor();
     }
   };
-  next = function() {
-    return findInPages(rest, quote, position);
-  };
-  cacheAndFinish = function(anchor) {
-    var name;
+
+  const next = () => findInPages(rest, quote, position);
+
+  const cacheAndFinish = function(anchor) {
     if (position) {
-      if (quotePositionCache[name = quote.exact] == null) {
-        quotePositionCache[name] = {};
-      }
-      quotePositionCache[quote.exact][position.start] = {
-        page: page,
-        anchor: anchor
-      };
+      if (quotePositionCache[quote.exact] == null) { quotePositionCache[quote.exact] = {}; }
+      quotePositionCache[quote.exact][position.start] = {page, anchor};
     }
     return anchorByPosition(page, anchor);
   };
-  page = getPage(pageIndex);
-  content = getPageTextContent(pageIndex);
-  offset = getPageOffset(pageIndex);
-  return Promise.all([page, content, offset]).then(attempt).then(cacheAndFinish)["catch"](next);
+
+  var page = getPage(pageIndex);
+  const content = getPageTextContent(pageIndex);
+  const offset = getPageOffset(pageIndex);
+
+  return Promise.all([page, content, offset])
+  .then(attempt)
+  .then(cacheAndFinish)
+  .catch(next);
 };
 
-prioritizePages = function(position) {
-  var i, pageIndices, pagesCount, results, sort;
+const prioritizePages = function(position) {
+  var i, pageIndices, pagesCount, results;
   pagesCount = PDFViewerApplication.pdfViewer.pagesCount;
   pageIndices = (function() {
     results = [];
     for (var i = 0; 0 <= pagesCount ? i < pagesCount : i > pagesCount; 0 <= pagesCount ? i++ : i--){ results.push(i); }
     return results;
   }).apply(this);
-  sort = function(pageIndex) {
+  const sort = function(pageIndex) {
     var left, result, right;
     left = pageIndices.slice(0, pageIndex);
     right = pageIndices.slice(pageIndex);
@@ -329,6 +327,3 @@ exports.purgeCache = function() {
   pageTextCache = {};
   return quotePositionCache = {};
 };
-
-// ---
-// generated by coffee-script 1.9.2

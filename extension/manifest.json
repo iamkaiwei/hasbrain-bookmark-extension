@@ -28,7 +28,9 @@
     "<all_urls>",
     "http://userkit-sdk.surge.sh/userkit_sdk.min.js",
     "contextMenus",
-    "webNavigation"
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
   ],
   "content_scripts": [
     {
@@ -65,7 +67,9 @@
     "/pages/newtab/index.html",
     "public/*",
     "/pages/js/jquery.min.js",
-    "/pages/newtab/*.js"
+    "/pages/newtab/*.js",
+    "/pages/viewer.html",
+    "/pages/pdf-asset/*"
   ],
   "externally_connectable": {
     "matches": ["*://*.hasbrain.com/*"]

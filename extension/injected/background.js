@@ -1,5 +1,53 @@
 chrome.browserAction.onClicked.addListener(function(tab) {
-  chrome.tabs.executeScript(null, { file: "injected/click.js" });
+  console.log('I AM CLICKED BACKGROUND', tab.url);
+   const url = new URL(tab.url)
+   const fromExtension = url.protocol === 'chrome-extension:';
+   console.log('from ext', fromExtension);
+   if (fromExtension) {
+    const pdfFile = url.searchParams.get('file');
+
+   console.log('PDF', pdfFile);
+    let apiClient;
+    if (pdfFile) {
+      getProfileFromStorage()
+      .then((result) => {
+        const { bookmark_token, bookmark_profile, bookmark_hide_circle_highlight } = result;
+        const token = bookmark_token;
+        // profile = bookmark_profile && JSON.parse(bookmark_profile);
+        // hideCircle = bookmark_hide_circle_highlight;
+        apiClient = getApiClientByToken(token);
+        const data = {
+          title: document.title,
+          url: pdfFile
+        }
+        return apiClient
+        .createArticleIfNotExists(data)
+        .then((res) => {
+          if (res.status !== 200) {
+            _renderErrorHighlight()
+            return
+          }
+          const result = res.data
+          if (!result || result.errors) {
+            // _renderErrorHighlight()
+            return
+          }
+          const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+          return recordId
+        })
+        .then(articleId => {
+          return apiClient.userbookmarkCreate(articleId)
+        }).then(() => {
+          chrome.browserAction.setIcon({
+            path: '/assets/images/hasbrain-logo-full.png',
+            tabId: tab.id
+          })
+        });
+      });
+    }
+   } else {
+    chrome.tabs.executeScript(null, { file: "injected/click.js" });
+   }
 });
 chrome.runtime.onMessageExternal.addListener(function(
   request,
@@ -100,6 +148,7 @@ const registerContextMenu = () => {
       id: 'hasBrainHighlight',
       visible: !(!!result.bookmark_hide_context_menu),
       title: 'Highlight it',
+      "documentUrlPatterns": ["http://*/*", "https://*/*"],
       contexts: ['selection'],
       onclick: () => {
         console.log('MINHHIEN', window.getSelection().toString())
@@ -120,7 +169,11 @@ const handleHistoryStateUpdated = function(details) {
 
 
 // dont know why onHistoryStateUpdated is call TWICE every url updated 
-chrome.webNavigation.onHistoryStateUpdated.addListener(handleHistoryStateUpdated);
+chrome.webNavigation.onHistoryStateUpdated.addListener(handleHistoryStateUpdated, {
+  url: [{
+    schemes: ['http', 'https']
+  }]
+});
 
 
 
@@ -133,3 +186,69 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(handleHistoryStateUpdated
 // chrome.webNavigation.onReferenceFragmentUpdated.addListener(() => console.log('onReferenceFragmentUpdated'))
 // chrome.webNavigation.onTabReplaced.addListener(() => console.log('onTabReplaced'))
 // chrome.webNavigation.onHistoryStateUpdated.addListener(() => console.log('onHistoryStateUpdated'))
+
+/**
+ * Check if the request is a PDF file.
+ * @param {Object} details First argument of the webRequest.onHeadersReceived
+ *                         event. The properties "responseHeaders" and "url"
+ *                         are read.
+ * @return {boolean} True if the resource is a PDF file.
+ */
+function isPdfFile(details) {
+  var header = getHeaderFromHeaders(details.responseHeaders, 'content-type');
+  if (header) {
+    var headerValue = header.value.toLowerCase().split(';', 1)[0].trim();
+    if (headerValue === 'application/pdf') {
+      return true;
+    }
+    if (headerValue === 'application/octet-stream') {
+      if (details.url.toLowerCase().indexOf('.pdf') > 0) {
+        return true;
+      }
+      var cdHeader =
+        getHeaderFromHeaders(details.responseHeaders, 'content-disposition');
+      if (cdHeader && /\.pdf(["']|$)/i.test(cdHeader.value)) {
+        return true;
+      }
+    }
+  }
+}
+
+/**
+ * Get the header from the list of headers for a given name.
+ * @param {Array} headers responseHeaders of webRequest.onHeadersReceived
+ * @return {undefined|{name: string, value: string}} The header, if found.
+ */
+function getHeaderFromHeaders(headers, headerName) {
+  for (var i = 0; i < headers.length; ++i) {
+    var header = headers[i];
+    if (header.name.toLowerCase() === headerName) {
+      return header;
+    }
+  }
+}
+
+const getViewerURL = url => `chrome-extension://${chrome.runtime.id}/pages/viewer.html?file=${encodeURIComponent(url)}`
+
+chrome.webRequest.onHeadersReceived.addListener(
+  function(details) {
+    if (details.method !== 'GET') {
+      // Don't intercept POST requests until http://crbug.com/104058 is fixed.
+      return;
+    }
+    if (!isPdfFile(details)) {
+      return;
+    }
+
+    var viewerUrl = getViewerURL(details.url);
+
+    return { redirectUrl: viewerUrl, };
+  },
+  {
+    urls: [
+      '<all_urls>'
+    ],
+    types: ['main_frame', 'sub_frame'],
+  },
+  ['blocking', 'responseHeaders']
+);

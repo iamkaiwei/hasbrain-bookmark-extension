@@ -60,6 +60,12 @@ chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_refresh
   renderPopup(result)
 })
 
+const getUrlFromHref = (href) => {
+  const url = new URL(href);
+  if (url.protocol === 'chrome-extension:') return url.searchParams.get('file'); // pdf
+  return href;
+}
+
 function renderPopup (result) {
   if (document.getElementById("iframe_popup")) {
     document.getElementById("iframe_popup").remove();
@@ -86,7 +92,7 @@ function renderPopup (result) {
       og = document.querySelector("meta[property='og:image']"),
       des = document.querySelector("meta[name='description']"),
       readingTime = document.body.innerText.split(" ").length/230,
-      url = document.location.href
+      url = getUrlFromHref(document.location.href)
   
     if (og !== null) photo = og.getAttribute("content")
     else {
