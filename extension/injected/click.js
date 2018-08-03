@@ -3,7 +3,7 @@ var iframe = null
 
 chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'], result => {
   if (!result.bookmark_token) {
-    window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`)
+    window.open(`http://pin.hasbrain.com/#/get-started/?extensionId=${chrome.runtime.id}&src=extension`)
     return
   }
   const rt_expire = jwtDecode(result.bookmark_token).exp * 1000 || 0
@@ -11,7 +11,7 @@ chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_refresh
 
   if (new Date().getTime() > rt_expire) {
     chrome.storage.sync.remove(['bookmark_profile', 'bookmark_token', 'bookmark_refresh_token'])
-    window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`)
+    window.open(`http://pin.hasbrain.com/#/get-started/?extensionId=${chrome.runtime.id}&src=extension`)
     return
   }
   if (new Date().getTime() > t_expire) {
@@ -179,7 +179,7 @@ function renderPopup (result) {
       }
     });
   } else {
-    window.open(`http://pin.hasbrain.com/#/?extensionId=${chrome.runtime.id}&src=extension`)
+    window.open(`http://pin.hasbrain.com/#/get-started/?extensionId=${chrome.runtime.id}&src=extension`)
   }
 
 }

@@ -121,14 +121,14 @@ chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
   bookmark_hide_newtab = result.bookmark_hide_newtab
 })
 
-chrome.tabs.onCreated.addListener(function(tab) {
-  if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
-    chrome.tabs.update(tab.id, {
-      // url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
-      url: `http://pin.hasbrain.com/#/`
-    })
-  }
-})
+// chrome.tabs.onCreated.addListener(function(tab) {
+//   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
+//     chrome.tabs.update(tab.id, {
+//       // url: `chrome-extension://${chrome.runtime.id}/homepage/index.html`
+//       url: `http://pin.hasbrain.com/#/get-started/`
+//     })
+//   }
+// })
 
 // chrome.tabs.onActivated.addListener(tab => {
 //   chrome.tabs.get(tab.tabId, tabInfo => {
