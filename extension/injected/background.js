@@ -141,9 +141,13 @@ const registerContextMenu = () => {
       title: 'Highlight it',
       "documentUrlPatterns": ["http://*/*", "https://*/*"],
       contexts: ['selection'],
-      onclick: () => {
-        console.log('MINHHIEN', window.getSelection().toString())
-        chrome.tabs.executeScript(null, { file: "injected/minhhien-highlight.js" });
+      onclick: (info) => {
+        function validHighlightLength(str) {return str.length > 5 && str.length < 5000;}
+        if (validHighlightLength(info.selectionText.trim())) {
+          chrome.tabs.executeScript(null, { file: "injected/contextMenuHighlight.js" });
+        } else {
+          console.log('NOT VALID HIGHLIGHT LENGHT')
+        }
       }
     })
   })

@@ -1,595 +1,370 @@
-const productionApi = 'https://contentkit-api.mstage.io/graphql'
-const stagingApi = 'https://contentkit-api-staging.mstage.io/graphql'
-
 var profile = null
+var hideCircle = false
+var token = ''
+
 var isSending = false
-var position = 0
-// var trackerButton = $('<a id="tracker__button" href="javascript:;"><img src="https://image.flaticon.com/icons/svg/751/751379.svg" alt="" /> <span>Add to highlight</span></a>')
-const wrapper = $('<div id="tracker__wrapper"></div>')
-const tracker__buttons = $('<div class="tracker__buttons"></div>')
-const highlightButton = $(`<a id="tracker__button" href="javascript:;" title="Highlight"><span>${highlightIcon}</span></a>`)
-const commentButton = $(`<a id="comment__button" href="javascript:;" title="Give comment"><span>${commentIcon}</span></a>`)
-const commentBlock = $(`
-  <div class="comment__block">
-    <div class="comment__heading">Comment</div>
-  </div>
-`)
-const commentUser = $(`
-<div class="comment__user">
-</div>
-`)
-const userAvatar = $(`
-  <div class="comment__avt"></div>
-`)
-const userName = $(`
-  <span class="comment__user-name"></span>
-`)
-const commentText = $(`
-<div class="comment__text">
-  <textarea id="comment__textarea" placeholder="Your comment here.." />
-</div>
-`)
 
-const commentTextPreview = $(`
-<div class="comment__text">
-</div>
-`)
+var articleId = ''
 
-const commentActions = $(`
-  <div class="comment__actions"></div>
-`)
-const commentPost = $(`
-  <div class="comment__post">Post</div>
-`)
-const commentPrivacy = $(`
-  <div class="comment__privacy">Privacy</div>
-`)
+// var currentPositionBtn = {}
 
+window.shouldPopup = false
 
+const HIGHLIGHT_CIRCLE_WIDTH = 22
+const HIGHLIGHT_CIRCLE_OFFSET = 20
+const Z_INDEX = 999
+const NEW_HIGHLIGHT_CIRCLE_ID = 'minhhien__highlight__I_AM_NEW_HAHA';
 
+window.minhhienSelection = null;
+window.readyForHighlight = false;
 
-// add button highlight and comment to wrapper
-tracker__buttons
-  .append(highlightButton)
-  .append(commentButton)
+var stopMouseUp = false
 
-wrapper.append(tracker__buttons)
+// controls
+const wrapper = $(`<div id="${NEW_HIGHLIGHT_CIRCLE_ID}" class="highlight__circle-wrapper"></div>`)
+const newHighlightCircle = $(`<div class="highlight__circle"></div>`)
+wrapper.append(newHighlightCircle)
 
-commentUser
-  .append(userAvatar)
-  .append(userName)
-
-
-commentActions
-  .append(commentPost)
-  .append(commentPrivacy)
-
-
-// commentBlock
-//   .append(commentUser)
-//   .append(commentText)
-//   .append(commentActions)
-
-
-
-// add comment block to wrapper
-wrapper.append(commentBlock)
-
-
-var stopMouseUp = false 
-var body = document.querySelector('body')
-var oldBody = body.innerHTML
-var idCounter=0;
-var textSelected=false;
-
-let token = ''
-
-function checkHidingCircleHighlight () {
-  return new Promise(function(resolve, reject) {
-    chrome && chrome.storage.sync.get(['bookmark_profile', 'bookmark_token', 'bookmark_hide_circle_highlight'], function(items) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else {
-        resolve(items);
-      }
-    })
-  }).then(result => {
-    if (!result || !result.bookmark_profile) return false
-    const {bookmark_profile = '{}', bookmark_token} = result
-    profile = JSON.parse(bookmark_profile)
-    token = bookmark_token
-    return !!result.bookmark_hide_circle_highlight
-  }).then(res => res)
+function getHighlighter() {
+  if (!window.minhhienHighlighter) {
+    window.minhhienHighlighter = new window.HighlightHelper();
+  }
+  return window.minhhienHighlighter
 }
 
-async function renderBtnHighlight (e) {
-  var hideCircle = await checkHidingCircleHighlight()
+function checkHidingCircleHighlight () {
+  return loadProfileToGlobal()
+  .then(() => !!hideCircle)
+}
+
+const highlightDataToTarget = ({ core, prev, next, serialized, _id }) => ({
+  _id,
+  selector: JSON.parse(serialized),
+})
+
+const targetToHighlightData = (target) => {
+  const textQuoteSelector = target.selector.find(({ type }) => type === "TextQuoteSelector");
+  const highlightData = {
+    prev: textQuoteSelector.prefix,
+    core: textQuoteSelector.exact,
+    next: textQuoteSelector.suffix,
+    serialized: JSON.stringify(target.selector)
+  }
+  return highlightData
+}
+
+async function renderBtnHighlight () {
+  saveSelection()
+  let hideCircle = await checkHidingCircleHighlight()
   if (hideCircle) return
 
-  _renderInitialHighlight()
-  $(commentBlock).hide()
-  $(wrapper).removeClass('show-comment__block')
-  $(commentText).find('textarea').val('')
-  $('body').append(wrapper)
+  isSending = false
 
-  var selection = $.trim(getSelected().toString());
-  $(wrapper).css('display', 'none');
-  if (isDict(selection.toString())) {
-    // $(trackerButton)
-    //   .css('display', 'none').css({
-    //   'left': e.pageX,
-    //   'top': e.pageY - 48,
-    //   'display': 'flex'
-    // }).attr('rel', selection);
-    userAvatar.html('')
-    if (profile._avatar.length) {
-      userAvatar.append(`<img src="${profile._avatar}" alt="" >`)
-    } else {
-      userAvatar.append(`
-        <span class="comment__avatar-symbol">${profile.name}</span>
-      `)
+  const selection = document.getSelection();
+
+  if (validHighlightLength(selection.toString().trim())) {
+    const range =  document.getSelection().getRangeAt(0);
+    const boundingRect = range.getBoundingClientRect();
+    const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
+    const top = window.scrollY + topOffset
+    const currentPositionBtn = {
+      top: top - HIGHLIGHT_CIRCLE_WIDTH / 2,
+      left: boundingRect.width + boundingRect.left + HIGHLIGHT_CIRCLE_OFFSET // ($(document).width() - boundingRect.right) / 2
     }
-    userName.html('').append(profile.name)
-    // commentUser.html('')
-    // commentUser.append(userAvatar)
-    // commentUser.append(userName)
-
-    
-    
-    // commentBlock.append(commentUser)
-    // commentBlock.append(commentText)
-    // commentBlock.append(commentActions)
-    // wrapper.append(highlightButton)
-    // wrapper.append(commentButton)
-    // wrapper.append(commentBlock)
-    const offset = getSelectionCharOffsetsWithin(document.body)
-    const dimension = getSelectionDimensions()
-
+    $(newHighlightCircle).addClass('highlight__circle--outline')
     $(wrapper)
-      .css('display', 'none').css({
-      'right': ($(document).width() - offset.width) / 2,
-      'top': offset.offset.top + (dimension.height / 2),
-      'display': 'block',
+      .css({
+      ...currentPositionBtn,
+      position: 'absolute',
+      display: 'block',
       'z-index': 1000
-    }).attr('rel', selection);
-    if (selection.length) {
-      const highlightOffset = getSelectionCharOffsetsWithin(document.body)
-      position = parseFloat(highlightOffset.start*100/$(document).height()).toFixed(2)
-    }
+    })
+  }  else {
+    console.log('NOT VALID HIGHLIGHT LENGHT')
   }
 }
 
 function _renderErrorHighlight () {
-  isSending = false
-  // $(highlightButton).find('span').text('Error...!')
-  // _renderInitialHighlight()
-  $(highlightButton).find('span').html('').append(errorIcon)
+  // $(highlightButton).find('span').html('').append(errorIcon)
 }
 
 function _renderInitialHighlight () {
-  // setTimeout(function () {
-  //   $(highlightButton).find('span').text('Add to highlight')
-  //   $(highlightButton).removeClass('show')
-  //   $(highlightButton).css('display', 'none');
-  // }, 1000)
-  $(highlightButton).find('span').html('').append(highlightIcon)
+  // $(highlightButton).find('span').html('').append(highlightIcon)
 }
 
 function _renderSuccessHighlight () {
-  $(highlightButton).find('span').html('').append(successHighlightIcon)
+  // $(highlightButton).find('span').html('').append(successHighlightIcon)
 }
 
-
-function selectText() {	// onmouseup
-	if (window.getSelection) {
-		console.log("window.getSelection");
-		sel = window.getSelection();
-		if (sel.getRangeAt && sel.rangeCount) {	// Chrome, FF
-			console.log(sel.getRangeAt(0));
-			return sel.getRangeAt(0);
-		}
-		else{console.log(sel);}
-	} else if (document.selection && document.selection.createRange) {
-		console.log("elseif");
-		return document.selection.createRange();
-	}
-	return null;
+function _renderRestoreOldHighlightError () {
+  chrome.runtime.sendMessage({ action: 'change-icon-outline' })
+  console.log('CAN NOT RESTORE OLD HIHGLIGHT')
 }
 
-function appendAnchor(r) {	// onmouseup
-	if (!r) return;
-	extracted = r.extractContents();
-	el = document.createElement('a');
-	el.setAttribute("id", "a-"+idCounter);
-	el.setAttribute("class", "highlighted");
-	el.appendChild(extracted);
-	r.insertNode(el)
-}
+function postHighlight ({ core, prev, next, serialized }) {
+  isSending = true
+  const {
+    url, readingTime, title, photo, description
+  } = getMetadata()
 
-function restore() {
-	p.innerHTML = old;
-  textSelected=false;
-}
-
-function getSelectionCharOffsetsWithin(element) {
-  var start = 0, end = 0, width = 0, offset = {};
-  var sel, range, priorRange;
-  if (typeof window.getSelection != "undefined") {
-    if (!window.getSelection().getRangeAt(0)) return
-    range = window.getSelection().getRangeAt(0);
-    priorRange = range.cloneRange();
-    priorRange.selectNodeContents(element);
-    width = $(range.startContainer.parentNode).innerWidth() || 0
-    offset = $(range.startContainer.parentNode).offset()
-    priorRange.setEnd(range.startContainer, range.startOffset);
-    start = priorRange.toString().length;
-    end = start + range.toString().length;
-  } else if (typeof document.selection != "undefined" &&
-          (sel = document.selection).type != "Control") {
-    range = sel.createRange();
-    width = $(range.startContainer.parentNode).innerWidth() || 0
-    offset = $(range.startContainer.parentNode).offset()
-    priorRange = document.body.createTextRange();
-    priorRange.moveToElementText(element);
-    priorRange.setEndPoint("EndToStart", range);
-    start = priorRange.text.length;
-    end = start + range.text.length;
+  const data = {
+    title,
+    url,
+    sourceImage: photo,
+    shortDescription: description,
+    readingTime
   }
-  return {
-    start: start,
-    end: end,
-    width,
-    offset
-  };
+  return getApiClientByToken(token)
+  .createArticleIfNotExists(data)
+  .then((result) => {
+    const { recordId } = result;
+    articleId = recordId
+    const highlightObject = { core, prev, next, serialized, isPublic: false }
+
+    return getApiClientByToken(token)
+    .addOrUpdateHighlight(articleId, highlightObject)
+  })
+  .then((responseData) => {
+    isSending = false
+    _renderSuccessHighlight()
+    $(wrapper).hide()
+    return responseData
+  })
+  .catch(() => {
+    isSending = false
+    _renderErrorHighlight()
+  })
 }
 
-function getSelectionDimensions() {
-  var sel = document.selection, range;
-  var width = 0, height = 0;
-  if (sel) {
-      if (sel.type != "Control") {
-          range = sel.createRange();
-          width = range.boundingWidth;
-          height = range.boundingHeight;
-      }
-  } else if (window.getSelection) {
-      sel = window.getSelection();
-      if (sel.rangeCount) {
-          range = sel.getRangeAt(0).cloneRange();
-          if (range.getBoundingClientRect) {
-              var rect = range.getBoundingClientRect();
-              width = rect.right - rect.left;
-              height = rect.bottom - rect.top;
-          }
-      }
+
+function saveSelection() {
+  if (window.getSelection().toString()) {
+    window.minhhienSelectionRange = window.getSelection().getRangeAt(0).cloneRange();
   }
-  return { width: width , height: height };
 }
 
-function postHighlight ({ position = '' }) {
-  if (!isSending) {
-    // $(highlightButton).find('span').text('Adding...')
-    $(highlightButton).find('span').html('').append(loadingIcon)
-    isSending = true
-    var photo = null, description = null,
-      og = document.querySelector("meta[property='og:image']"),
-      des = document.querySelector("meta[name='description']"),
-      keywork = document.querySelector("meta[name='keywords']"),
-      title = document.querySelector("title").innerText,
-      h1s = document.getElementsByTagName("h1"),
-      h2s = document.getElementsByTagName("h2"),
-      h3s = document.getElementsByTagName("h3"),
-      readingTime = document.body.innerText.split(" ").length / 230,
-      url = document.location.href,
-      highlight = $(wrapper).attr('rel'),
-      h1 = [], h2 = [], h3 = [], keywords = null
+function restoreOldSelection() {
+  const selection = window.getSelection();
+  const oldRange = window.minhhienSelectionRange;
+  selection.removeAllRanges();
+  selection.addRange(oldRange);
+}
 
-    for (var o = 0; o < h1s.length; o++) {h1.push(h1s[o].innerText);}
-    for (var j = 0; j < h2s.length; j++) {h2.push(h2s[j].innerText);}
-    for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
-    if (des !== null) description = des.getAttribute("content")
-    if (og !== null) photo = og.getAttribute("content")
+function removeHighlight(highlightId) {
+  return getApiClientByToken(token).removeHighlight(articleId, highlightId);
+}
 
-    const data = {
-      title,
-      url,
-      sourceImage: photo,
-      shortDescription: description,
-      // tags: keywords.tags,
-      readingTime
-    }
-    var bookmarkData = data      
-    axios.post(
-      stagingApi,
-      JSON.stringify({
-        query: `
-          mutation ($record: CreateOnearticletypeInput!) {
-            user{
-              articleCreateIfNotExist(record: $record) {
-                recordId
-              }
-            }
-          }
-        `,
-        variables: {
-          record: bookmarkData
-        }
-      }), {
-      headers: {
-        'Content-type': 'application/json',
-        'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
-        'usertoken': token
+const renderHighlightCircleFromAnchor =  anchor => {
+  const { range, highlights, target } = anchor;
+  const getOffsetRect = (elements) => {
+    const rects = elements.map(ele => $(ele).offset());
+    return rects.reduce(function(acc, r) {
+      return {
+        top: Math.min(acc.top, r.top),
+        left: Math.min(acc.left, r.left),
+      };
+    });
+  }
+  if(!anchor.range) return
+  const boundingRect = anchor.range.getBoundingClientRect()
+  const offset = getOffsetRect(highlights)
+  const width = $(range.startContainer.parentNode).width()
+  const height = boundingRect.height
+  const currentHighlight = targetToHighlightData(target);
+  const highlightDataId = target._id;
+  const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
+  let selector = null;
+  if (!ele) {
+    const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
+    const highlightCircle = $(`<div class="highlight__circle "></div>`)
+    const highlightHelper = getHighlighter();
+    $(highlightCircle).on('click', function() {
+      if (!highlightDataId) return
+      if ($(this).hasClass('highlight__circle--outline')) {
+        highlightHelper.restoreHighlightFromTargets([target])
+        .then(() => {
+          return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
+        })  
+        .then(addOrUpdateHighlightResult => {
+          $(this).removeClass('highlight__circle--outline')
+        });
       }
-    }).then((res) => {
-      if (res.status !== 200) {
-        _renderErrorHighlight()
-        return
-      }
-      const result = res.data
-      if (!result || result.errors) {
-        _renderErrorHighlight()
-        return
-      }
-      const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
-      axios.post(
-        stagingApi,
-        JSON.stringify({
-          query: `
-            mutation ($highlight: String) {
-              user{
-                userhighlightAddOrUpdateOne(
-                  filter:{
-                    articleId: "${recordId}"
-                  }, record: {
-                    highlight: $highlight,
-                    position: "${position}"
-                  }
-                ) {
-                  recordId
-                }
-              }
-            }
-          `, variables: { highlight }
-        }), {
-        headers: {
-          'Content-type': 'application/json',
-          'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
-          'usertoken': token
-        }
-      }).then((res) => {
-        if (res.status !== 200) {
-          _renderErrorHighlight()
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          _renderErrorHighlight()
-          return
-        }
-        // $(highlightButton).find('span').text('Success!')
-        isSending = false
-        _renderSuccessHighlight()
-      }).catch(() => {
-        _renderErrorHighlight()
+      removeHighlight(highlightDataId).then(result => {
+        highlightHelper.removeHighlights(anchor.highlights);
+        $(this).addClass('highlight__circle--outline')
       })
-    }).catch(() => {
-      _renderErrorHighlight()
+    });
+    
+    $(wrapper).append(highlightCircle)
+    $('body').append(wrapper)
+    selector = $(wrapper)
+  } else {
+    selector = $(`#minhhien__highlight__${highlightDataId}`)
+  }
+  
+  const { top, left } = offset;
+  selector.css({
+    position: 'absolute',
+    left: width + left + HIGHLIGHT_CIRCLE_OFFSET,
+    top: top + height / 2 - HIGHLIGHT_CIRCLE_WIDTH / 2,
+    display: 'block',
+    'z-index': Z_INDEX
+  })
+}
+
+function restoreOldHighlight(url) {
+  if (window.restoringHighlight) return;
+  const highlightWrapers = document.getElementsByClassName("highlight__circle-wrapper");
+  Array.from(highlightWrapers).forEach(ele => {
+    if (ele.id === NEW_HIGHLIGHT_CIRCLE_ID) {
+      $(ele).hide()
+    } else {
+      ele.remove();
+    }
+  })
+  getApiClientByToken(token).getOldHighlight(url)
+    .then((articleUserAction) => {
+      isSending = false;
+      window.readyForHighlight = true;
+      const { userBookmarkData: bookmarkData, userHighlightData } = articleUserAction;
+      window.shouldPopup = !bookmarkData || !bookmarkData.contentId
+      articleId = articleUserAction._id
+      const highlightData = userHighlightData && userHighlightData.highlights;
+      const oldHighlight = highlightData && highlightData.length
+      const targets = (oldHighlight && highlightData.map(highlightDataToTarget)) || []
+      
+      // change icon extension
+      if (bookmarkData && bookmarkData.contentId) {
+        chrome.runtime.sendMessage({ action: 'change-icon' })
+      } else {
+        chrome.runtime.sendMessage({ action: 'change-icon-outline' })
+      }
+
+      // console.log('TARGETS TO RESTORE', targets);
+      if (targets.length) {
+        const highlightHelper = getHighlighter();
+        setTimeout(() => {
+          highlightHelper.restoreHighlightFromTargets(targets).then(() => {
+            const anchors = highlightHelper.getAnchors();
+            anchors.forEach(renderHighlightCircleFromAnchor);
+          })
+        }, 2000); // delay to restore highlight after medium highlight their own
+      }
     })
-  }
+    .catch((error) => {
+      console.log(error)
+      window.readyForHighlight = true;
+      isSending = false;
+      return _renderRestoreOldHighlightError();
+    });
 }
 
-function _renderLoadingPost () {
-  $(commentPost).html('').append(loadingIcon)
-}
-
-function _renderCommentBlock () {
-  $(commentPost).html('').text('Post')
-  $(commentText).find('textarea').show()
-  $(commentText).find('span').remove()
-  $(commentActions).show()
-  $(commentBlock)
-    .append(commentUser)
-    .append(commentText)
-    .append(commentActions)
-}
-
-function _renderInitialPost () {
-  $(commentPost).html('').append('Post')
-  isSending = false
-}
-
-function _renderErrorPost () {
-  $(commentPost).html('').append('Failed Post')
-  setTimeout(() => {
-    _renderInitialPost()
-  }, 1500)
-}
-
-function _renderSuccessPost () {
-  isSending = false
-  $(commentActions).hide()
-  const comment = $(commentText).find('textarea').val()
-  $(commentText).find('textarea').val('').hide()
-  $(commentText).append(`<span>${comment}</span>`)
-}
-
-function postComment ({ position = '' }) {
-  const comment = $(commentText).find('textarea').val() || ""
-  if (!isSending) {
-    // $(highlightButton).find('span').text('Adding...')
-    // $(highlightButton).find('span').html('').append(loadingIcon)
-    _renderLoadingPost()
-    isSending = true
-    var photo = null, description = null,
-      og = document.querySelector("meta[property='og:image']"),
-      des = document.querySelector("meta[name='description']"),
-      keywork = document.querySelector("meta[name='keywords']"),
-      title = document.querySelector("title").innerText,
-      h1s = document.getElementsByTagName("h1"),
-      h2s = document.getElementsByTagName("h2"),
-      h3s = document.getElementsByTagName("h3"),
-      readingTime = document.body.innerText.split(" ").length / 230,
-      url = document.location.href,
-      highlight = $(wrapper).attr('rel'),
-      h1 = [], h2 = [], h3 = [], keywords = null
-
-    for (var o = 0; o < h1s.length; o++) {h1.push(h1s[o].innerText);}
-    for (var j = 0; j < h2s.length; j++) {h2.push(h2s[j].innerText);}
-    for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
-    if (des !== null) description = des.getAttribute("content")
-    if (og !== null) photo = og.getAttribute("content")
-
-    const data = {
-      title,
-      url,
-      sourceImage: photo,
-      shortDescription: description,
-      // tags: keywords.tags,
-      readingTime
-    }
-    var bookmarkData = data      
-    axios.post(
-      stagingApi,
-      JSON.stringify({
-        query: `
-          mutation ($record: CreateOnearticletypeInput!) {
-            user{
-              articleCreateIfNotExist(record: $record) {
-                recordId
-              }
-            }
-          }
-        `,
-        variables: {
-          record: bookmarkData
-        }
-      }), {
-      headers: {
-        'Content-type': 'application/json',
-        'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
-        'usertoken': token
-      }
-    }).then((res) => {
-      if (res.status !== 200) {
-        // _renderErrorHighlight()
-        _renderErrorPost()
-        return
-      }
-      const result = res.data
-      if (!result || result.errors) {
-        // _renderErrorHighlight()
-        _renderErrorPost()
-        return
-      }
-      const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
-      // console.log('record', recordId)
-      axios.post(
-        stagingApi,
-        JSON.stringify({
-          query: `
-            mutation{
-              user{
-                userhighlightAddOrUpdateOne(
-                  filter:{
-                    articleId: "${recordId}"
-                  }, record: {
-                    highlight: "${highlight}",
-                    position: "${position}",
-                    comment: "${comment}"
-                  }
-                ) {
-                  recordId
-                }
-              }
-            }
-          `
-        }), {
-        headers: {
-          'Content-type': 'application/json',
-          'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY',
-          'usertoken': token
-        }
-      }).then((res) => {
-        // console.log('resssssssssssss', res)
-        if (res.status !== 200) {
-          // _renderErrorHighlight()
-          _renderErrorPost()
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          // _renderErrorHighlight()
-          _renderErrorPost()
-          return
-        }
-        // $(highlightButton).find('span').text('Success!')
-        _renderSuccessPost()
-        // _renderInitialHighlight()
-      }).catch(() => {
-        // _renderErrorHighlight()
-        _renderErrorPost()
-      })
-    }).catch(() => {
-      // _renderErrorHighlight()
-      _renderErrorPost()
-    })
-  }
-}
-
-
-$(document).ready(function (e) {
-  $(this).mouseup(function (e) {
-    if (stopMouseUp) return
-    e.stopPropagation()
-    if (!profile) {
-      chrome && chrome.storage.sync.get('bookmark_profile', result => {
-        if (!result.bookmark_profile) return
-        profile = JSON.parse(result.bookmark_profile)
-        renderBtnHighlight(e)
-      })
-      return
-    }
-    renderBtnHighlight(e)
+function loadProfileToGlobal() {
+  return Promise.all([getProfileFromStorage(), getOptionsFromStorage()])
+  .then(([profile, options])=> ({ ...profile, ...options }))
+  .then((result) => {
+    const { bookmark_token, bookmark_profile, bookmark_hide_circle_highlight } = result;
+    token = bookmark_token;
+    profile = bookmark_profile && JSON.parse(bookmark_profile);
+    hideCircle = bookmark_hide_circle_highlight;
+    return Promise.resolve(result);
   });
+}
 
+function handleMouseupToRenderHighlightCircle(e) {
+  console.log('readyForHighlight', window.readyForHighlight, 'stopMouseUp', stopMouseUp)
+  if (!window.readyForHighlight || stopMouseUp) {
+    return;
+  }
+  e.stopPropagation()
+  return loadProfileToGlobal()
+  .then(() => {
+    const highlightHelper = getHighlighter();
+    const selection = window.getSelection();
+    if (!highlightHelper.canCreateHighlightFromSelection(selection)) {
+      return $(wrapper).hide();
+    }
+    renderBtnHighlight()
+  });
+}
+
+function handleCreateHighlight(e) {
+  $(newHighlightCircle).removeClass('highlight__circle--outline')
+  e.stopPropagation()
+  window.readyForHighlight = false;
+  restoreOldSelection()
+
+  const highlightHelper = getHighlighter();
+  const selection = document.getSelection()
+
+  if (!highlightHelper.canCreateHighlightFromSelection(selection)) {
+    return
+  }
+  highlightHelper.saveRangeBeforeCreateHighlight(selection);
+  highlightHelper.createHighlight().then(result => {
+    console.log('AFTER CREATE HIGHLIGHT', result)
+    if (result.length) {
+      window.getSelection().empty()
+      const anchor = result[0];
+      if (anchor && anchor.target && anchor.target.selector) {
+        const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
+        if (textQuoteSelector) {
+          console.log('TRGIGER POST HIHGLIGHT')
+          return postHighlight(targetToHighlightData(anchor.target))
+          .then(responseData => {
+            window.readyForHighlight = true;
+            const highlightData = responseData.record.highlights
+            const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
+            renderHighlightCircleFromAnchor({
+              ...anchor,
+              target: {
+                ...anchor.target,
+                ...currentHighlight,
+              },
+            })
+            console.log('IN HIHGLIGHT AFTER', window.shouldPopup)
+            if (window.shouldPopup) {
+              renderBookmarkPopup();
+              window.shouldPopup = false
+            }
+          });
+        }
+      }
+    }
+  });
+}
+
+function handleHistoryStateUpdated() {
+  profile = null
+  hideCircle = false
+  token = ''
+  isSending = false
+  articleId = ''
+  // currentPositionBtn = {}
+  window.shouldPopup = true
+  window.minhhienHighlighter = new window.HighlightHelper();
+  const url = document.location.href;
+  loadProfileToGlobal()
+  .then(() => restoreOldHighlight(url))
+  $(wrapper).hide()
+}
+
+const debouncedHandleHistoryStateUpdated = debounce(handleHistoryStateUpdated, 500);
+
+function handleWindowReady(e) {
+  $(window).mouseup(handleMouseupToRenderHighlightCircle);
   $(wrapper).hover(
     e => {
-      // console.log('hover')
       stopMouseUp = true
-      // appendAnchor(selectText())
     },
     e => {
-      // console.log('leave')
       stopMouseUp = false
-      // body.innerHTML = oldBody
     }
   )
-  
 
-  $(commentButton).click(function(e) {
-    if ($(wrapper).hasClass('show-comment__block')) {
-      $(commentBlock).hide()
-      $(wrapper).removeClass('show-comment__block')
-    } else {
-      _renderCommentBlock()
-      $(commentBlock).show()
-      $(wrapper).addClass('show-comment__block')
-    }
-  })
-
-  $(highlightButton).click(function (e) {
-    e.stopPropagation()
-    postHighlight({
-      position
-    })
-  })
-  $(commentPost).on('click', function (e) {
-    e.stopPropagation()
-    console.log('post comment')
-    postComment({
-      position
-    })
-  })
+  $(newHighlightCircle).click(handleCreateHighlight)
+  $(wrapper).hide()
+  $('body').append(wrapper)
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (msg.from === 'popup' && msg.method === 'ping') {
@@ -603,46 +378,73 @@ $(document).ready(function (e) {
       return true; // <-- Indicate that sendResponse will be async
     }
   });
-})
-
-function isDict(str) {return str.length > 0 && str.length < 50000;}
-
-function getSelected() {
-  if (window.getSelection) return window.getSelection();
-  else if (document.getSelection) return document.getSelection();
-  else {
-    var selection = document.selection && document.selection.createRange();
-    if (selection.text) return selection.text;
-    return false;
-  }
-  return false;
+  debouncedHandleHistoryStateUpdated();
 }
 
-function elementContainsSelection(el) {
-  var sel;
-  if (window.getSelection) {
-    sel = window.getSelection();
-    if (sel.rangeCount > 0) {
-      for (var i = 0; i < sel.rangeCount; ++i) {
-        if (!isOrContains(sel.getRangeAt(i).commonAncestorContainer, el)) {
-          return false;
-        }
+$(window).on('load', handleWindowReady);
+
+function validHighlightLength(str) {return str.length > 5 && str.length < 5000;}
+
+// function getSelected() {
+//   if (window.getSelection) return window.getSelection();
+//   else if (document.getSelection) return document.getSelection();
+//   else {
+//     var selection = document.selection && document.selection.createRange();
+//     if (selection.text) return selection.text;
+//     return false;
+//   }
+//   return false;
+// }
+
+
+function debounce(func, wait, immediate){
+  var timeout, args, context, timestamp, result;
+  if (null == wait) wait = 100;
+
+  function later() {
+    var last = Date.now() - timestamp;
+
+    if (last < wait && last >= 0) {
+      timeout = setTimeout(later, wait - last);
+    } else {
+      timeout = null;
+      if (!immediate) {
+        result = func.apply(context, args);
+        context = args = null;
       }
-      return true;
     }
-  } else if ((sel = document.selection) && sel.type != "Control") {
-    return isOrContains(sel.createRange().parentElement(), el);
-  }
-  return false;
-}
+  };
 
-function isOrContains(node, container) {
-  while (node) {
-    if (node === container) {
-      return true;
+  var debounced = function(){
+    context = this;
+    args = arguments;
+    timestamp = Date.now();
+    var callNow = immediate && !timeout;
+    if (!timeout) timeout = setTimeout(later, wait);
+    if (callNow) {
+      result = func.apply(context, args);
+      context = args = null;
     }
-    node = node.parentNode;
-  }
-  return false;
-}
 
+    return result;
+  };
+
+  debounced.clear = function() {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+  
+  debounced.flush = function() {
+    if (timeout) {
+      result = func.apply(context, args);
+      context = args = null;
+      
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+
+  return debounced;
+};

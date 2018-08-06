@@ -50,7 +50,7 @@
         "injected/getMetadata.js",
         "injected/HighlightHelper.js",
         "injected/popupRenderer.js",
-        "injected/highlight-minhhien.js"
+        "injected/highlight.js"
       ],
       "css": [
         "public/css/mycss.css"
