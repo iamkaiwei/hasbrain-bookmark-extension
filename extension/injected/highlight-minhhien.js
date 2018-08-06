@@ -6,20 +6,25 @@ var isSending = false
 
 var articleId = ''
 
-var currentPositionBtn = {}
+// var currentPositionBtn = {}
 
-let shouldPopup = false
+window.shouldPopup = false
 
 const HIGHLIGHT_CIRCLE_WIDTH = 22
+const HIGHLIGHT_CIRCLE_OFFSET = 20
+const Z_INDEX = 999
+const NEW_HIGHLIGHT_CIRCLE_ID = 'minhhien__highlight__I_AM_NEW_HAHA';
+
+window.minhhienSelection = null;
+window.readyForHighlight = false;
+
+var stopMouseUp = false
 
 // controls
-// const wrapper = $('<div id="tracker__wrapper"></div>')
-const wrapper = $(`<div id="minhhien__highlight__I_AM_NEW_HAHA" class="highlight__circle-wrapper"></div>`)
+const wrapper = $(`<div id="${NEW_HIGHLIGHT_CIRCLE_ID}" class="highlight__circle-wrapper"></div>`)
 const newHighlightCircle = $(`<div class="highlight__circle"></div>`)
 wrapper.append(newHighlightCircle)
 
-// const tracker__buttons = $('<div class="tracker__buttons"></div>')
-// const highlightButton = $(`<a id="tracker__button" href="javascript:;" title="Highlight"><span>${highlightIcon}</span></a>`)
 function getHighlighter() {
   if (!window.minhhienHighlighter) {
     window.minhhienHighlighter = new window.HighlightHelper();
@@ -27,84 +32,45 @@ function getHighlighter() {
   return window.minhhienHighlighter
 }
 
-
-window.minhhienSelection = null;
-window.readyForHighlight = false;
-
-// add button highlight  to wrapper
-// tracker__buttons
-//   .append(highlightButton)
-
-// wrapper.append(tracker__buttons)
-
-var stopMouseUp = false
-
-function renderPopupForExt () {
-  if (document.getElementById("iframe_popup")) {
-    document.getElementById("iframe_popup").remove();
-  }
-  if (document.getElementById("iframe_loading")) {
-    document.getElementById("iframe_loading").remove();
-  }
-  if (profile) {
-    const {
-      url, readingTime, title, photo, description
-    } = getMetadata()
-    const bookmarkData = {
-      url, readingTime, title, photo, description,
-      sourceName: 'extension', sourceCreatedAt: new Date().toISOString()
-    } 
-    chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
-    const iframe = document.createElement('iframe')
-    iframe.id = 'iframe_popup'
-    iframe.style.border = 'none'
-    iframe.style.position = 'fixed'
-    iframe.style.top = '0'
-    iframe.style.right = '10px'
-    iframe.style.zIndex = '2147483647'
-    iframe.style.height = '100%'
-    iframe.style.width = '380px'
-    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
-    
-    document.body.appendChild(iframe)
-
-    window.addEventListener('click', function(e){
-      const container = document.getElementById('iframe_popup')
-      console.log('ON WINDOWS CLICK', container, e.target);
-      if (!e.target || (container && !container.contains(e.target))) 
-      {
-        chrome.runtime.sendMessage({action: 'remove-iframe'})
-      }
-    });
-  }
-}
-
 function checkHidingCircleHighlight () {
   return loadProfileToGlobal()
   .then(() => !!hideCircle)
 }
 
+const highlightDataToTarget = ({ core, prev, next, serialized, _id }) => ({
+  _id,
+  source: url,
+  selector: JSON.parse(serialized),
+})
+
+const targetToHighlightData = (target) => {
+  const textQuoteSelector = target.selector.find(({ type }) => type === "TextQuoteSelector");
+  const highlightData = {
+    prev: textQuoteSelector.prefix,
+    core: textQuoteSelector.exact,
+    next: textQuoteSelector.suffix,
+    serialized: JSON.stringify(target.selector)
+  }
+  return highlightData
+}
+
 async function renderBtnHighlight () {
   saveSelection()
-  var hideCircle = await checkHidingCircleHighlight()
+  let hideCircle = await checkHidingCircleHighlight()
   if (hideCircle) return
 
-
   isSending = false
-  // const highlightDataId = 'I_AM_NEW_HAHA';
-  // const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
-  
-  // console.log(wrapper)
+
   var selection = $.trim(getSelected().toString());
-  console.log('IN RENDER BTN', selection.toString());
-  if (isDict(selection.toString())) {
+
+  if (validHighlightLength(selection.toString())) {
     const range =  document.getSelection().getRangeAt(0);
     const boundingRect = range.getBoundingClientRect();
     const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
     const top = window.scrollY + topOffset
-    currentPositionBtn = {
+    const currentPositionBtn = {
       top: top - HIGHLIGHT_CIRCLE_WIDTH / 2,
-      left: boundingRect.width + boundingRect.left + 20// ($(document).width() - boundingRect.right) / 2
+      left: boundingRect.width + boundingRect.left + HIGHLIGHT_CIRCLE_OFFSET // ($(document).width() - boundingRect.right) / 2
     }
     $(newHighlightCircle).addClass('highlight__circle--outline')
     $(wrapper)
@@ -118,7 +84,6 @@ async function renderBtnHighlight () {
 }
 
 function _renderErrorHighlight () {
-  isSending = false
   // $(highlightButton).find('span').html('').append(errorIcon)
 }
 
@@ -131,36 +96,12 @@ function _renderSuccessHighlight () {
 }
 
 function _renderRestoreOldHighlightError () {
-  isSending = false;
+  chrome.runtime.sendMessage({ action: 'change-icon-outline' })
   console.log('CAN NOT RESTORE OLD HIHGLIGHT')
-}
-
-function getMetadata() {
-  var photo = null, description = null, title = null
-    og = document.querySelector("meta[property='og:image']"),
-    des = document.querySelector("meta[name='description']") || document.querySelector("meta[name='og:description']"),
-    titleTag = document.querySelector("title") || document.querySelector("og:title"),
-    h1s = document.getElementsByTagName("h1"),
-    h2s = document.getElementsByTagName("h2"),
-    h3s = document.getElementsByTagName("h3"),
-    readingTime = document.body.innerText.split(" ").length / 230,
-    url = document.location.href,
-    h1 = [], h2 = [], h3 = []
-
-  for (var o = 0; o < h1s.length; o++) {h1.push(h1s[o].innerText);}
-  for (var j = 0; j < h2s.length; j++) {h2.push(h2s[j].innerText);}
-  for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
-  if (des !== null) description = des.getAttribute("content")
-  if (og !== null) photo = og.getAttribute("content")
-  if (titleTag) title = titleTag.innerText
-  return {
-    url, readingTime, title, photo, description
-  }
 }
 
 function postHighlight ({ core, prev, next, serialized }) {
   isSending = true
-  
   const {
     url, readingTime, title, photo, description
   } = getMetadata()
@@ -174,47 +115,28 @@ function postHighlight ({ core, prev, next, serialized }) {
   }
   return getApiClientByToken(token)
   .createArticleIfNotExists(data)
-  .then((res) => {
-    if (res.status !== 200) {
-      _renderErrorHighlight()
-      return
-    }
-    const result = res.data
-    if (!result || result.errors) {
-      _renderErrorHighlight()
-      return
-    }
-    const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+  .then((result) => {
+    const { recordId } = result;
     articleId = recordId
     const highlightObject = { core, prev, next, serialized, isPublic: false }
 
     return getApiClientByToken(token)
     .addOrUpdateHighlight(articleId, highlightObject)
-    .then((res) => {
-      if (res.status !== 200) {
-        _renderErrorHighlight()
-        return null
-      }
-      const result = res.data
-      if (!result || result.errors) {
-        _renderErrorHighlight()
-        return result
-      }
-      isSending = false
-      _renderSuccessHighlight()
-      $(wrapper).hide()
-      return result
-    }).catch(() => {
-      _renderErrorHighlight()
-    })
-  }).catch(() => {
+  })
+  .then((responseData) => {
+    isSending = false
+    _renderSuccessHighlight()
+    $(wrapper).hide()
+    return responseData
+  })
+  .catch(() => {
+    isSending = false
     _renderErrorHighlight()
   })
 }
 
 
 function saveSelection() {
-  // console.log('SAVE SELECTION BEFORE HANDLE OF ON CLICK EVENT')
   if (window.getSelection().toString()) {
     window.minhhienSelectionRange = window.getSelection().getRangeAt(0).cloneRange();
   }
@@ -233,7 +155,6 @@ function removeHighlight(highlightId) {
 
 const renderHighlightCircleFromAnchor =  anchor => {
   const { range, highlights, target } = anchor;
-  console.log('RENDER FROM ANCHOR', anchor)
   const getOffsetRect = (elements) => {
     const rects = elements.map(ele => $(ele).offset());
     return rects.reduce(function(acc, r) {
@@ -245,21 +166,11 @@ const renderHighlightCircleFromAnchor =  anchor => {
   }
   if(!anchor.range) return
   const boundingRect = anchor.range.getBoundingClientRect()
-  const offset = getOffsetRect(highlights) // $(range.startContainer.parentNode).offset()
+  const offset = getOffsetRect(highlights)
   const width = $(range.startContainer.parentNode).width()
   const height = boundingRect.height
-  const textQuoteSelector = target.selector.find(({ type }) => type === "TextQuoteSelector");
-  // const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
-  // if (!currentHighlight) {
-  //   console.warn('CAN NOT FIND HIGHLIGHT FROM SELECTOR', textQuoteSelector)
-  // }
-  const currentHighlight = {
-    prev: textQuoteSelector.prefix,
-    core: textQuoteSelector.exact,
-    next: textQuoteSelector.suffix,
-    serialized: JSON.stringify(target.selector)
-  }
-  const highlightDataId = target._id; // (currentHighlight && currentHighlight._id);
+  const currentHighlight = targetToHighlightData(target);
+  const highlightDataId = target._id;
   const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
   let selector = null;
   if (!ele) {
@@ -268,32 +179,21 @@ const renderHighlightCircleFromAnchor =  anchor => {
     const highlightHelper = getHighlighter();
     $(highlightCircle).on('click', function() {
       if (!highlightDataId) return
-      console.log('highlightData', currentHighlight)
       if ($(this).hasClass('highlight__circle--outline')) {
         highlightHelper.restoreHighlightFromTargets([target])
         .then(() => {
-          return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight).then(res => {
-            if (res.status !== 200) {
-              return
-            }
-            const result = res.data
-            if (!result || result.errors) return
-            $(this).removeClass('highlight__circle--outline')
-          })
+          return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
         })  
+        .then(addOrUpdateHighlightResult => {
+          $(this).removeClass('highlight__circle--outline')
+        });
       }
-      removeHighlight(highlightDataId).then(res => {
-        if (res.status !== 200) {
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) return
-        const anchors = highlightHelper.getAnchors();
-        const anchor = anchors.find(anchor => anchor.target._id ===  highlightDataId);
+      removeHighlight(highlightDataId).then(result => {
         highlightHelper.removeHighlights(anchor.highlights);
         $(this).addClass('highlight__circle--outline')
       })
     });
+    
     $(wrapper).append(highlightCircle)
     $('body').append(wrapper)
     selector = $(wrapper)
@@ -302,13 +202,12 @@ const renderHighlightCircleFromAnchor =  anchor => {
   }
   
   const { top, left } = offset;
-  selector
-    .css('display', 'block').css({
-      position: 'absolute',
-    'left': width + left + 20,
-    'top': top + height / 2 - HIGHLIGHT_CIRCLE_WIDTH / 2,
-    'display': 'block',
-    'z-index': 1000
+  selector.css({
+    position: 'absolute',
+    left: width + left + HIGHLIGHT_CIRCLE_OFFSET,
+    top: top + height / 2 - HIGHLIGHT_CIRCLE_WIDTH / 2,
+    display: 'block',
+    'z-index': Z_INDEX
   })
 }
 
@@ -317,43 +216,25 @@ function restoreOldHighlight(url) {
   console.log('RESTORING OLD HIGHLIGHT');
   const highlightWrapers = document.getElementsByClassName("highlight__circle-wrapper");
   Array.from(highlightWrapers).forEach(ele => {
-    if (ele.id === "minhhien__highlight__I_AM_NEW_HAHA") {
-      $(ele).css({
-        display: 'none'
-      })
+    if (ele.id === NEW_HIGHLIGHT_CIRCLE_ID) {
+      $(ele).hide()
     } else {
       ele.remove();
     }
   })
   getApiClientByToken(token).getOldHighlight(url)
-    .then((res) => {
-      console.log('OLD HIHGLIHGT', res);
+    .then((articleUserAction) => {
       isSending = false;
-      if (res.status !== 200) {
-        return _renderRestoreOldHighlightError()
-        
-      }
-      const result = res.data
-      if (!result || result.errors) {
-        return _renderRestoreOldHighlightError()
-      }
-      // console.log('GET OLD HIGHLIGHT SUCESS', result);
-      const articleUserAction = result.data.viewer.articleUserAction;
-      const bookmarkData = articleUserAction && articleUserAction.userBookmarkData
-      shouldPopup = !bookmarkData || !bookmarkData.contentId
-      // console.log('SHOULD POPUP', shouldPopup)
+      window.readyForHighlight = true;
+      const { userBookmarkData: bookmarkData, userHighlightData } = articleUserAction;
+      window.shouldPopup = !bookmarkData || !bookmarkData.contentId
       articleId = articleUserAction._id
-      const highlightData = articleUserAction && articleUserAction.userHighlightData && articleUserAction.userHighlightData.highlights;
+      const highlightData = userHighlightData && userHighlightData.highlights;
       const oldHighlight = highlightData && highlightData.length
-      const targets = (oldHighlight && highlightData.map(({ core, prev, next, serialized, _id }) => ({
-        _id,
-        source: url,
-        selector: JSON.parse(serialized),
-      }))) || []
-      // change icon extension
+      const targets = (oldHighlight && highlightData.map(highlightDataToTarget)) || []
       
-      const {userBookmarkData} = articleUserAction
-      if (userBookmarkData && userBookmarkData.contentId) {
+      // change icon extension
+      if (bookmarkData && bookmarkData.contentId) {
         chrome.runtime.sendMessage({ action: 'change-icon' })
       } else {
         chrome.runtime.sendMessage({ action: 'change-icon-outline' })
@@ -369,16 +250,17 @@ function restoreOldHighlight(url) {
           })
         }, 2000); // delay to restore highlight after medium highlight their own
       }
+    })
+    .catch((error) => {
       window.readyForHighlight = true;
-    }).catch((error) => {
-      console.log('CAN NOT RESTORE OLD HIGHLIGHT', error);
-      window.readyForHighlight = true;
+      isSending = false;
       return _renderRestoreOldHighlightError();
     });
 }
 
 function loadProfileToGlobal() {
-  return getProfileFromStorage()
+  return Promise.all([getProfileFromStorage(), getOptionsFromStorage()])
+  .then(([profile, options])=> ({ ...profile, ...options }))
   .then((result) => {
     const { bookmark_token, bookmark_profile, bookmark_hide_circle_highlight } = result;
     token = bookmark_token;
@@ -399,7 +281,7 @@ function handleMouseupToRenderHighlightCircle(e) {
     const highlightHelper = getHighlighter();
     const selection = window.getSelection();
     if (!highlightHelper.canCreateHighlightFromSelection(selection)) {
-      return $(wrapper).css('display', 'none');
+      return $(wrapper).hide();
     }
     renderBtnHighlight()
   });
@@ -427,20 +309,11 @@ function handleCreateHighlight(e) {
         const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
         if (textQuoteSelector) {
           console.log('TRGIGER POST HIHGLIGHT')
-          postHighlight ({ 
-            core: textQuoteSelector.exact,
-            prev: textQuoteSelector.prefix,
-            next: textQuoteSelector.suffix,
-            serialized: JSON.stringify(anchor.target.selector)
-          })
-          .then(result => {
+          return postHighlight(targetToHighlightData(anchor.target))
+          .then(responseData => {
             window.readyForHighlight = true;
-            const highlightData = result.data.user.userhighlightAddOrUpdateOne.record.highlights
+            const highlightData = responseData.record.highlights
             const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
-            console.log({
-              ...anchor.target,
-              ...currentHighlight,
-            });
             renderHighlightCircleFromAnchor({
               ...anchor,
               target: {
@@ -448,11 +321,11 @@ function handleCreateHighlight(e) {
                 ...currentHighlight,
               },
             })
-            if (shouldPopup) {
-              renderPopupForExt();
-              shouldPopup = false
+            if (window.shouldPopup) {
+              renderBookmarkPopup();
+              window.shouldPopup = false
             }
-          })
+          });
         }
       }
     }
@@ -465,15 +338,13 @@ function handleHistoryStateUpdated() {
   token = ''
   isSending = false
   articleId = ''
-  currentPositionBtn = {}
-  shouldPopup = false
+  // currentPositionBtn = {}
+  window.shouldPopup = false
   window.minhhienHighlighter = new window.HighlightHelper();
   const url = document.location.href;
   loadProfileToGlobal()
   .then(() => restoreOldHighlight(url))
-  $(wrapper).css({
-    display: 'none'
-  })
+  $(wrapper).hide()
 }
 
 const debouncedHandleHistoryStateUpdated = debounce(handleHistoryStateUpdated, 500);
@@ -490,9 +361,7 @@ function handleWindowReady(e) {
   )
 
   $(newHighlightCircle).click(handleCreateHighlight)
-  $(wrapper).css({
-    display: 'none'
-  })
+  $(wrapper).hide()
   $('body').append(wrapper)
 
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
@@ -512,7 +381,7 @@ function handleWindowReady(e) {
 
 $(window).on('load', handleWindowReady);
 
-function isDict(str) {return str.length > 0 && str.length < 50000;}
+function validHighlightLength(str) {return str.length > 20 && str.length < 5000;}
 
 function getSelected() {
   if (window.getSelection) return window.getSelection();

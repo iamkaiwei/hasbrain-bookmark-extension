@@ -17,25 +17,34 @@ function updateProfile (data) {
     profile = JSON.parse(bookmark_profile)
     const {id = ''} = profile
     if (!id) return
-    return axios.put(
-      `https://userkit-identity.mstage.io/v1/profiles/${id}`,
-      JSON.stringify(data),
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-USERKIT-TOKEN': bookmark_token
-        }
-      }
-    )
-  }).then(respond => {
-    if (!profile.id || respond.status !== 200) {
-      return
-    }
-    const {hideRecommend = false, highlight_whitelist = []} = respond.data
-    chrome.storage.sync.set({
-      'bookmark_profile': JSON.stringify({...profile, hideRecommend, highlight_whitelist})
+    return getUserkitApiClientByToken(bookmark_token)
+    .updateProfile(id, data)
+    .then(result => {
+      const {hideRecommend = false, highlight_whitelist = []} = result;
+      chrome.storage.sync.set({
+        'bookmark_profile': JSON.stringify({...profile, hideRecommend, highlight_whitelist})
+      })
     })
+    // return axios.put(
+    //   `https://userkit-identity.mstage.io/v1/profiles/${id}`,
+    //   JSON.stringify(data),
+    //   {
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'X-USERKIT-TOKEN': bookmark_token
+    //     }
+    //   }
+    // )
   })
+  // .then(respond => {
+  //   if (!profile.id || respond.status !== 200) {
+  //     return
+  //   }
+  //   const {hideRecommend = false, highlight_whitelist = []} = respond.data
+  //   chrome.storage.sync.set({
+  //     'bookmark_profile': JSON.stringify({...profile, hideRecommend, highlight_whitelist})
+  //   })
+  // })
 }
 
 function renderUserInfo () {

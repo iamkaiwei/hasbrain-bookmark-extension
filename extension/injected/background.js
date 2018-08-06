@@ -22,26 +22,18 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         }
         return apiClient
         .createArticleIfNotExists(data)
-        .then((res) => {
-          if (res.status !== 200) {
-            _renderErrorHighlight()
-            return
-          }
-          const result = res.data
-          if (!result || result.errors) {
-            // _renderErrorHighlight()
-            return
-          }
-          const {data: {user: {articleCreateIfNotExist: {recordId}}}} = result
+        .then((result) => {
+          const { recordId } = result;
           return recordId
         })
         .then(articleId => {
           return apiClient.userbookmarkCreate(articleId)
-        }).then(() => {
-          chrome.browserAction.setIcon({
-            path: '/assets/images/hasbrain-logo-full.png',
-            tabId: tab.id
-          })
+          .then(() => {
+            chrome.browserAction.setIcon({
+              path: '/assets/images/hasbrain-logo-full.png',
+              tabId: tab.id
+            })
+          });
         });
       });
     }

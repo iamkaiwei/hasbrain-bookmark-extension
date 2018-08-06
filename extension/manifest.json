@@ -47,7 +47,9 @@
         "public/js/jwt-decode.js",
         "injected/storageHelper.js",
         "injected/apiClient.js",
+        "injected/getMetadata.js",
         "injected/HighlightHelper.js",
+        "injected/popupRenderer.js",
         "injected/highlight-minhhien.js"
       ],
       "css": [
