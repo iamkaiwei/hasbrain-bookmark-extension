@@ -141,23 +141,6 @@ function handleCreateHighlight(e) {
           .then(result => {
             console.log('POST HIGHLIGH RESULT', result);
             window.readyForHighlight = true;
-            // const highlightData = result.data.user.userhighlightAddOrUpdateOne.record.highlights
-            // const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
-            // console.log({
-            //   ...anchor.target,
-            //   ...currentHighlight,
-            // });
-            // renderHighlightCircleFromAnchor({
-            //   ...anchor,
-            //   target: {
-            //     ...anchor.target,
-            //     ...currentHighlight,
-            //   },
-            // })
-            // if (shouldPopup) {
-            //   renderPopupForExt();
-            //   shouldPopup = false
-            // }
           })
         }
       }
