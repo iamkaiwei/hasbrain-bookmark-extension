@@ -1,3 +1,8 @@
+/**
+ * This is a modified copy of
+ * https://github.com/hypothesis/client/blob/v1.87.0/src/annotator/anchoring/pdf.coffee
+ */
+
 const seek = require('dom-seek');
 
 const xpathRange = require('./range');

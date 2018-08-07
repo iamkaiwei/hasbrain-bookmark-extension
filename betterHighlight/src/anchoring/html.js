@@ -1,3 +1,9 @@
+/**
+ * This is a modified copy of
+ * https://github.com/hypothesis/client/blob/v1.87.0/src/annotator/anchoring/html.coffee
+ */
+
+
 const {
   FragmentAnchor, RangeAnchor, TextPositionAnchor, TextQuoteAnchor
 } = require('./types');
