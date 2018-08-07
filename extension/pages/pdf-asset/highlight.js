@@ -12,7 +12,7 @@ var isSending = false
 
 var originalUrl = null
 
-let shouldPopup = false
+window.shouldPopup = false
 
 const HIGHLIGHT_CIRCLE_WIDTH = 22
 function saveSelection() {
@@ -30,7 +30,8 @@ function restoreOldSelection() {
 }
 
 function loadProfileToGlobal() {
-  return getProfileFromStorage()
+  return Promise.all([getProfileFromStorage(), getOptionsFromStorage()])
+  .then(([profile, options])=> ({ ...profile, ...options }))
   .then((result) => {
     const { bookmark_token, bookmark_profile, bookmark_hide_circle_highlight } = result;
     token = bookmark_token;
@@ -40,31 +41,8 @@ function loadProfileToGlobal() {
   });
 }
 
-// function getMetadata() {
-//   var photo = null, description = null, title = null
-//     og = document.querySelector("meta[property='og:image']"),
-//     des = document.querySelector("meta[name='description']") || document.querySelector("meta[name='og:description']"),
-//     titleTag = document.querySelector("title") || document.querySelector("og:title"),
-//     h1s = document.getElementsByTagName("h1"),
-//     h2s = document.getElementsByTagName("h2"),
-//     h3s = document.getElementsByTagName("h3"),
-//     readingTime = document.body.innerText.split(" ").length / 230,
-//     url = originalUrl,
-//     h1 = [], h2 = [], h3 = []
-
-//   for (var o = 0; o < h1s.length; o++) {h1.push(h1s[o].innerText);}
-//   for (var j = 0; j < h2s.length; j++) {h2.push(h2s[j].innerText);}
-//   for (var k = 0; k < h3s.length; k++) {h3.push(h3s[k].innerText);}
-//   if (des !== null) description = des.getAttribute("content")
-//   if (og !== null) photo = og.getAttribute("content")
-//   if (titleTag) title = titleTag.innerText
-//   return {
-//     url, readingTime, title, photo, description
-//   }
-// }
-
 function _renderErrorHighlight () {
-  isSending = false
+  
   // $(highlightButton).find('span').html('').append(errorIcon)
 }
 
@@ -96,16 +74,14 @@ function postHighlight ({ core, prev, next, serialized }) {
 
     return getApiClientByToken(token)
     .addOrUpdateHighlight(articleId, highlightObject)
-    .then((responseData) => {
-      isSending = false
-      _renderSuccessHighlight()
-      $(wrapper).hide()
-      return responseData
-    }).catch(() => {
-      _renderErrorHighlight()
-    })
-  }).catch(() => {
-    _renderErrorHighlight()
+  })
+  .then((responseData) => {
+    isSending = false
+    $(wrapper).hide()
+    return responseData
+  })
+  .catch(() => {
+    isSending = false
   })
 }
 
@@ -116,22 +92,13 @@ function handleCreateHighlight(e) {
   restoreOldSelection()
 
   const highlightHelper = getHighlighter();
-  const selection = document.getSelection()
-
-  // if (!highlightHelper.canCreateHighlightFromSelection(selection)) {
-  //   return
-  // }
-
-  // highlightHelper.saveRangeBeforeCreateHighlight(selection);
   highlightHelper.createHighlight().then(result => {
-    console.log('AFTER CREATE HIGHLIGHT', result)
     if (result.length) {
       window.getSelection().empty()
       const anchor = result[0];
       if (anchor && anchor.target && anchor.target.selector) {
         const textQuoteSelector = anchor.target.selector.find(({ type }) => type === "TextQuoteSelector");
         if (textQuoteSelector) {
-          console.log('TRGIGER POST HIHGLIGHT')
           postHighlight ({ 
             core: textQuoteSelector.exact,
             prev: textQuoteSelector.prefix,
@@ -140,6 +107,11 @@ function handleCreateHighlight(e) {
           })
           .then(result => {
             console.log('POST HIGHLIGH RESULT', result);
+            console.log('IN HIHGLIGHT AFTER', window.shouldPopup)
+            if (window.shouldPopup) {
+              renderBookmarkPopup();
+              window.shouldPopup = false
+            }
             window.readyForHighlight = true;
           })
         }
@@ -153,18 +125,8 @@ function getHighlighter() {
 }
 
 async function renderBtnHighlight () {
-  console.log('I AM MOUSE UP HIGHLIGHT')
-  saveSelection()
-  // var hideCircle = await checkHidingCircleHighlight()
-  // if (hideCircle) return
-
-
-  // isSending = false
-  // const highlightDataId = 'I_AM_NEW_HAHA';
-  // const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
-  $(wrapper).css({
-    display: 'none'
-  })
+  saveSelection();
+  $(wrapper).hide();
   if (!window.getSelection().toString()) return;
 
   const range =  document.getSelection().getRangeAt(0);
@@ -187,22 +149,18 @@ async function renderBtnHighlight () {
 function restoreOldHighlight(url) {
   if (window.restoringHighlight) return;
   console.log('RESTORING OLD HIGHLIGHT');
-
-  function _renderRestoreOldHighlightError () {
-    isSending = false;
-    console.log('CAN NOT RESTORE OLD HIHGLIGHT')
-  }
-
+  isSending = true;
   getApiClientByToken(token).getOldHighlight(url)
     .then((articleUserAction) => {
-      console.log('OLD HIHGLIHGT', articleUserAction);
       isSending = false;
       window.readyForHighlight = true;
       
       const { userBookmarkData: bookmarkData, userHighlightData } = articleUserAction;
       // const bookmarkData = articleUserAction && articleUserAction.userBookmarkData
-      shouldPopup = !bookmarkData || !bookmarkData.contentId
-      // console.log('SHOULD POPUP', shouldPopup)
+      
+      window.shouldPopup = !bookmarkData || !bookmarkData.contentId
+      console.log('SHOULD POPUP', window.shouldPopup)
+
       articleId = articleUserAction._id
       const highlightData = userHighlightData && userHighlightData.highlights;
       const hasOldHighlights = highlightData && highlightData.length
@@ -229,31 +187,36 @@ function restoreOldHighlight(url) {
     }).catch((error) => {
       console.log('CAN NOT RESTORE OLD HIGHLIGHT', error);
       window.readyForHighlight = true;
-      return _renderRestoreOldHighlightError();
+      isSending = false;
     });
 }
 
 $(window).on('load', () => {
   originalUrl = (new URL(document.location.href)).searchParams.get('file');
   console.log('I AM LOADED', originalUrl);
-  $(newHighlightCircle).click(handleCreateHighlight)
-  $(wrapper).css({
-    display: 'none'
-  })
+  $(newHighlightCircle).click(handleCreateHighlight);
+  $(wrapper).hide();
   $('body').append(wrapper);
+
+  window.shouldPopup = true
   
   setTimeout(() => {
-    window.pdfminhhienHighlighter = new window.PdfHighlighterHelper();
-    loadProfileToGlobal()
-    .then(() => {
-      restoreOldHighlight(originalUrl);
-    });
+    document.addEventListener('textlayerrendered', function (e) {
+      if (e.detail.pageNumber === PDFViewerApplication.page) {
+        window.pdfminhhienHighlighter = new window.PdfHighlighterHelper();
+          loadProfileToGlobal()
+          .then(() => {
+            restoreOldHighlight(originalUrl);
+          });
+      }
+    }, true);
+    
     $(window).mouseup(() => {
       return loadProfileToGlobal()
       .then(() => {
         renderBtnHighlight();
       });
     })
-  }, 1000);
+  }, 500);
   
 });

@@ -50,6 +50,7 @@
         "injected/getMetadata.js",
         "injected/HighlightHelper.js",
         "injected/popupRenderer.js",
+        "injected/debounce.js",
         "injected/highlight.js"
       ],
       "css": [
@@ -57,7 +58,7 @@
       ]
     }
   ],
-  "version": "5.9",
+  "version": "5.10",
   "web_accessible_resources": [
     "/pages/popup.html",
     "/pages/refresh_token.html",

@@ -7291,7 +7291,7 @@ function handleMouseWheel(evt) {
 }
 
 window.addEventListener('DOMMouseScroll', handleMouseWheel);
-window.addEventListener('mousewheel', handleMouseWheel);
+window.addEventListener('mousewheel', debounce(handleMouseWheel, 100));
 
 window.addEventListener('click', function click(evt) {
   if (SecondaryToolbar.opened &&
