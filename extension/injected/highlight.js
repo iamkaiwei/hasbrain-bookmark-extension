@@ -189,7 +189,8 @@ const renderHighlightCircleFromAnchor =  anchor => {
           $(this).removeClass('highlight__circle--outline')
         });
       }
-      removeHighlight(highlightDataId).then(result => {
+      return getApiClientByToken(token).removeHighlight(articleId, highlightId)
+      .then(result => {
         highlightHelper.removeHighlights(anchor.highlights);
         $(this).addClass('highlight__circle--outline')
       })

@@ -261,15 +261,21 @@ const RenderingStates = {
   FINISHED: 3,
 }
 class PdfHighlighterHelper {
-  constructor(highlightHoverHandlerGenerator) {
+  constructor(anchorUpdated) {
     this.documentLoaded = null
     this.anchors = []
+    this.shouldObserveMutation = true
     this.pdfViewer = PDFViewerApplication.pdfViewer;
     this.pdfViewer.viewer.classList.add('has-transparent-text-layer');
     this.root = document.getElementById("viewer");
-    this.highlightHoverHandlerGenerator = highlightHoverHandlerGenerator
+    this.anchorUpdated = anchorUpdated
 
-    this.observer = new MutationObserver(mutations => this._update());
+    this.observer = new MutationObserver(mutations => {
+      console.log(mutations)
+      if (!mutations.some(mutation => mutation.target.className === 'highlight-hasbrain')) {
+        return this._update();
+      }
+    });
     return this.observer.observe(this.pdfViewer.viewer, {
       attributes: true,
       attributeFilter: ['data-loaded'],
@@ -339,12 +345,15 @@ class PdfHighlighterHelper {
       }
     }
     this.anchors = this.anchors.concat(anchors).filter(anchor => anchor.highlights);
+    if (this.anchorUpdated && typeof this.anchorUpdated === 'function') {
+      anchors.filter(anchor => anchor.highlights).forEach(this.anchorUpdated)
+    }
     return anchors;
   };
 
   restoreHighlightFromTargets(targets) {
     const container = this.root;
-    
+    console.log('restoreHighlightFromTargets TARGETs', targets)
     return Promise.all(targets.map(target => {
       const selectors = target.selector
       anchoringPdf.anchor(container, selectors)
@@ -352,6 +361,7 @@ class PdfHighlighterHelper {
           return {
             // annotation: annotation,
             target: {
+              ...target,
               selector: selectors
             },
             range: range
@@ -361,6 +371,12 @@ class PdfHighlighterHelper {
       .then(anchor => [anchor])
       .then(this.sync.bind(this))
     }));
+  }
+
+  removeHighlights(highlights) {
+    this.shouldObserveMutation = false;
+    highlighter.removeHighlights(highlights);
+    this.shouldObserveMutation = true;
   }
 
   _update() {
@@ -427,6 +443,7 @@ class PdfHighlighterHelper {
           return {
             // annotation: annotation,
             target: {
+              ...annotation.target,
               selector: selectors
             },
             range: range
@@ -438,15 +455,9 @@ class PdfHighlighterHelper {
     }
     
     return Promise.all(result)
-    .then(results => {
-      console.log('I AM UPDATED', result);
-      if (this.highlightHoverHandlerGenerator && typeof this.highlightHoverHandlerGenerator === 'function') {
-        const anchors = this.anchors;
-        anchors.forEach(anchor => {
-          console.log('anchor', anchor);
-        })
-      } 
-      return results;
+    .then(refreshedAnnotations => {
+      console.log('I AM UPDATED', refreshedAnnotations);
+      return refreshedAnnotations;
     });
   }
 }

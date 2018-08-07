@@ -2,6 +2,11 @@ const wrapper = $(`<div id="minhhien__highlight__I_AM_NEW_HAHA" class="highlight
 const newHighlightCircle = $(`<div class="highlight__circle"></div>`)
 wrapper.append(newHighlightCircle)
 
+const HIGHLIGHT_CIRCLE_WIDTH = 22
+const HIGHLIGHT_CIRCLE_OFFSET = 20
+const Z_INDEX = 999
+const NEW_HIGHLIGHT_CIRCLE_ID = 'minhhien__highlight__I_AM_NEW_HAHA';
+
 var profile = null
 var hideCircle = false
 var token = ''
@@ -14,9 +19,7 @@ var originalUrl = null
 
 window.shouldPopup = false
 
-const HIGHLIGHT_CIRCLE_WIDTH = 22
 function saveSelection() {
-  // console.log('SAVE SELECTION BEFORE HANDLE OF ON CLICK EVENT')
   if (window.getSelection().toString()) {
     window.minhhienSelectionRange = window.getSelection().getRangeAt(0).cloneRange();
   }
@@ -39,15 +42,6 @@ function loadProfileToGlobal() {
     hideCircle = bookmark_hide_circle_highlight;
     return Promise.resolve(result);
   });
-}
-
-function _renderErrorHighlight () {
-  
-  // $(highlightButton).find('span').html('').append(errorIcon)
-}
-
-function _renderSuccessHighlight () {
-  // $(highlightButton).find('span').html('').append(successHighlightIcon)
 }
 
 function postHighlight ({ core, prev, next, serialized }) {
@@ -105,14 +99,23 @@ function handleCreateHighlight(e) {
             next: textQuoteSelector.suffix,
             serialized: JSON.stringify(anchor.target.selector)
           })
-          .then(result => {
-            console.log('POST HIGHLIGH RESULT', result);
-            console.log('IN HIHGLIGHT AFTER', window.shouldPopup)
+          .then(responseData => {
             if (window.shouldPopup) {
               renderBookmarkPopup();
               window.shouldPopup = false
             }
+            $(wrapper).hide();
             window.readyForHighlight = true;
+            const highlightData = responseData.record.highlights
+            const currentHighlight = highlightData.find(({ prev, core, next }) => prev === textQuoteSelector.prefix && core === textQuoteSelector.exact && next === textQuoteSelector.suffix);
+            renderHighlightCircleFromAnchor({
+              ...anchor,
+              target: {
+                ...anchor.target,
+                ...currentHighlight,
+              },
+            })
+            
           })
         }
       }
@@ -159,7 +162,6 @@ function restoreOldHighlight(url) {
       // const bookmarkData = articleUserAction && articleUserAction.userBookmarkData
       
       window.shouldPopup = !bookmarkData || !bookmarkData.contentId
-      console.log('SHOULD POPUP', window.shouldPopup)
 
       articleId = articleUserAction._id
       const highlightData = userHighlightData && userHighlightData.highlights;
@@ -172,17 +174,15 @@ function restoreOldHighlight(url) {
       // change icon extension
       
       if (bookmarkData && bookmarkData.contentId) {
-        console.log('CHAnGE ICON ')
         chrome.runtime.sendMessage({ action: 'change-icon' })
       } else {
-        console.log('CHAnGE ICON OUTLINE')
         chrome.runtime.sendMessage({ action: 'change-icon-outline' })
       }
 
       // console.log('TARGETS TO RESTORE', targets);
       if (targets.length) {
         const highlightHelper = getHighlighter();
-        highlightHelper.restoreHighlightFromTargets(targets)
+        highlightHelper.restoreHighlightFromTargets(targets);
       }
     }).catch((error) => {
       console.log('CAN NOT RESTORE OLD HIGHLIGHT', error);
@@ -191,19 +191,109 @@ function restoreOldHighlight(url) {
     });
 }
 
+const targetToHighlightData = (target) => {
+  const textQuoteSelector = target.selector.find(({ type }) => type === "TextQuoteSelector");
+  const highlightData = {
+    prev: textQuoteSelector.prefix,
+    core: textQuoteSelector.exact,
+    next: textQuoteSelector.suffix,
+    serialized: JSON.stringify(target.selector)
+  }
+  return highlightData
+}
+
+const renderHighlightCircleFromAnchor = (anchor) => {
+  console.log('renderHighlightCircleFromAnchor', anchor)
+  const { range, highlights, target } = anchor;
+  if(!range || !highlights) return
+  const getOffsetRect = (elements) => {
+    const rects = elements.map(ele => {
+      return $(ele.parentNode).offset()
+  });
+    return rects.reduce(function(acc, r) {
+      return {
+        top: Math.min(acc.top, r.top),
+        left: Math.min(acc.left, r.left),
+      };
+    });
+  }
+  const boundingRect = anchor.range.getBoundingClientRect()
+  const offset = getOffsetRect(highlights)
+  const height = boundingRect.height
+  const currentHighlight = targetToHighlightData(target);
+  const highlightDataId = target._id;
+  const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
+  let selector = null;
+  if (!ele) {
+    const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
+    const highlightCircle = $(`<div class="highlight__circle "></div>`)
+    const highlightHelper = getHighlighter();
+    $(highlightCircle).on('click', function() {
+      if (!highlightDataId) return
+      if ($(this).hasClass('highlight__circle--outline')) {
+        wrapper.remove();
+        const newTarget = target;
+        return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
+        .then((addOrUpdateHighlightResult) => {
+          newTarget._id = addOrUpdateHighlightResult.record.highlights[addOrUpdateHighlightResult.record.highlights.length - 1]._id;
+          console.log('new target', newTarget)
+          return highlightHelper.restoreHighlightFromTargets([newTarget])
+        })
+        .then((result) => {
+          console.log(result)
+          // renderHighlightCircleFromAnchor({
+          //   ...anchor,
+          //   target: newTarget
+          // })
+        })  
+        // .then(addOrUpdateHighlightResult => {
+        //   $(this).removeClass('highlight__circle--outline')
+        // });
+      }
+      return getApiClientByToken(token)
+      .removeHighlight(articleId, highlightDataId)
+      .then(result => {
+        highlightHelper.removeHighlights(highlights);
+        $(this).addClass('highlight__circle--outline')
+      })
+    });
+    
+    $(wrapper).append(highlightCircle)
+    $('#viewer').append(wrapper)
+    selector = $(wrapper)
+  } else {
+    selector = $(`#minhhien__highlight__${highlightDataId}`)
+  }
+  const viewerOffset = $('#viewer').offset()
+  const { top, left, } = offset;
+  const width = boundingRect.width;
+  selector.css({
+    position: 'absolute',
+    left: width + left + HIGHLIGHT_CIRCLE_OFFSET - viewerOffset.left,
+    top: top + height / 2 - HIGHLIGHT_CIRCLE_WIDTH / 2 - viewerOffset.top,
+    display: 'block',
+    'z-index': Z_INDEX
+  })
+}
+
 $(window).on('load', () => {
   originalUrl = (new URL(document.location.href)).searchParams.get('file');
-  console.log('I AM LOADED', originalUrl);
   $(newHighlightCircle).click(handleCreateHighlight);
   $(wrapper).hide();
   $('body').append(wrapper);
 
   window.shouldPopup = true
+
+  window.firstTimeload = true;
   
   setTimeout(() => {
     document.addEventListener('textlayerrendered', function (e) {
       if (e.detail.pageNumber === PDFViewerApplication.page) {
-        window.pdfminhhienHighlighter = new window.PdfHighlighterHelper();
+
+        if (!window.firstTimeload) return;
+        window.firstTimeload = false;
+
+        window.pdfminhhienHighlighter = new window.PdfHighlighterHelper(renderHighlightCircleFromAnchor);
           loadProfileToGlobal()
           .then(() => {
             restoreOldHighlight(originalUrl);

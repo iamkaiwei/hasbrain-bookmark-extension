@@ -6959,14 +6959,14 @@ function webViewerInitialized() {
     });
 
   document.getElementById('zoomIn').addEventListener('click',
-    function() {
+    debounce(function() {
       PDFViewerApplication.zoomIn();
-    });
+    }, 100));
 
   document.getElementById('zoomOut').addEventListener('click',
-    function() {
+    debounce(function() {
       PDFViewerApplication.zoomOut();
-    });
+    }, 100));
 
   document.getElementById('pageNumber').addEventListener('click', function() {
     this.select();

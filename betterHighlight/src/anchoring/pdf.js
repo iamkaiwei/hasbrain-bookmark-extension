@@ -105,7 +105,6 @@ const findPage = function(offset) {
 };
 
 const anchorByPosition = function(page, anchor, options) {
-  console.log('pAGE in anchorByPosition', page && page.textLayer && page.textLayer.renderingDone)
   var div, placeholder, range, ref1, ref2, renderingDone, renderingState, root, selector;
   renderingState = page.renderingState;
   renderingDone = page.textLayer != null ? page.textLayer.renderingDone : undefined;
