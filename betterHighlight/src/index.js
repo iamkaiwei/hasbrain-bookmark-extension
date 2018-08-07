@@ -252,6 +252,23 @@ class HighlightHelper {
     console.log('REMOVE HIHGLIGHTS', highlights)
     return highlighter.removeHighlights(highlights);
   }
+  removeHighlightsFromAnchor(anchor) {
+    const { highlights } = anchor
+    if (highlights && highlights.length) {
+      highlighter.removeHighlights(highlights);
+    }
+
+    if (anchor.target && anchor.target._id) {
+      // try remove by target id
+      this.anchors = this.anchors.filter(ele => !ele.target || ele.target._id !== anchor.target._id);
+    }
+
+    if (anchor.target) {
+      // try remove by target
+      return this.anchors = this.anchors.filter(ele => ele.target !== anchor.target); 
+    }
+    return this.anchors = this.anchors.filter(ele => ele !== anchor); 
+  }
 }
 
 const RenderingStates = {
@@ -373,10 +390,22 @@ class PdfHighlighterHelper {
     }));
   }
 
-  removeHighlights(highlights) {
-    this.shouldObserveMutation = false;
-    highlighter.removeHighlights(highlights);
-    this.shouldObserveMutation = true;
+  removeHighlightsFromAnchor(anchor) {
+    const { highlights } = anchor
+    if (highlights && highlights.length) {
+      highlighter.removeHighlights(highlights);
+    }
+
+    if (anchor.target && anchor.target._id) {
+      // try remove by target id
+      this.anchors = this.anchors.filter(ele => !ele.target || ele.target._id !== anchor.target._id);
+    }
+
+    if (anchor.target) {
+      // try remove by target
+      return this.anchors = this.anchors.filter(ele => ele.target !== anchor.target); 
+    }
+    return this.anchors = this.anchors.filter(ele => ele !== anchor); 
   }
 
   _update() {

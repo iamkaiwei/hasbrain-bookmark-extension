@@ -203,7 +203,7 @@ const targetToHighlightData = (target) => {
 }
 
 const renderHighlightCircleFromAnchor = (anchor) => {
-  console.log('renderHighlightCircleFromAnchor', anchor)
+  console.log('renderHighlightCircleFromAnchor', anchor.target._id)
   const { range, highlights, target } = anchor;
   if(!range || !highlights) return
   const getOffsetRect = (elements) => {
@@ -231,12 +231,15 @@ const renderHighlightCircleFromAnchor = (anchor) => {
     $(highlightCircle).on('click', function() {
       if (!highlightDataId) return
       if ($(this).hasClass('highlight__circle--outline')) {
-        wrapper.remove();
-        const newTarget = target;
+        $(wrapper).remove();
+        $(this).remove();
+        const newTarget = {
+          selector: target.selector
+        };
         return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
         .then((addOrUpdateHighlightResult) => {
           newTarget._id = addOrUpdateHighlightResult.record.highlights[addOrUpdateHighlightResult.record.highlights.length - 1]._id;
-          console.log('new target', newTarget)
+          console.log('new target', newTarget._id);
           return highlightHelper.restoreHighlightFromTargets([newTarget])
         })
         .then((result) => {
@@ -253,7 +256,7 @@ const renderHighlightCircleFromAnchor = (anchor) => {
       return getApiClientByToken(token)
       .removeHighlight(articleId, highlightDataId)
       .then(result => {
-        highlightHelper.removeHighlights(highlights);
+        highlightHelper.removeHighlightsFromAnchor(anchor);
         $(this).addClass('highlight__circle--outline')
       })
     });

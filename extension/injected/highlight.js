@@ -181,17 +181,29 @@ const renderHighlightCircleFromAnchor =  anchor => {
     $(highlightCircle).on('click', function() {
       if (!highlightDataId) return
       if ($(this).hasClass('highlight__circle--outline')) {
-        highlightHelper.restoreHighlightFromTargets([target])
-        .then(() => {
-          return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
-        })  
-        .then(addOrUpdateHighlightResult => {
-          $(this).removeClass('highlight__circle--outline')
-        });
+        $(wrapper).remove();
+        $(this).remove();
+        const newTarget = {
+          selector: target.selector
+        };
+        return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
+        .then((addOrUpdateHighlightResult) => {
+          newTarget._id = addOrUpdateHighlightResult.record.highlights[addOrUpdateHighlightResult.record.highlights.length - 1]._id;
+          console.log('new target', newTarget._id);
+          return highlightHelper.restoreHighlightFromTargets([newTarget])
+        })
+        .then(([anchor]) => renderHighlightCircleFromAnchor(anchor))
+        // highlightHelper.restoreHighlightFromTargets([target])
+        // .then(() => {
+        //   return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
+        // })  
+        // .then(addOrUpdateHighlightResult => {
+        //   $(this).removeClass('highlight__circle--outline')
+        // });
       }
-      return getApiClientByToken(token).removeHighlight(articleId, highlightId)
+      return getApiClientByToken(token).removeHighlight(articleId, highlightDataId)
       .then(result => {
-        highlightHelper.removeHighlights(anchor.highlights);
+        highlightHelper.removeHighlightsFromAnchor(anchor);
         $(this).addClass('highlight__circle--outline')
       })
     });
