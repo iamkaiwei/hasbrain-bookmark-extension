@@ -2005,8 +2005,8 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
 
 .highlight__circle {
   background-color: #35affc50;
-  width: 22px;
-  height: 22px;
+  /* width: 22px;
+  height: 22px; */
   border: 1px solid #35affc;
   border-radius: 50%;
   cursor: pointer;
@@ -2025,11 +2025,11 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
   background-color: white;
 }
 
-.highlight__circle-wrapper .comment__block {
+/* .highlight__circle-wrapper .comment__block {
   display: none;
   opacity: 1;
   visibility: visible;
   position: absolute;
   right: calc(100% - 22px);
   width: 260px;
-}
+} */

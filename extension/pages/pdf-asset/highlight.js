@@ -2,8 +2,8 @@ const wrapper = $(`<div id="minhhien__highlight__I_AM_NEW_HAHA" class="highlight
 const newHighlightCircle = $(`<div class="highlight__circle"></div>`)
 wrapper.append(newHighlightCircle)
 
-const HIGHLIGHT_CIRCLE_WIDTH = 22
-const HIGHLIGHT_CIRCLE_OFFSET = 20
+const HIGHLIGHT_CIRCLE_WIDTH = 14
+const HIGHLIGHT_CIRCLE_OFFSET = 5
 const Z_INDEX = 999
 const NEW_HIGHLIGHT_CIRCLE_ID = 'minhhien__highlight__I_AM_NEW_HAHA';
 
@@ -136,11 +136,16 @@ async function renderBtnHighlight () {
   const boundingRect = range.getBoundingClientRect();
   const topOffset = boundingRect.top > 0 ? boundingRect.top + (boundingRect.height / 2) : boundingRect.bottom / 2
   const top = window.scrollY + topOffset
+  const viewerOffset = $('#viewer').offset()
   currentPositionBtn = {
-    top: top - HIGHLIGHT_CIRCLE_WIDTH / 2,
-    left: boundingRect.width + boundingRect.left + 20// ($(document).width() - boundingRect.right) / 2
+    top: top - (HIGHLIGHT_CIRCLE_WIDTH  * PDFView.currentScaleValue) / 2 - viewerOffset.top,
+    left: boundingRect.width + boundingRect.left + HIGHLIGHT_CIRCLE_OFFSET * PDFView.currentScaleValue  - viewerOffset.left // ($(document).width() - boundingRect.right) / 2
   }
   $(newHighlightCircle).addClass('highlight__circle--outline')
+  $(newHighlightCircle).css({
+    width: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
+    height: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
+  });
   $(wrapper).css({
     ...currentPositionBtn,
     position: 'absolute',
@@ -224,9 +229,11 @@ const renderHighlightCircleFromAnchor = (anchor) => {
   const highlightDataId = target._id;
   const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
   let selector = null;
+  let circleSelector = null;
   if (!ele) {
     const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
     const highlightCircle = $(`<div class="highlight__circle "></div>`)
+    
     const highlightHelper = getHighlighter();
     $(highlightCircle).on('click', function() {
       if (!highlightDataId) return
@@ -264,16 +271,22 @@ const renderHighlightCircleFromAnchor = (anchor) => {
     $(wrapper).append(highlightCircle)
     $('#viewer').append(wrapper)
     selector = $(wrapper)
+    circleSelector = $(highlightCircle)
   } else {
     selector = $(`#minhhien__highlight__${highlightDataId}`)
+    circleSelector = $(selector).children().first()
   }
+  circleSelector.css({
+    width: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
+    height: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
+  });
   const viewerOffset = $('#viewer').offset()
   const { top, left, } = offset;
   const width = boundingRect.width;
   selector.css({
     position: 'absolute',
-    left: width + left + HIGHLIGHT_CIRCLE_OFFSET - viewerOffset.left,
-    top: top + height / 2 - HIGHLIGHT_CIRCLE_WIDTH / 2 - viewerOffset.top,
+    left: width + left + HIGHLIGHT_CIRCLE_OFFSET * PDFView.currentScaleValue - viewerOffset.left,
+    top: top + height / 2 - (HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue) / 2 - viewerOffset.top,
     display: 'block',
     'z-index': Z_INDEX
   })
@@ -283,7 +296,7 @@ $(window).on('load', () => {
   originalUrl = (new URL(document.location.href)).searchParams.get('file');
   $(newHighlightCircle).click(handleCreateHighlight);
   $(wrapper).hide();
-  $('body').append(wrapper);
+  $('#viewer').append(wrapper);
 
   window.shouldPopup = true
 
