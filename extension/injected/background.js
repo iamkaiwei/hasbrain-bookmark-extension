@@ -1,12 +1,9 @@
 chrome.browserAction.onClicked.addListener(function(tab) {
-  console.log('I AM CLICKED BACKGROUND', tab.url);
    const url = new URL(tab.url)
    const fromExtension = url.protocol === 'chrome-extension:';
-   console.log('from ext', fromExtension);
    if (fromExtension) {
     const pdfFile = url.searchParams.get('file');
 
-   console.log('PDF', pdfFile);
     let apiClient;
     if (pdfFile) {
       getProfileFromStorage()
@@ -48,7 +45,6 @@ chrome.runtime.onMessageExternal.addListener(function(
   var action = request.action;
   var source = request.source || {};
   if (action === "sign-in") {
-    console.log("source", source.data);
     chrome.storage.sync.set({
       bookmark_profile: JSON.stringify(source.data.profiles[0]),
       bookmark_token: source.data.token,
@@ -114,7 +110,6 @@ chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
 chrome.tabs.onCreated.addListener(function(tab) {
   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
     chrome.storage.sync.get(['bookmark_profile'], result => {
-      console.log(result.bookmark_profile)
       if (result.bookmark_profile) {
         return chrome.tabs.update(tab.id, {
           url: `http://pin.hasbrain.com/#/`
@@ -175,18 +170,6 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(handleHistoryStateUpdated
     schemes: ['http', 'https']
   }]
 });
-
-
-
-// chrome.webNavigation.onBeforeNavigate.addListener(() => console.log('onBeforeNavigate'))
-// chrome.webNavigation.onCommitted.addListener(() => console.log('onCommitted'))
-// chrome.webNavigation.onDOMContentLoaded.addListener(() => console.log('onDOMContentLoaded'))
-// chrome.webNavigation.onCompleted.addListener(() => console.log('onCompleted'))
-// chrome.webNavigation.onErrorOccurred.addListener(() => console.log('onErrorOccurred'))
-// chrome.webNavigation.onCreatedNavigationTarget.addListener(() => console.log('onCreatedNavigationTarget'))
-// chrome.webNavigation.onReferenceFragmentUpdated.addListener(() => console.log('onReferenceFragmentUpdated'))
-// chrome.webNavigation.onTabReplaced.addListener(() => console.log('onTabReplaced'))
-// chrome.webNavigation.onHistoryStateUpdated.addListener(() => console.log('onHistoryStateUpdated'))
 
 /**
  * Check if the request is a PDF file.
