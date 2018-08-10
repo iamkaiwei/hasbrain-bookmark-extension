@@ -13,8 +13,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
       .then((result) => {
         const { bookmark_token, bookmark_profile, bookmark_hide_circle_highlight } = result;
         const token = bookmark_token;
-        // profile = bookmark_profile && JSON.parse(bookmark_profile);
-        // hideCircle = bookmark_hide_circle_highlight;
         apiClient = getApiClientByToken(token);
         const data = {
           title: tab.title,
@@ -115,8 +113,16 @@ chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
 
 chrome.tabs.onCreated.addListener(function(tab) {
   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
-    chrome.tabs.update(tab.id, {
-      url: `http://pin.hasbrain.com/#/`
+    chrome.storage.sync.get(['bookmark_profile'], result => {
+      console.log(result.bookmark_profile)
+      if (result.bookmark_profile) {
+        return chrome.tabs.update(tab.id, {
+          url: `http://pin.hasbrain.com/#/`
+        })
+      }
+      return chrome.tabs.update(tab.id, {
+        url: `http://pin.hasbrain.com/#/get-started`
+      })
     })
   }
 })
