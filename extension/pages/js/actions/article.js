@@ -187,7 +187,6 @@ function getArticleUser(filter = {}) {
             }
             userHighlightData {
               articleId
-              highlight
               state
               createdAt
               updatedAt
