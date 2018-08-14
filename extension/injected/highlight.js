@@ -353,7 +353,11 @@ function handleHistoryStateUpdated() {
   token = ''
   isSending = false
   articleId = ''
-  // currentPositionBtn = {}
+
+  // remove iframe
+  removeElementById('iframe_popup')
+  removeElementById('iframe_rt')
+
   window.shouldPopup = true
   window.minhhienHighlighter = new window.HighlightHelper();
   const url = document.location.href;

@@ -46,9 +46,8 @@ function _renderError(text) {
 }
 
 function getAllTopics() {
-  getUserTopics().then(result => {
-    if (!result || result.errors) return
-    const { count, hits = [] } = result.data
+  return getApiClientByToken(token).getUserTopics().then(result => {
+    const { count, hits = [] } = result
     const topicList = $('#topic__list')
     userTopics = hits
   })
@@ -150,18 +149,18 @@ function _buildTopicList() {
           .hasClass('checked')
       ) {
         isChecked = false
-        topicRemoveContent({
+        getApiClientByToken(token).topicRemoveContent({
           articleId,
           topicId: item._id,
           levelId: selectedLevel._id
         })
           .then(result => {
-            if (!result || result.errors) {
-              $(this)
-                .find('.ui.checkbox')
-                .checkbox(`set checked`)
-              return
-            }
+            // if (!result || result.errors) {
+            //   $(this)
+            //     .find('.ui.checkbox')
+            //     .checkbox(`set checked`)
+            //   return
+            // }
             const index = selectedTopicIds.indexOf(item._id)
             selectedTopicIds.splice(index, 1)
           })
@@ -172,18 +171,18 @@ function _buildTopicList() {
           })
       } else {
         isChecked = true
-        topicAddContent({
+        getApiClientByToken(token).topicAddContent({
           articleId,
           topicId: item._id,
           levelId: selectedLevel._id
         })
           .then(result => {
-            if (!result || result.errors) {
-              $(this)
-                .find('.ui.checkbox')
-                .checkbox(`set unchecked`)
-              return
-            }
+            // if (!result || result.errors) {
+            //   $(this)
+            //     .find('.ui.checkbox')
+            //     .checkbox(`set unchecked`)
+            //   return
+            // }
             selectedTopicIds.push(item._id)
           })
           .catch(err => {
@@ -273,52 +272,39 @@ function _buildTopicList() {
 }
 
 function _bookmarkArticle() {
-  articleCreateIfNotExist(bookmarkData)
-  .then(function(res) {
-    if (res.status !== 200) return
-    const result = res.data
-    if (!result || result.errors) {
-      return
-    }
-    const {
-      data: {
-        user: {
-          articleCreateIfNotExist: {
-            recordId,
-            record: { sourceImage, title, sourceData }
-          }
-        }
-      }
-    } = result
+  return getApiClientByToken(token).createArticleIfNotExists(bookmarkData)
+  .then(articleData => {
+    const { recordId } = articleData
     articleId = recordId
-    userbookmarkCreate(recordId)
-      .then(res => {
-        if (res.status !== 200) {
-          _renderError('Error bookmark!')
-          return
-        }
-        _renderSuccess('saved to read it later')
-        $('#save-to-topics').checkbox('set unchecked')
-        $('#series__section').show()
-        $('#review__title').text(title)
-        $('#review__image').css({
-          'background-image': `url(${sourceImage})`
-        })
-        $('#review__source-image').css({
-          'background-image': `url(${(sourceData &&
-            sourceData.sourceImage) ||
-            '/assets/images/hasbrain-logo-grey.png'})`
-        })
-        _buildTopicList()
+    return Promise.all[
+      getApiClientByToken(token).userbookmarkCreate(recordId),
+      Promise.resolve(article)
+    ]
+  })
+  .then(results => {
+    // if (res.status !== 200) {
+    //   _renderError('Error bookmark!')
+    //   return
+    // }
+    const articleData = results[1];
+    const { record: { sourceImage, title, sourceData } } = articleData
+    _renderSuccess('saved to read it later')
+    $('#save-to-topics').checkbox('set unchecked')
+    $('#series__section').show()
+    $('#review__title').text(title)
+    $('#review__image').css({
+      'background-image': `url(${sourceImage})`
+    })
+    $('#review__source-image').css({
+      'background-image': `url(${(sourceData &&
+        sourceData.sourceImage) ||
+        '/assets/images/hasbrain-logo-grey.png'})`
+    })
+    _buildTopicList()
 
-        // change extension icon when bookmark successfully
-        chrome.runtime.sendMessage({ action: 'change-icon' })
-        // getBookmarkList()
-      })
-      .catch(err => {
-        console.log(err)
-        _renderError('Error bookmark!')
-      })
+    // change extension icon when bookmark successfully
+    chrome.runtime.sendMessage({ action: 'change-icon' })
+    // apiClientByToken(token).getUserBookmarkList()
   })
   .catch(err => {
     console.log(err)
@@ -335,10 +321,10 @@ function _buildOldData () {
 
   if (!userBookmarkData) {
     // TODO: bookmark article again if it is NULL
-    userbookmarkCreate(articleId).then(res => {
-      if (res.status !== 200) {
-        return
-      }
+    getApiClientByToken(token).userbookmarkCreate(articleId).then(res => {
+      // if (res.status !== 200) {
+      //   return
+      // }
       _renderSuccess('saved to read it later')
     })
   }
@@ -387,18 +373,25 @@ $(document).ready(function() {
     const record = { ...bookmarkData }
     _renderExecuting('page getting data')
     getAllTopics()
-    getArticleUser({
+    getApiClientByToken(token).getArticleUser({
       url: record.url
     }).then(result => {
-      if (result.data === null) return _bookmarkArticle()
+      // if (!result) return _bookmarkArticle()
       // _renderSuccess('page saved')
-      article = result.data
+      article = result
       articleId = article._id
       _buildOldData()
       // Get all user topics
       _buildTopicList()
       // Get all user topics
-    }).catch(err => {
+    })
+    .catch(err => {
+      if (err === ContentkitApiClient.NOT_FOUND) {
+        return _bookmarkArticle()
+      }
+      return Promise.reject(err);
+    })
+    .catch(err => {
       console.log(err)
       _renderError('Error bookmark!')
     })
@@ -470,32 +463,23 @@ $(document).ready(function() {
         clearTimeout(toRenderStatusText)
         toRenderStatusText = null
       }
-      topicCreate({
+      getApiClientByToken(token).topicCreate({
         title: searchTopicText.trim(),
         privacy: newTopicPrivacy ? 'everyone' : 'private'
-      }).then(result => {
-        if (!result || result.errors) {
-          $('#topic__loading').remove()
-          $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
-          setTimeout(() => {
-            $('#topic__error').hide().find('span').text('')
-          }, 1500)
-          _renderSuccess('')
-          return
-        }
+      }).then(topicCreateData => {
         newTopicPrivacy = null
         searchTopicText = ''
         $('#topic__search > input').val('')
 
-        const { record } = result.data
+        const { record } = topicCreateData
         userTopics.unshift({ _id: record._id, _source: record })
         _buildTopicList()
-        topicAddContent({
+        getApiClientByToken(token).topicAddContent({
           articleId,
           topicId: record._id,
           levelId: selectedLevel._id
         }).then(result => {
-          if (!result || result.errors) return
+          // if (!result || result.errors) return
           selectedTopicIds.push(record._id)
           _renderSuccess('moved to topic')
           toRenderStatusText = setTimeout(() => {
@@ -509,6 +493,11 @@ $(document).ready(function() {
       }).catch(err => {
         console.log(err)
         $('#topic__loading').remove()
+        $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
+          setTimeout(() => {
+            $('#topic__error').hide().find('span').text('')
+          }, 1500)
+          _renderSuccess('')
         _renderSuccess('')
       })
       return
@@ -551,20 +540,20 @@ $(document).ready(function() {
     $('#series__section').remove()
 
     _renderExecuting('Bookmark Archiving...')
-    bookmarkArchive(articleId)
+    getApiClientByToken(token).bookmarkArchive(articleId)
       .then(res => {
-        if (res.status !== 200) {
-          _renderError('Bookmark Archive Error!')
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          _renderError('Bookmark Archive Error!')
-          return
-        }
+        // if (res.status !== 200) {
+        //   _renderError('Bookmark Archive Error!')
+        //   return
+        // }
+        // const result = res.data
+        // if (!result || result.errors) {
+        //   _renderError('Bookmark Archive Error!')
+        //   return
+        // }
         _renderSuccess('Bookmark archived')
         chrome.runtime.sendMessage({ action: 'change-icon-outline' })
-        getBookmarkList()
+        apiClientByToken(token).getUserBookmarkList()
       })
       .catch(() => {
         _renderError('Bookmark Archive Error!')
@@ -574,21 +563,21 @@ $(document).ready(function() {
     $('#setting__block').removeClass('show')
     $('#series__section, #setting__block').remove()
     _renderExecuting('Bookmark removing...')
-    bookmarkRemove(articleId)
+    apiClientByToken(token).bookmarkRemove(articleId)
       .then(res => {
-        if (res.status !== 200) {
-          _renderError('Bookmark Remove Error!')
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          _renderError('Bookmark Remove Error!')
-          return
-        }
+        // if (res.status !== 200) {
+        //   _renderError('Bookmark Remove Error!')
+        //   return
+        // }
+        // const result = res.data
+        // if (!result || result.errors) {
+        //   _renderError('Bookmark Remove Error!')
+        //   return
+        // }
         _renderSuccess('Bookmark removed')
         // change icon outline when remove bookmark
         chrome.runtime.sendMessage({ action: 'change-icon-outline' })
-        getBookmarkList()
+        apiClientByToken(token).getUserBookmarkList()
       })
       .catch(() => {
         _renderError('Bookmark Remove Error!')
@@ -601,9 +590,9 @@ $(document).ready(function() {
 
   const difficulty__levels = $('#difficulty__levels')
 
-  getLevels().then(result => {
-    if (!result || result.errors) return
-    levels = result.data
+  getApiClientByToken(token).getLevels().then(levels => {
+    // if (!result || result.errors) return
+    // levels = result.data
 
     // levels.map(level => {
     //   const difficulty__level = $(`
@@ -640,22 +629,22 @@ $(document).ready(function() {
     _renderExecuting('comment saving...')
     if (!isExecuting) isExecuting = true
     $(this).addClass('loading')
-    postComment({
+    apiClientByToken(token).postComment({
       articleId,
       comment: $('#comment__text').val(),
       isPublic: isPublicComment
     })
       .then(res => {
         $(this).removeClass('loading')
-        if (res.status !== 200) {
-          _renderError('comment saved error!')
-          return
-        }
-        const result = res.data
-        if (!result || result.errors) {
-          _renderError('comment saved error!')
-          return
-        }
+        // if (res.status !== 200) {
+        //   _renderError('comment saved error!')
+        //   return
+        // }
+        // const result = res.data
+        // if (!result || result.errors) {
+        //   _renderError('comment saved error!')
+        //   return
+        // }
         _renderSuccess('comment saved')
 
         toRenderStatusText = setTimeout(() => {

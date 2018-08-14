@@ -1,10 +1,18 @@
 const productionApi = "https://contentkit-api.mstage.io/graphql";
 const stagingApi = "https://contentkit-api-staging.mstage.io/graphql";
-
+const usStagingApi = "https://contentkit-api-staging-us.mstage.io/graphql";
+const baseURL = usStagingApi;
 const userkitBaseUrl = 'https://userkit-identity.mstage.io/v1';
 
 const authorizationToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY";
+
+const topicOutput = `
+  title
+  privacy
+`
+
+const NOT_FOUND = 'NOT_FOUND';
 
 class ContentkitApiClient {
   constructor(token) {
@@ -17,7 +25,7 @@ class ContentkitApiClient {
       return data;
     }
     this.apiClient = axios.create({
-      baseURL: stagingApi,
+      baseURL: baseURL,
       headers: {
         'Content-Type': 'application/json',
         authorization: authorizationToken,
@@ -27,6 +35,8 @@ class ContentkitApiClient {
       transformResponse: [JSON.parse, validateResponse]
     });
   }
+  
+  // -------- highlight ----------
   getOldHighlight(url) {
     return this.apiClient.post("/", {
       query: `
@@ -59,7 +69,7 @@ class ContentkitApiClient {
     })
     .then(response => {
       const { articleUserAction } = response.data.viewer;
-      if (!articleUserAction) return Promise.reject('NOT_FOUND');
+      if (!articleUserAction) return Promise.reject(NOT_FOUND);
       return Promise.resolve(articleUserAction);
     });
   }
@@ -97,10 +107,11 @@ class ContentkitApiClient {
     })
     .then(response => {
       const { userhighlightAddOrUpdateOne } = response.data.user;
-      if (!userhighlightAddOrUpdateOne) return Promise.reject('NOT_FOUND');
+      if (!userhighlightAddOrUpdateOne) return Promise.reject(NOT_FOUND);
       return Promise.resolve(userhighlightAddOrUpdateOne);
      });
   }
+  // -------- highlight ----------
 
   createArticleIfNotExists({
     title,
@@ -122,6 +133,15 @@ class ContentkitApiClient {
             user{
               articleCreateIfNotExist(record: $record) {
                 recordId
+                record {
+                  tags
+                  title
+                  sourceImage
+                  sourceData {
+                    sourceImage
+                  }
+                }
+                isBookmarked
               }
             }
           }
@@ -132,7 +152,7 @@ class ContentkitApiClient {
     })
     .then(response => {
       const { articleCreateIfNotExist } = response.data.user;
-      if (!articleCreateIfNotExist) return Promise.reject('NOT_FOUND');
+      if (!articleCreateIfNotExist) return Promise.reject(NOT_FOUND);
       return Promise.resolve(articleCreateIfNotExist);
     });
   }
@@ -153,10 +173,12 @@ class ContentkitApiClient {
     })
     .then(response => {
       const { userHighlightRemoveOne } = response.data.user;
-      if (!userHighlightRemoveOne) return Promise.reject('NOT_FOUND');
+      if (!userHighlightRemoveOne) return Promise.reject(NOT_FOUND);
       return Promise.resolve(userHighlightRemoveOne);
     });
   }
+
+  // -------- bookmark --------
   userbookmarkCreate(articleId) {
     return this.apiClient.post('/', {
       query: `
@@ -174,11 +196,437 @@ class ContentkitApiClient {
     })
     .then(response => {
       const { userbookmarkCreate } = response.data.user;
-      if (!userbookmarkCreate) return Promise.reject('NOT_FOUND');
+      if (!userbookmarkCreate) return Promise.reject(NOT_FOUND);
       return Promise.resolve(userbookmarkCreate);
     });
   }
+
+  userbookmarkRemove(articleId) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation {
+          user {
+            bookmarkRemoveOne (
+              filter: {
+                contentId: "${articleId}"
+              }
+            ) {
+              recordId
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { bookmarkRemoveOne } = response.data.user;
+      if (!bookmarkRemoveOne) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(bookmarkRemoveOne);
+    });
+  }
+
+  userbookmarkArchive(articleId) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation {
+          user {
+            bookmarkUpdateOne (
+              record: {
+                state: ${'archived'}
+              },
+              filter: {
+                contentId: "${articleId}"
+              }
+            ) {
+              recordId
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { bookmarkArchiveOne } = response.data.user;
+      if (!bookmarkArchiveOne) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(bookmarkArchiveOne);
+    });
+  }
+
+  getUserBookmarkList() {
+    return this.apiClient.post("/", {
+      query: `
+      query{
+        viewer{
+          userbookmarkPagination(
+            perPage: 200,
+            filter: {
+              state: published
+            }
+          ) {
+            items {
+              content{
+                contentId
+              }
+            }
+          }
+        }
+      }
+    `
+    })
+    .then(response => {
+      const { userbookmarkPagination } = response.data.viewer;
+      if (!userbookmarkPagination) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(userbookmarkPagination);
+    });;
+  }
+
+  getArticleUser(filter = {}) {
+    return this.apiClient.post("/", {
+      query: `
+        query($filter: articleUserActionFilter){
+          viewer{
+            articleUserAction(filter: $filter) {
+              _id
+              title
+              sourceImage
+              topicData {
+                _id
+                privacy
+                forkedFrom
+                gitlabProjectId
+                gitlabUserName
+                title
+                state
+                kind
+              }
+              sourceData {
+                title
+                sourceId
+                sourceImage
+              }
+              userCommentData {
+                articleId
+                comment
+                state
+                createdAt
+                updatedAt
+                profileId
+                projectId
+                wasNew
+                isPublic
+              }
+              userBookmarkData {
+                contentId
+                kind
+                state
+                createdAt
+                updatedAt
+                profileId
+                projectId
+              }
+              userHighlightData {
+                articleId
+                state
+                createdAt
+                updatedAt
+                profileId
+                projectId
+                wasNew
+                isPublic
+              }
+            }
+          }
+        }
+      `,
+      variables: { filter }
+    })
+    .then(response => {
+      const { articleUserAction } = response.data.viewer;
+      if (!articleUserAction) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(articleUserAction);
+    });;
+  }
+  // -------- bookmark --------
+
+  // -------- topic --------
+  searchTopics({text}) {
+    return this.apiClient.post("/", {
+      query: `
+        query {
+          viewer {
+            topicSearch(
+              query: {
+                bool: {
+                  must: [
+                    {
+                      query_string: {
+                        query: "${text}",
+                        default_operator: or
+                      }
+                    },
+                    {
+                      term: {
+                        state: {
+                          value: "published"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              limit: 20,
+              skip: 0
+            ) {
+              count
+              hits{
+                _id
+                _source {
+                  title
+                  privacy
+                }
+              }
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { topicSearch } = response.data.viewer;
+      if (!topicSearch) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(topicSearch);
+    });
+  }
+
+  getUserTopics() {
+    return this.apiClient.post("/", {
+      query: `
+        query{
+          viewer{
+            topicSearchUser {
+              count
+              hits {
+                _id
+                _source {
+                  title
+                  privacy
+                }
+              }
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { topicSearchUser } = response.data.viewer;
+      if (!topicSearchUser) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(topicSearchUser);
+    });
+  }
+
+  articleAddTopic({articleId = '', topicId = '', levelId = ''}) {
+    return this.apiClient.post('/', {
+      query:`
+        mutation{
+          user{
+            articleAddTopic(record: {
+              topicId: "${topicId}",
+              levelId: "${levelId}"
+            }, filter: {
+              _id: "${articleId}",
+            }) {
+              _id
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { articleAddTopic } = response.data.user;
+      if (!articleAddTopic) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(articleAddTopic);
+    });
+  }
+
+  articleAddTopicsLevel({articleId = '', topicIds = [], levelId = ''}) {
+    return this.apiClient.post('/', {
+      query:`
+        mutation ($topicIds: [ID]){
+          user{
+            articleAddTopicsLevel(record: {
+              topicIds: $topicIds,
+              levelId: "${levelId}"
+            }, filter: {
+              _id: "${articleId}",
+            }) {
+              title
+            }
+          }
+        }
+      `, 
+      variables: {topicIds}
+    })
+    .then(response => {
+      const { articleAddTopicsLevel } = response.data.user;
+      if (!articleAddTopicsLevel) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(articleAddTopicsLevel);
+    });
+  }
+
+  topicAddContent({articleId = '' ,topicId = '', levelId = ''}) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation{
+          user{
+            topicAddContent(record: {
+            contentId: "${articleId}"
+              levelId: "${levelId}"
+            }, filter: {
+              _id: "${topicId}"
+            }) {
+              _id
+              ${topicOutput}
+            }
+          }
+        }`
+    })
+    .then(response => {
+      const { topicAddContent } = response.data.user;
+      if (!topicAddContent) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(topicAddContent);
+    });
+  }
+
+  topicRemoveContent({articleId = '' ,topicId = '', levelId = ''}) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation{
+          user{
+            topicRemoveContent(record: {
+            contentId: "${articleId}"
+              levelId: "${levelId}"
+            }, filter: {
+              _id: "${topicId}"
+            }) {
+              _id
+              ${topicOutput}
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { topicRemoveContent } = response.data.user;
+      if (!topicRemoveContent) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(topicRemoveContent);
+    });
+  }
+
+  topicUpdate({topicId = '', record = {}}) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation ($record: UpdateOnetopictypeInput!) {
+          user {
+            topicUpdateOne(
+              record: $record,
+              filter: {
+                _id: "${topicId}"
+              }
+            ) {
+              recordId
+            }
+          }
+        }
+      `,
+      variables: {
+        record
+      }
+    })
+    .then(response => {
+      const { topicUpdateOne } = response.data.user;
+      if (!topicUpdateOne) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(topicUpdateOne);
+    });
+  }
+
+  topicCreate({title = '', privacy = 'private'}) {
+    return this.apiClient.post('/', {
+      query: `
+        mutation {
+          user {
+            topicCreate(
+              record: {
+                title: "${title}",
+                privacy: ${privacy}
+              }
+            ) {
+              recordId
+              record {
+                privacy
+                _id
+                title
+              }
+            }
+          }
+        }
+      `
+    })
+    .then(response => {
+      const { topicCreate } = response.data.user;
+      if (!topicCreate) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(topicCreate);
+    });
+  }
+  // -------- topic --------
+
+  // -------- common --------
+  getLevels() {
+    return this.apiClient.post("/", {
+      query: `
+      query{
+        viewer{
+          levelMany {
+            _id
+            title
+            levelNumber
+          }
+        }
+      }
+    `
+    })
+    .then(response => {
+      const { levelMany } = response.data.viewer;
+      if (!levelMany) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(levelMany);
+    });
+  }
+
+  postComment({articleId = '', comment = '', isPublic = false}) {
+    return this.apiClient.post("/", {
+      query: `
+        mutation ($comment: String) {
+          user {
+            userCommentCreateOrUpdate(record: {
+              articleId: "${articleId}",
+              comment: $comment,
+              isPublic: ${isPublic}
+            }) {
+              recordId
+              record {
+                isPublic
+              }
+            }
+          }
+        }
+      `, variables: { comment }
+    })
+    .then(response => {
+      const { userCommentCreateOrUpdate } = response.data.user;
+      if (!userCommentCreateOrUpdate) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(userCommentCreateOrUpdate);
+    });
+  }
+  // -------- common --------
 }
+
+ContentkitApiClient.NOT_FOUND =  NOT_FOUND;
 
 class UserkitApiClient {
   constructor(token) {
