@@ -493,7 +493,7 @@ $(document).ready(function() {
       }).catch(err => {
         console.log(err)
         $('#topic__loading').remove()
-        $('#topic__error').show().find('span').text(result.errors[0].message || 'Error Add New Topic')
+        $('#topic__error').show().find('span').text(err || 'Error Add New Topic')
           setTimeout(() => {
             $('#topic__error').hide().find('span').text('')
           }, 1500)

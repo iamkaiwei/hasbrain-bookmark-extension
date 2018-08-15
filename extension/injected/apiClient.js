@@ -19,7 +19,7 @@ class ContentkitApiClient {
     const validateResponse = responseData => {
       const { data, errors } = responseData;
       if (!data || errors) {
-        const error = errors && errors[0]
+        const error = errors && errors[0] && errors[0].message;
         throw new Error(error || 'NO RESPONSE DATA');
       }
       return data;
