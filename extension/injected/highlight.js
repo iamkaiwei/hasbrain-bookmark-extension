@@ -366,7 +366,7 @@ function handleHistoryStateUpdated() {
   $(wrapper).hide()
 }
 
-const debouncedHandleHistoryStateUpdated = debounce(handleHistoryStateUpdated, 500);
+const debouncedHandleHistoryStateUpdated = debounce(handleHistoryStateUpdated, 1000, true);
 
 function handleWindowReady(e) {
   $(window).mouseup(handleMouseupToRenderHighlightCircle);
