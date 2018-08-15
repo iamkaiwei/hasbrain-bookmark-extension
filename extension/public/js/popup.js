@@ -629,7 +629,7 @@ $(document).ready(function() {
     _renderExecuting('comment saving...')
     if (!isExecuting) isExecuting = true
     $(this).addClass('loading')
-    apiClientByToken(token).postComment({
+    getApiClientByToken(token).postComment({
       articleId,
       comment: $('#comment__text').val(),
       isPublic: isPublicComment
