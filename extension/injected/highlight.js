@@ -37,7 +37,9 @@ function checkHidingCircleHighlight () {
   .then(() => !!hideCircle)
 }
 
-const highlightDataToTarget = ({ core, prev, next, serialized, _id }) => ({
+const highlightDataToTarget = ({ core, prev, next, serialized, _id, comment }) => ({
+  core, prev, next,
+  comment,
   _id,
   selector: JSON.parse(serialized),
 })
@@ -48,7 +50,8 @@ const targetToHighlightData = (target) => {
     prev: textQuoteSelector.prefix,
     core: textQuoteSelector.exact,
     next: textQuoteSelector.suffix,
-    serialized: JSON.stringify(target.selector)
+    serialized: JSON.stringify(target.selector),
+    comment: target.comment
   }
   return highlightData
 }
@@ -101,7 +104,7 @@ function _renderRestoreOldHighlightError () {
   console.log('CAN NOT RESTORE OLD HIHGLIGHT')
 }
 
-function postHighlight ({ core, prev, next, serialized }) {
+function postHighlight ({ core, prev, next, serialized, comment }) {
   isSending = true
   const {
     url, readingTime, title, photo, description
@@ -119,7 +122,7 @@ function postHighlight ({ core, prev, next, serialized }) {
   .then((result) => {
     const { recordId } = result;
     articleId = recordId
-    const highlightObject = { core, prev, next, serialized, isPublic: false }
+    const highlightObject = { core, prev, next, serialized, isPublic: false, comment }
 
     return getApiClientByToken(token)
     .addOrUpdateHighlight(articleId, highlightObject)
@@ -171,7 +174,7 @@ const renderHighlightCircleFromAnchor =  anchor => {
   const width = $(range.startContainer.parentNode).width()
   const height = boundingRect.height
   const currentHighlight = targetToHighlightData(target);
-  const highlightDataId = target._id;
+  const { comment, _id: highlightDataId, core, prev, next, serialized } = target;
   const ele = document.getElementById(`minhhien__highlight__${highlightDataId}`)
   let selector = null;
   if (!ele) {
@@ -207,8 +210,35 @@ const renderHighlightCircleFromAnchor =  anchor => {
         $(this).addClass('highlight__circle--outline')
       })
     });
+
     
+    const commentInput = $(`<textarea id="comment__textarea-${highlightDataId}" placeholder="Your comment here..">${comment || ''}</textarea>`);
+    const controlGroups = $(`
+      <div id='control-wrapper-${highlightDataId}'>
+      </div>
+    `)
+    $(controlGroups).append(commentInput);
+
     $(wrapper).append(highlightCircle)
+    $(wrapper).append(controlGroups)
+    $(controlGroups).hide()
+    $(wrapper).hover(function() {
+      $(controlGroups).css({
+        position: 'relative',
+        display: 'block',
+        top: 5
+      })
+      
+    }, function() {
+      $(controlGroups).hide()
+      const highlightObject = targetToHighlightData({
+        ...target,
+        comment: $(commentInput).val()
+      })
+      return getApiClientByToken(token)
+      .addOrUpdateHighlight(articleId, highlightObject)
+      .catch(err => console.log('COMMENT ERROR', err));
+    })
     $('body').append(wrapper)
     selector = $(wrapper)
   } else {

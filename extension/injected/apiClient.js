@@ -61,6 +61,7 @@ class ContentkitApiClient {
                   prev
                   next
                   serialized
+                  comment
                 }
               }
             }
@@ -73,10 +74,10 @@ class ContentkitApiClient {
       return Promise.resolve(articleUserAction);
     });
   }
-  addOrUpdateHighlight(articleId, { core, prev, next, serialized, isPublic }) {
+  addOrUpdateHighlight(articleId, { core, prev, next, serialized, isPublic, comment }) {
     return this.apiClient.post("/", {
       query: `
-        mutation ($prev: String, $next: String, $core: String, $serialized: String, $isPublic: Boolean) {
+        mutation ($prev: String, $next: String, $core: String, $serialized: String, $isPublic: Boolean, $comment: String) {
           user{
             userhighlightAddOrUpdateOne(
               filter:{
@@ -85,6 +86,7 @@ class ContentkitApiClient {
                 core: $core,
                 prev: $prev,
                 next: $next,
+                comment: $comment,
                 serialized: $serialized,
                 isPublic: $isPublic
               }
@@ -103,7 +105,7 @@ class ContentkitApiClient {
           }
         }
       `,
-      variables: { core, prev, next, serialized, isPublic }
+      variables: { core, prev, next, serialized, isPublic, comment }
     })
     .then(response => {
       const { userhighlightAddOrUpdateOne } = response.data.user;
