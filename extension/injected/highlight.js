@@ -6,8 +6,6 @@ var isSending = false
 
 var articleId = ''
 
-// var currentPositionBtn = {}
-
 window.shouldPopup = false
 
 const HIGHLIGHT_CIRCLE_WIDTH = 22
@@ -181,6 +179,10 @@ const renderHighlightCircleFromAnchor =  anchor => {
     const wrapper = $(`<div id="minhhien__highlight__${highlightDataId}" class="highlight__circle-wrapper"></div>`)
     const highlightCircle = $(`<div class="highlight__circle "></div>`)
     const highlightHelper = getHighlighter();
+    const commentInput = $(`
+    <div class="comment__text" id="comment__text-${highlightDataId}">
+      <textarea id="comment__textarea-${highlightDataId}" placeholder="Your comment here..">${comment || ''}</textarea>
+    </div>`);
     $(highlightCircle).on('click', function() {
       if (!highlightDataId) return
       if ($(this).hasClass('highlight__circle--outline')) {
@@ -196,25 +198,19 @@ const renderHighlightCircleFromAnchor =  anchor => {
           return highlightHelper.restoreHighlightFromTargets([newTarget])
         })
         .then(([anchor]) => renderHighlightCircleFromAnchor(anchor))
-        // highlightHelper.restoreHighlightFromTargets([target])
-        // .then(() => {
-        //   return getApiClientByToken(token).addOrUpdateHighlight(articleId, currentHighlight)
-        // })  
-        // .then(addOrUpdateHighlightResult => {
-        //   $(this).removeClass('highlight__circle--outline')
-        // });
       }
       return getApiClientByToken(token).removeHighlight(articleId, highlightDataId)
       .then(result => {
         highlightHelper.removeHighlightsFromAnchor(anchor);
-        $(this).addClass('highlight__circle--outline')
+        $(this).addClass('highlight__circle--outline');
+        $(commentInput).children().first().val('');
       })
     });
 
     
-    const commentInput = $(`<textarea id="comment__textarea-${highlightDataId}" placeholder="Your comment here..">${comment || ''}</textarea>`);
+    
     const controlGroups = $(`
-      <div id='control-wrapper-${highlightDataId}'>
+      <div id='control-wrapper-${highlightDataId}' class='comment__block'>
       </div>
     `)
     $(controlGroups).append(commentInput);
@@ -222,23 +218,33 @@ const renderHighlightCircleFromAnchor =  anchor => {
     $(wrapper).append(highlightCircle)
     $(wrapper).append(controlGroups)
     $(controlGroups).hide()
-    $(wrapper).hover(function() {
-      $(controlGroups).css({
-        position: 'relative',
-        display: 'block',
-        top: 5
-      })
-      
-    }, function() {
-      $(controlGroups).hide()
+
+    const saveComment = () => {
       const highlightObject = targetToHighlightData({
         ...target,
-        comment: $(commentInput).val()
+        comment: $(commentInput).children().first().val()
       })
       return getApiClientByToken(token)
       .addOrUpdateHighlight(articleId, highlightObject)
       .catch(err => console.log('COMMENT ERROR', err));
-    })
+    }
+
+    const debouncedSaveComment = debounce(saveComment, 100);
+    $(commentInput).keyup(debouncedSaveComment);
+
+    const handleUnHover = () => {
+      $(controlGroups).hide()
+    }
+    debouncedHandleUnHover = debounce(handleUnHover, 500);
+
+    const handleHover = () => {
+      $(controlGroups).css({
+        position: 'relative',
+        display: 'block',
+        top: 5
+      });
+    }
+    $(wrapper).hover(handleHover, debouncedHandleUnHover);
     $('body').append(wrapper)
     selector = $(wrapper)
   } else {
@@ -385,8 +391,7 @@ function handleHistoryStateUpdated() {
   articleId = ''
 
   // remove iframe
-  removeElementById('iframe_popup')
-  removeElementById('iframe_rt')
+  chrome.runtime.sendMessage({ action: 'remove-iframe' })
 
   window.shouldPopup = true
   window.minhhienHighlighter = new window.HighlightHelper();
@@ -430,17 +435,4 @@ function handleWindowReady(e) {
 
 $(window).on('load', handleWindowReady);
 
-function validHighlightLength(str) {return str.length > 5 && str.length < 5000;}
-
-// function getSelected() {
-//   if (window.getSelection) return window.getSelection();
-//   else if (document.getSelection) return document.getSelection();
-//   else {
-//     var selection = document.selection && document.selection.createRange();
-//     if (selection.text) return selection.text;
-//     return false;
-//   }
-//   return false;
-// }
-
-
+function validHighlightLength(str) { return str.length > 5 && str.length < 5000; }

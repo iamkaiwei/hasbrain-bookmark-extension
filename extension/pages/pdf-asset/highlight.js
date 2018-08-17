@@ -102,6 +102,10 @@ function handleCreateHighlight(e) {
           .then(responseData => {
             if (window.shouldPopup) {
               renderBookmarkPopup();
+              setTimeout(() => {
+                // remove iframe
+                chrome.runtime.sendMessage({ action: 'remove-iframe' })
+              }, 2000);
               window.shouldPopup = false
             }
             $(wrapper).hide();
@@ -127,6 +131,10 @@ function getHighlighter() {
   return window.pdfminhhienHighlighter
 }
 
+function getPdfScale() {
+  return PDFViewerApplication.pdfViewer.currentScale;
+}
+
 async function renderBtnHighlight () {
   saveSelection();
   $(wrapper).hide();
@@ -138,13 +146,13 @@ async function renderBtnHighlight () {
   const top = window.scrollY + topOffset
   const viewerOffset = $('#viewer').offset()
   currentPositionBtn = {
-    top: top - (HIGHLIGHT_CIRCLE_WIDTH  * PDFView.currentScaleValue) / 2 - viewerOffset.top,
-    left: boundingRect.width + boundingRect.left + HIGHLIGHT_CIRCLE_OFFSET * PDFView.currentScaleValue  - viewerOffset.left // ($(document).width() - boundingRect.right) / 2
+    top: top - (HIGHLIGHT_CIRCLE_WIDTH  * getPdfScale()) / 2 - viewerOffset.top,
+    left: boundingRect.width + boundingRect.left + HIGHLIGHT_CIRCLE_OFFSET * getPdfScale()  - viewerOffset.left // ($(document).width() - boundingRect.right) / 2
   }
   $(newHighlightCircle).addClass('highlight__circle--outline')
   $(newHighlightCircle).css({
-    width: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
-    height: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
+    width: HIGHLIGHT_CIRCLE_WIDTH * getPdfScale(),
+    height: HIGHLIGHT_CIRCLE_WIDTH * getPdfScale(),
   });
   $(wrapper).css({
     ...currentPositionBtn,
@@ -277,16 +285,16 @@ const renderHighlightCircleFromAnchor = (anchor) => {
     circleSelector = $(selector).children().first()
   }
   circleSelector.css({
-    width: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
-    height: HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue,
+    width: HIGHLIGHT_CIRCLE_WIDTH * getPdfScale(),
+    height: HIGHLIGHT_CIRCLE_WIDTH * getPdfScale(),
   });
   const viewerOffset = $('#viewer').offset()
   const { top, left, } = offset;
   const width = boundingRect.width;
   selector.css({
     position: 'absolute',
-    left: width + left + HIGHLIGHT_CIRCLE_OFFSET * PDFView.currentScaleValue - viewerOffset.left,
-    top: top + height / 2 - (HIGHLIGHT_CIRCLE_WIDTH * PDFView.currentScaleValue) / 2 - viewerOffset.top,
+    left: width + left + HIGHLIGHT_CIRCLE_OFFSET * getPdfScale() - viewerOffset.left,
+    top: top + height / 2 - (HIGHLIGHT_CIRCLE_WIDTH * getPdfScale()) / 2 - viewerOffset.top,
     display: 'block',
     'z-index': Z_INDEX
   })

@@ -18,10 +18,18 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         return apiClient
         .createArticleIfNotExists(data)
         .then((result) => {
-          const { recordId } = result;
-          return recordId
+          const { recordId, isBookmarked } = result;
+          return { recordId, isBookmarked }
         })
-        .then(articleId => {
+        .then(({
+          recordId: articleId, isBookmarked
+        }) => {
+          if (isBookmarked) {
+            return chrome.browserAction.setIcon({
+              path: '/assets/images/hasbrain-logo-full.png',
+              tabId: tab.id
+            })
+          }
           return apiClient.userbookmarkCreate(articleId)
           .then(() => {
             chrome.browserAction.setIcon({
