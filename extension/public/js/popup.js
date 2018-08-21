@@ -276,10 +276,10 @@ function _bookmarkArticle() {
   .then(articleData => {
     const { recordId } = articleData
     articleId = recordId
-    return Promise.all[
+    return Promise.all([
       getApiClientByToken(token).userbookmarkCreate(recordId),
-      Promise.resolve(article)
-    ]
+      Promise.resolve(articleData)
+    ])
   })
   .then(results => {
     // if (res.status !== 200) {
