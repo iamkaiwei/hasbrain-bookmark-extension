@@ -115,21 +115,6 @@ chrome.storage.sync.get(['bookmark_hide_newtab'], result => {
   bookmark_hide_newtab = result.bookmark_hide_newtab
 })
 
-// chrome.tabs.onCreated.addListener(function(tab) {
-//   if (!bookmark_hide_newtab && tab.url === 'chrome://newtab/') {
-//     chrome.storage.sync.get(['bookmark_profile'], result => {
-//       if (result.bookmark_profile) {
-//         return chrome.tabs.update(tab.id, {
-//           url: `http://pin.hasbrain.com/#/`
-//         })
-//       }
-//       return chrome.tabs.update(tab.id, {
-//         url: `http://pin.hasbrain.com/#/get-started`
-//       })
-//     })
-//   }
-// })
-
 // chrome.tabs.onActivated.addListener(tab => {
 //   chrome.tabs.get(tab.tabId, tabInfo => {
 //     chrome.storage.sync.get(['hasbrain_bookmark_list'], result => {

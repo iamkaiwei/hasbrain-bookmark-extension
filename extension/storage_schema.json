@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "hasBrainSiteUrl": {
+      "title": "hasBrain Site URL",
+      "description": "URL to the hasBrain site",
+      "type": "string"
+    },
+    "apiBaseUrl": {
+      "title": "Base URL of the API endpoint",
+      "description": "Base URL of the API endpoint for storing user's data",
+      "type": "string"
+    }
+  }
+}

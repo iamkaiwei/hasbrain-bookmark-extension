@@ -693,4 +693,7 @@ $(document).ready(function() {
     $('#series__block').hide()
     $('#comment__section').show()
   })
+
+  let baseUrl = chrome.runtime.getManifest().storage.hasBrainSiteUrl;
+  $('#hasBrain-link').attr('href', baseUrl);
 })

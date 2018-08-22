@@ -1,7 +1,7 @@
-const productionApi = "https://contentkit-api.mstage.io/graphql";
-const stagingApi = "https://contentkit-api-staging.mstage.io/graphql";
-const usStagingApi = "https://contentkit-api-staging-us.mstage.io/graphql";
-const baseURL = usStagingApi;
+// const productionApi = "https://contentkit-api.mstage.io/graphql";
+// const stagingApi = "https://contentkit-api-staging.mstage.io/graphql";
+// const usStagingApi = "https://contentkit-api-staging-us.mstage.io/graphql";
+const baseURL = chrome.runtime.getManifest().storage.apiBaseUrl;
 const userkitBaseUrl = 'https://userkit-identity.mstage.io/v1';
 
 const authorizationToken =
