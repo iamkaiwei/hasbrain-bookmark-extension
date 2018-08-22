@@ -1,0 +1,14 @@
+{
+  "name": "hasbrain-bookmark-extension",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:iamkaiwei/hasbrain-bookmark-extension.git",
+  "author": "Do Le Minh Hien <minhhien139@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "crx": "^3.2.1"
+  },
+  "scripts": {
+    "build-staging-crx": "node pack_crx.js"
+  }
+}
