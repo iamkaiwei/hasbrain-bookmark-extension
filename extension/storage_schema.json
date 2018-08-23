@@ -10,6 +10,16 @@
       "title": "Base URL of the API endpoint",
       "description": "Base URL of the API endpoint for storing user's data",
       "type": "string"
+    },
+    "apiToken": {
+      "title": "Authorization Token for API server",
+      "description": "Authorization Token for API server",
+      "type": "string"
+    },
+    "userkitBaseUrl": {
+      "title": "Base URL of the Userkit URL",
+      "description": "Userkit is used for storing profile of user for authentication",
+      "type": "string"
     }
   }
 }

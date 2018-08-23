@@ -1,11 +1,6 @@
-// const productionApi = "https://contentkit-api.mstage.io/graphql";
-// const stagingApi = "https://contentkit-api-staging.mstage.io/graphql";
-// const usStagingApi = "https://contentkit-api-staging-us.mstage.io/graphql";
 const baseURL = chrome.runtime.getManifest().storage.apiBaseUrl;
-const userkitBaseUrl = 'https://userkit-identity.mstage.io/v1';
-
-const authorizationToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YWRmNzRjNzdmZjQ0ZTAwMWViODI1MzkiLCJpYXQiOjE1MjQ1OTM4NjN9.Yx-17tVN1hupJeVa1sknrUKmxawuG5rx3cr8xZc7EyY";
+const userkitBaseUrl = chrome.runtime.getManifest().storage.userkitBaseUrl;
+const authorizationToken = chrome.runtime.getManifest().storage.apiToken;
 
 const topicOutput = `
   title

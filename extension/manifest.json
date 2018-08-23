@@ -78,12 +78,14 @@
     "newtab": "pages/new_tab.html"
   },
   "externally_connectable": {
-    "matches": ["*://*.hasbrain.com/*"]
+    "matches": ["*://*.hasbrain.com/*", "*://pin-hasbrain.surge.sh/*"]
   },
   "storage": {
     "managed_schema": "storage_schema.json",
     "hasBrainSiteUrl": "http://pin-hasbrain.surge.sh",
-    "apiBaseUrl": "https://contentkit-api-staging.mstage.io/graphql"
+    "apiBaseUrl": "https://contentkit-api-staging.mstage.io/graphql",
+    "apiToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YjdlM2QzNDBmZTYyMjAwMThmMjg4MmMiLCJpYXQiOjE1MzQ5OTk4NjB9.eNc0sL0S9j3Nu9rL5gMA3kaYLa3Of5SBDIA_PtqvKmc",
+    "userkitBaseUrl": "https://userkit-identity-staging.mstage.io/v1"
   },
   "options_page": "pages/options.html",
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
