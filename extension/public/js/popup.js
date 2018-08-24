@@ -540,7 +540,7 @@ $(document).ready(function() {
     $('#series__section').remove()
 
     _renderExecuting('Bookmark Archiving...')
-    getApiClientByToken(token).bookmarkArchive(articleId)
+    getApiClientByToken(token).userBookmarkArchive(articleId)
       .then(res => {
         // if (res.status !== 200) {
         //   _renderError('Bookmark Archive Error!')
@@ -553,7 +553,7 @@ $(document).ready(function() {
         // }
         _renderSuccess('Bookmark archived')
         chrome.runtime.sendMessage({ action: 'change-icon-outline' })
-        apiClientByToken(token).getUserBookmarkList()
+        getApiClientByToken(token).getUserBookmarkList()
       })
       .catch(() => {
         _renderError('Bookmark Archive Error!')
@@ -563,7 +563,7 @@ $(document).ready(function() {
     $('#setting__block').removeClass('show')
     $('#series__section, #setting__block').remove()
     _renderExecuting('Bookmark removing...')
-    apiClientByToken(token).bookmarkRemove(articleId)
+    getApiClientByToken(token).userBookmarkRemove(articleId)
       .then(res => {
         // if (res.status !== 200) {
         //   _renderError('Bookmark Remove Error!')
@@ -577,7 +577,7 @@ $(document).ready(function() {
         _renderSuccess('Bookmark removed')
         // change icon outline when remove bookmark
         chrome.runtime.sendMessage({ action: 'change-icon-outline' })
-        apiClientByToken(token).getUserBookmarkList()
+        getApiClientByToken(token).getUserBookmarkList()
       })
       .catch(() => {
         _renderError('Bookmark Remove Error!')

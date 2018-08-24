@@ -198,7 +198,7 @@ class ContentkitApiClient {
     });
   }
 
-  userbookmarkRemove(articleId) {
+  userBookmarkRemove(articleId) {
     return this.apiClient.post('/', {
       query: `
         mutation {
@@ -221,7 +221,7 @@ class ContentkitApiClient {
     });
   }
 
-  userbookmarkArchive(articleId) {
+  userBookmarkArchive(articleId) {
     return this.apiClient.post('/', {
       query: `
         mutation {
@@ -241,9 +241,9 @@ class ContentkitApiClient {
       `
     })
     .then(response => {
-      const { bookmarkArchiveOne } = response.data.user;
-      if (!bookmarkArchiveOne) return Promise.reject(NOT_FOUND);
-      return Promise.resolve(bookmarkArchiveOne);
+      const { bookmarkUpdateOne } = response.data.user;
+      if (!bookmarkUpdateOne) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(bookmarkUpdateOne);
     });
   }
 

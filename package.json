@@ -9,6 +9,7 @@
     "crx": "^3.2.1"
   },
   "scripts": {
-    "build-staging-crx": "node pack_crx.js"
+    "build-staging": "node pack_crx.js",
+    "build-prod": "node zip_production_build.js"
   }
 }
