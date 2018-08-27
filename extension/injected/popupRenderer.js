@@ -55,7 +55,7 @@ function renderPopup () {
   document.body.appendChild(iframe)
   window.addEventListener('click', function(e){
     const container = document.getElementById('iframe_popup')
-    console.log('ON WINDOWS CLICK CLICK', container, e.target);
+    // console.log('ON WINDOWS CLICK CLICK', container, e.target);
     if (!container || !container.contains(e.target)) 
     {
       chrome.runtime.sendMessage({action: 'remove-iframe'})

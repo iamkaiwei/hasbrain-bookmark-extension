@@ -621,6 +621,62 @@ class ContentkitApiClient {
     });
   }
   // -------- common --------
+
+  getYoutubeData({videoId = ''}) {
+    return this.apiClient.post('/', {
+      query: `
+        query{
+          viewer{
+            youtubeSearchVideo(contentId: "${videoId}") {
+              title
+              shortDescription
+              sourceImage
+              contentId
+              url
+              sourceActionName
+              sourceActionCount
+              sourceCommentCount
+              sourceImage
+            }
+          }
+        }
+      `
+    }).then(response => {
+      const { youtubeSearchVideo } = response.data.viewer;
+      if (!youtubeSearchVideo) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(youtubeSearchVideo);
+    })
+  }
+
+  contentCreateIfNotExist(record = {}) {
+    if (!record.type) {
+      record.type = 'articletype'
+    }
+    return this.apiClient.post('/', {
+      query: `
+        mutation ($record: CreateOnecontenttypeInput!) {
+          user {
+            contentCreateIfNotExist (record: $record) {
+              recordId
+              record {
+                tags
+                title
+                sourceImage
+              }
+              isBookmarked
+            }
+          }
+        }
+      `,
+      variables: {
+        record
+      }
+    }).then(response => {
+      const { contentCreateIfNotExist } = response.data.user;
+      if (!contentCreateIfNotExist) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(contentCreateIfNotExist);
+    });
+  }
 }
 
 ContentkitApiClient.NOT_FOUND =  NOT_FOUND;

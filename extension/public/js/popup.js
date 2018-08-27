@@ -24,6 +24,8 @@ var newTopicPrivacy = null
 
 var toRenderStatusText = null
 
+var videoSiteUrls = ['www.youtube.com']
+
 function _renderExecuting(text) {
   isExecuting = false
   $('.popup__title-status')
@@ -195,60 +197,6 @@ function _buildTopicList() {
         .find('.ui.checkbox')
         .checkbox(`set ${isChecked ? 'checked' : 'unchecked'}`)
     })
-    // $(topicPrivacy).click(function(e) {
-    //   e.preventDefault()
-    //   e.stopPropagation()
-    //   const privacy = $(this).attr('data-privacy')
-    //   let img = ''
-    //   let newPrivacy = ''
-    //   if (privacy === 'everyone') {
-    //     img = lockImg
-    //     newPrivacy = 'private'
-    //   } else {
-    //     img = worldImg
-    //     newPrivacy = 'everyone'
-    //   }
-
-    //   const tokenDecode = jwt_decode(token)
-    //   if (!tokenDecode.role || tokenDecode.role !== 'contributor') {
-    //     $('#topic__error').show().find('span').text('Only contributor can public the topic')
-    //     setTimeout(() => {
-    //       $('#topic__error').hide().find('span').text('')
-    //     }, 1500)
-    //   } else {
-    //     // update topic privacy
-    //     topicUpdate({
-    //       topicId: item._id,
-    //       record: {
-    //         privacy: newPrivacy
-    //       }
-    //     }).then(result => {
-    //       if (!result || result.errors) {
-    //         $(this)
-    //           .find('img')
-    //           .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
-    //         $(this).attr(
-    //           'data-privacy',
-    //           newPrivacy === 'private' ? 'everyone' : 'private'
-    //         )
-    //         return
-    //       }
-    //     }).catch(err => {
-    //       $(this)
-    //         .find('img')
-    //         .attr('src', newPrivacy === 'private' ? worldImg : lockImg)
-    //       $(this).attr(
-    //         'data-privacy',
-    //         newPrivacy === 'private' ? 'everyone' : 'private'
-    //       )
-    //     })
-    //     // update topic privacy
-    //     $(this)
-    //       .find('img')
-    //       .attr('src', img)
-    //     $(this).attr('data-privacy', newPrivacy)
-    //   }
-    // })
     $(topic).append(topicPrivacy)
     $(topic).append(
       `<div class="topic__title">${_source.title || 'xxxx'}</div>`
@@ -271,23 +219,34 @@ function _buildTopicList() {
   }
 }
 
-function _bookmarkArticle() {
-  return getApiClientByToken(token).createArticleIfNotExists(bookmarkData)
+async function _bookmarkArticle() {
+  const apiClient = getApiClientByToken(token)
+
+  const videoData = await apiClient.getYoutubeData({videoId: youtube_parser(bookmarkData.url) || ''}).catch(err => {
+    console.log(err)
+    return {}
+  })
+  if (videoData.title) {
+    bookmarkData.type = 'videotype'
+  } else {
+    bookmarkData.type = 'articletype'
+  }
+  bookmarkData = {...bookmarkData, ...videoData}
+  // return getApiClientByToken(token)
+  // .createArticleIfNotExists(bookmarkData)
+  return apiClient
+  .contentCreateIfNotExist(bookmarkData)
   .then(articleData => {
     const { recordId } = articleData
     articleId = recordId
     return Promise.all([
-      getApiClientByToken(token).userbookmarkCreate(recordId),
+      apiClient.userbookmarkCreate(recordId),
       Promise.resolve(articleData)
     ])
   })
   .then(results => {
-    // if (res.status !== 200) {
-    //   _renderError('Error bookmark!')
-    //   return
-    // }
     const articleData = results[1];
-    const { record: { sourceImage, title, sourceData } } = articleData
+    const { record: { sourceImage, title, sourceData = {} } } = articleData
     _renderSuccess('saved to read it later')
     $('#save-to-topics').checkbox('set unchecked')
     $('#series__section').show()
@@ -313,7 +272,7 @@ function _bookmarkArticle() {
 }
 
 function _buildOldData () {
-  const { userCommentData, title, sourceImage, sourceData, topicData, userBookmarkData } = article
+  const { userCommentData, title, sourceImage, sourceData = {}, topicData, userBookmarkData } = article
   const commentData = userCommentData || []
   const {comment = '', isPublic = false} = commentData
 

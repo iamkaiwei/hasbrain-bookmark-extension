@@ -116,7 +116,8 @@ function postHighlight ({ core, prev, next, serialized, comment }) {
     readingTime
   }
   return getApiClientByToken(token)
-  .createArticleIfNotExists(data)
+  // .createArticleIfNotExists(data)
+  .contentCreateIfNotExist(data)
   .then((result) => {
     const { recordId } = result;
     articleId = recordId

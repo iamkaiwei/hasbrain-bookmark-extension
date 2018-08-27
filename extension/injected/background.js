@@ -16,7 +16,8 @@ chrome.browserAction.onClicked.addListener(function(tab) {
           url: pdfFile
         }
         return apiClient
-        .createArticleIfNotExists(data)
+        // .createArticleIfNotExists(data)
+        .contentCreateIfNotExist(data)
         .then((result) => {
           const { recordId, isBookmarked } = result;
           return { recordId, isBookmarked }
