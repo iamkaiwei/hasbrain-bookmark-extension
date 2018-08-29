@@ -209,7 +209,7 @@ function _buildTopicList() {
           selectedTopicIds.indexOf(item._id) !== -1 ? 'checked' : 'unchecked'
         }`
       )
-    $(topicList).append(topic)
+    $(topicList).append(topic) 
   })
 
   if (list.length) {
@@ -220,27 +220,13 @@ function _buildTopicList() {
 }
 
 async function _bookmarkArticle() {
-  const apiClient = getApiClientByToken(token)
-
-  const videoData = await apiClient.getYoutubeData({videoId: youtube_parser(bookmarkData.url) || ''}).catch(err => {
-    console.log(err)
-    return {}
-  })
-  if (videoData.title) {
-    bookmarkData.type = 'videotype'
-  } else {
-    bookmarkData.type = 'articletype'
-  }
-  bookmarkData = {...bookmarkData, ...videoData}
-  // return getApiClientByToken(token)
-  // .createArticleIfNotExists(bookmarkData)
-  return apiClient
+  return getApiClientByToken(token)
   .contentCreateIfNotExist(bookmarkData)
   .then(articleData => {
     const { recordId } = articleData
     articleId = recordId
     return Promise.all([
-      apiClient.userbookmarkCreate(recordId),
+      getApiClientByToken(token).userbookmarkCreate(recordId),
       Promise.resolve(articleData)
     ])
   })

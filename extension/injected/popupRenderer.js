@@ -28,39 +28,40 @@ function renderRefreshTokenPopup() {
 }
 
 function renderPopup () {
-  const {
-    url, readingTime, title, photo, description
-  } = getMetadata()
-
-  const bookmarkData = {
-    title,
-    url,
-    sourceImage: photo,
-    shortDescription: description,
-    readingTime
-  }
-
-  chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
-  const iframe = document.createElement('iframe')
-  iframe.id = 'iframe_popup'
-  iframe.style.border = 'none'
-  iframe.style.position = 'fixed'
-  iframe.style.top = '0'
-  iframe.style.right = '10px'
-  iframe.style.zIndex = '2147483647'
-  iframe.style.height = '100%'
-  iframe.style.width = '380px'
-  iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
-  
-  document.body.appendChild(iframe)
-  window.addEventListener('click', function(e){
-    const container = document.getElementById('iframe_popup')
-    // console.log('ON WINDOWS CLICK CLICK', container, e.target);
-    if (!container || !container.contains(e.target)) 
-    {
-      chrome.runtime.sendMessage({action: 'remove-iframe'})
+  return getMetadata(token)
+  .then(metadata => {
+    const {
+      photo, description, ...rest
+    } = metadata;
+    return {
+      sourceImage: photo,
+      shortDescription: description,
+      ...rest,
     }
-  });
+  })
+  .then(bookmarkData => {
+    chrome.storage.sync.set({'bookmark_data': JSON.stringify(bookmarkData)})
+    const iframe = document.createElement('iframe')
+    iframe.id = 'iframe_popup'
+    iframe.style.border = 'none'
+    iframe.style.position = 'fixed'
+    iframe.style.top = '0'
+    iframe.style.right = '10px'
+    iframe.style.zIndex = '2147483647'
+    iframe.style.height = '100%'
+    iframe.style.width = '380px'
+    iframe.src = 'chrome-extension://'+(chrome.runtime.id)+'/pages/popup.html'
+    
+    document.body.appendChild(iframe)
+    window.addEventListener('click', function(e){
+      const container = document.getElementById('iframe_popup')
+      // console.log('ON WINDOWS CLICK CLICK', container, e.target);
+      if (!container || !container.contains(e.target)) 
+      {
+        chrome.runtime.sendMessage({action: 'remove-iframe'})
+      }
+    });
+  })
 }
 
 function renderBookmarkPopup() {

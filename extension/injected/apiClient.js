@@ -37,19 +37,19 @@ class ContentkitApiClient {
       query: `
         query {
           viewer {
-            articleUserAction(filter: {
+            contentUserAction(filter: {
               url: "${url}",
             }) {
               _id
               userCommentData {
-                articleId
+                contentId
                 comment
               }
               userBookmarkData {
                 contentId
               }
               userHighlightData {
-                articleId
+                contentId
                 highlights {
                   _id
                   core
@@ -64,9 +64,9 @@ class ContentkitApiClient {
         }`
     })
     .then(response => {
-      const { articleUserAction } = response.data.viewer;
-      if (!articleUserAction) return Promise.reject(NOT_FOUND);
-      return Promise.resolve(articleUserAction);
+      const { contentUserAction } = response.data.viewer;
+      if (!contentUserAction) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(contentUserAction);
     });
   }
   addOrUpdateHighlight(articleId, { core, prev, next, serialized, isPublic, comment }) {
@@ -76,7 +76,7 @@ class ContentkitApiClient {
           user{
             userhighlightAddOrUpdateOne(
               filter:{
-                articleId: "${articleId}"
+                contentId: "${articleId}"
               }, record: {
                 core: $core,
                 prev: $prev,
@@ -160,7 +160,7 @@ class ContentkitApiClient {
           user {
             userHighlightRemoveOne(filter: {
               highlightId: "${highlightId}",
-              articleId: "${articleId}"
+              contentId: "${articleId}"
             }) {
               recordId
             }
@@ -278,9 +278,9 @@ class ContentkitApiClient {
   getArticleUser(filter = {}) {
     return this.apiClient.post("/", {
       query: `
-        query($filter: articleUserActionFilter){
+        query($filter: contentUserActionFilter){
           viewer{
-            articleUserAction(filter: $filter) {
+            contentUserAction(filter: $filter) {
               _id
               title
               sourceImage
@@ -300,7 +300,7 @@ class ContentkitApiClient {
                 sourceImage
               }
               userCommentData {
-                articleId
+                contentId
                 comment
                 state
                 createdAt
@@ -320,7 +320,7 @@ class ContentkitApiClient {
                 projectId
               }
               userHighlightData {
-                articleId
+                contentId
                 state
                 createdAt
                 updatedAt
@@ -336,9 +336,9 @@ class ContentkitApiClient {
       variables: { filter }
     })
     .then(response => {
-      const { articleUserAction } = response.data.viewer;
-      if (!articleUserAction) return Promise.reject(NOT_FOUND);
-      return Promise.resolve(articleUserAction);
+      const { contentUserAction } = response.data.viewer;
+      if (!contentUserAction) return Promise.reject(NOT_FOUND);
+      return Promise.resolve(contentUserAction);
     });;
   }
   // -------- bookmark --------
@@ -442,39 +442,13 @@ class ContentkitApiClient {
     });
   }
 
-  articleAddTopicsLevel({articleId = '', topicIds = [], levelId = ''}) {
-    return this.apiClient.post('/', {
-      query:`
-        mutation ($topicIds: [ID]){
-          user{
-            articleAddTopicsLevel(record: {
-              topicIds: $topicIds,
-              levelId: "${levelId}"
-            }, filter: {
-              _id: "${articleId}",
-            }) {
-              title
-            }
-          }
-        }
-      `, 
-      variables: {topicIds}
-    })
-    .then(response => {
-      const { articleAddTopicsLevel } = response.data.user;
-      if (!articleAddTopicsLevel) return Promise.reject(NOT_FOUND);
-      return Promise.resolve(articleAddTopicsLevel);
-    });
-  }
-
-  topicAddContent({articleId = '' ,topicId = '', levelId = ''}) {
+  topicAddContent({ articleId = '' ,topicId = '' }) {
     return this.apiClient.post('/', {
       query: `
         mutation{
           user{
             topicAddContent(record: {
-            contentId: "${articleId}"
-              levelId: "${levelId}"
+              contentId: "${articleId}"
             }, filter: {
               _id: "${topicId}"
             }) {
@@ -491,14 +465,13 @@ class ContentkitApiClient {
     });
   }
 
-  topicRemoveContent({articleId = '' ,topicId = '', levelId = ''}) {
+  topicRemoveContent({ articleId = '' ,topicId = '' }) {
     return this.apiClient.post('/', {
       query: `
         mutation{
           user{
             topicRemoveContent(record: {
-            contentId: "${articleId}"
-              levelId: "${levelId}"
+              contentId: "${articleId}"
             }, filter: {
               _id: "${topicId}"
             }) {
@@ -595,13 +568,13 @@ class ContentkitApiClient {
     });
   }
 
-  postComment({articleId = '', comment = '', isPublic = false}) {
+  postComment({ articleId = '', comment = '', isPublic = false}) {
     return this.apiClient.post("/", {
       query: `
         mutation ($comment: String) {
           user {
             userCommentCreateOrUpdate(record: {
-              articleId: "${articleId}",
+              contentId: "${articleId}",
               comment: $comment,
               isPublic: ${isPublic}
             }) {
@@ -649,9 +622,6 @@ class ContentkitApiClient {
   }
 
   contentCreateIfNotExist(record = {}) {
-    if (!record.type) {
-      record.type = 'articletype'
-    }
     return this.apiClient.post('/', {
       query: `
         mutation ($record: CreateOnecontenttypeInput!) {

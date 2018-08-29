@@ -46,21 +46,18 @@ function loadProfileToGlobal() {
 
 function postHighlight ({ core, prev, next, serialized }) {
   isSending = true
-  
-  const {
-    url, readingTime, title, photo, description
-  } = getMetadata()
-
-  const data = {
-    title,
-    url,
-    sourceImage: photo,
-    shortDescription: description,
-    readingTime
-  }
-  return getApiClientByToken(token)
-  // .createArticleIfNotExists(data)
-  .contentCreateIfNotExist(data)
+  return getMetadata(token)
+  .then(metadata => {
+    const {
+      photo, description, ...rest
+    } = metadata;
+    return {
+      sourceImage: photo,
+      shortDescription: description,
+      ...rest,
+    }
+  })
+  .then(getApiClientByToken(token).contentCreateIfNotExist)
   .then((result) => {
     const { recordId } = result;
     articleId = recordId;
