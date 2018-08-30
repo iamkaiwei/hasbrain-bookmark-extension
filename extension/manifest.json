@@ -14,9 +14,13 @@
   "background": {
     "scripts": [
       "public/js/axios.js",
+      "public/js/jwt-decode.js",
+      "public/js/jquery.js",
       "injected/HighlightHelper.js",
       "injected/storageHelper.js",
       "injected/apiClient.js",
+      "injected/getMetadata.js",
+      "injected/popupRenderer.js",
       "injected/background.js"
     ]
   },
@@ -74,9 +78,6 @@
     "/pages/viewer.html",
     "/pages/pdf-asset/*"
   ],
-  "chrome_url_overrides": {
-    "newtab": "pages/new_tab.html"
-  },
   "externally_connectable": {
     "matches": ["*://*.hasbrain.com/*", "*://pin-hasbrain.surge.sh/*"]
   },
