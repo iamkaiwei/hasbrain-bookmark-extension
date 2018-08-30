@@ -57,7 +57,10 @@ function postHighlight ({ core, prev, next, serialized }) {
       ...rest,
     }
   })
-  .then(getApiClientByToken(token).contentCreateIfNotExist)
+  .then(data => {
+    console.log(data);
+    return getApiClientByToken(token).contentCreateIfNotExist(data);
+  })
   .then((result) => {
     const { recordId } = result;
     articleId = recordId;
@@ -332,3 +335,20 @@ $(window).on('load', () => {
   }, 500);
   
 });
+
+// handle message for popup
+chrome.runtime.onMessage.addListener(
+  function (request, sender, sendResponse) {
+    var action = request.action
+    var source = request.source || {}
+    if (action === "render-popup") {
+      renderBookmarkPopup()
+    }
+
+    if (action === "remove-iframe") {
+      removeElementById('iframe_popup');
+      removeElementById('iframe_rt');
+      removeElementById('iframe_loading')
+    }
+  }
+);

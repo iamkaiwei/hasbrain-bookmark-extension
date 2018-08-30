@@ -3,42 +3,10 @@ chrome.browserAction.onClicked.addListener(function(tab) {
    const fromExtension = url.protocol === 'chrome-extension:';
    if (fromExtension) {
     const pdfFile = url.searchParams.get('file');
-
     let apiClient;
     if (pdfFile) {
-      getProfileFromStorage()
-      .then((result) => {
-        const { bookmark_token, bookmark_profile, bookmark_hide_circle_highlight } = result;
-        const token = bookmark_token;
-        apiClient = getApiClientByToken(token);
-        const data = {
-          title: tab.title,
-          url: pdfFile
-        }
-        return apiClient
-        .contentCreateIfNotExist(data)
-        .then((result) => {
-          const { recordId, isBookmarked } = result;
-          return { recordId, isBookmarked }
-        })
-        .then(({
-          recordId: articleId, isBookmarked
-        }) => {
-          if (isBookmarked) {
-            return chrome.browserAction.setIcon({
-              path: '/assets/images/hasbrain-logo-full.png',
-              tabId: tab.id
-            })
-          }
-          return apiClient.userbookmarkCreate(articleId)
-          .then(() => {
-            chrome.browserAction.setIcon({
-              path: '/assets/images/hasbrain-logo-full.png',
-              tabId: tab.id
-            })
-          });
-        });
-      });
+      console.log('I AM PDF');
+      chrome.runtime.sendMessage({action: 'render-popup'});
     }
    } else {
     chrome.tabs.executeScript(null, { file: "injected/click.js" });

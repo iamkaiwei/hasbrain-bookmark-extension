@@ -5,6 +5,16 @@ function openHasbrainSite() {
 }
 
 function removeElementById(id) {
+  Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+  }
+  NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for(var i = this.length - 1; i >= 0; i--) {
+      if(this[i] && this[i].parentElement) {
+        this[i].parentElement.removeChild(this[i]);
+      }
+    }
+  }
   if (document.getElementById(id)) {
     document.getElementById(id).remove();
   }
@@ -27,7 +37,7 @@ function renderRefreshTokenPopup() {
   document.body.appendChild(iframe)
 }
 
-function renderPopup () {
+function renderPopup (token) {
   return getMetadata(token)
   .then(metadata => {
     const {
@@ -88,15 +98,15 @@ function renderBookmarkPopup() {
       return getUserkitApiClientByToken(result.bookmark_refresh_token)
       .getNewToken()
       .then(result => {
-        const {token, refresh_token} = result // res.data
+        const {token: new_bookmark_token, refresh_token} = result // res.data
         return setItemsToStorage({
-          'bookmark_token': token,
+          'bookmark_token': new_bookmark_token,
           'bookmark_refresh_token': refresh_token
         })
         .then(() => {
           setTimeout(() => {
             removeElementById('iframe_rt')
-            renderPopup(result)
+            renderPopup(new_bookmark_token)
           }, 500)
         })
       })
@@ -107,7 +117,7 @@ function renderBookmarkPopup() {
     removeElementById('iframe_loading')
 
     if (bookmark_profile) {
-      renderPopup()
+      renderPopup(bookmark_token)
     } else {
       return openHasbrainSite()
     }
