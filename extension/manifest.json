@@ -84,7 +84,7 @@
   "storage": {
     "managed_schema": "storage_schema.json",
     "hasBrainSiteUrl": "http://pin-hasbrain.surge.sh",
-    "apiBaseUrl": "https://contentkit-api-staging.mstage.io/graphql",
+    "apiBaseUrl": "http://contentkit-api-staging.mstage.io/graphql",
     "apiToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1YjdlM2QzNDBmZTYyMjAwMThmMjg4MmMiLCJpYXQiOjE1MzQ5OTk4NjB9.eNc0sL0S9j3Nu9rL5gMA3kaYLa3Of5SBDIA_PtqvKmc",
     "userkitBaseUrl": "https://userkit-identity-staging.mstage.io/v1"
   },
