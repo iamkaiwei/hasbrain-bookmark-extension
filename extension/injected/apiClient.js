@@ -182,8 +182,7 @@ class ContentkitApiClient {
         mutation{
           user{
             userbookmarkCreate(record:{
-              contentId: "${articleId}",
-              kind: "articletype"
+              contentId: "${articleId}"
             }) {
               recordId
             }
