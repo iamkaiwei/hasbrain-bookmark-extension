@@ -1,7 +1,7 @@
 let baseUrl = chrome.runtime.getManifest().storage.hasBrainSiteUrl;
 
 function openHasbrainSite() {
-  return window.open(`${baseUrl}/#/get-started/?extensionId=${chrome.runtime.id}&src=extension`)
+  return window.open(`${baseUrl}/get-started/?extensionId=${chrome.runtime.id}&src=extension`)
 }
 
 function removeElementById(id) {

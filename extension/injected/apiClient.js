@@ -291,7 +291,6 @@ class ContentkitApiClient {
                 gitlabUserName
                 title
                 state
-                kind
               }
               sourceData {
                 title
