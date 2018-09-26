@@ -395,7 +395,7 @@ class ContentkitApiClient {
       query: `
         query{
           viewer{
-            topicSearchUser {
+            topicSearchUser(limit: 1000) {
               count
               hits {
                 _id
